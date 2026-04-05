@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
-  <!-- Security: CSP restricts script/style origins and blocks inline scripts.
-       GitHub Pages cannot set HTTP headers so this meta tag is the available mechanism.
-       frame-ancestors is intentionally omitted — it is ignored in meta CSP by all browsers.
-       SRI hashes removed pending cryptographic re-verification (tracked in issue #2). -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://unpkg.com; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; base-uri 'self'; form-action 'none';">
+  <!-- CSP temporarily removed to isolate rendering bug (tracked in issue #2).
+       Will be restored with verified SRI hashes once map is confirmed working. -->
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">

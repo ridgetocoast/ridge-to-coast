@@ -4,55 +4,75 @@
  * Depends on:
  *   - Leaflet (loaded before this script)
  *   - lib/geo-data.js (loaded before this script; exposes window.GeoData)
- *
- * All pure data and helpers live in lib/geo-data.js so they can be
- * unit-tested in Node without a browser or Leaflet mock.
  */
 
 'use strict';
 
-const {
-  FALL_LINE_GEOJSON,
-  COASTAL_PLAIN_GEOJSON,
-  PIEDMONT_GEOJSON,
-  STYLES,
-  makeRegionPopup,
-  makeFallLinePopup,
-} = window.GeoData;
+/* ─── Visible error handler ─────────────────────────────────────
+   Shows any JS error directly in the map div so it's visible on
+   mobile without needing browser devtools. Remove once stable.
+   ────────────────────────────────────────────────────────────── */
+function showError(msg) {
+  var el = document.getElementById('map');
+  el.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:24px';
+  el.innerHTML =
+    '<div style="background:#3a1020;border:1px solid #e84393;border-radius:8px;' +
+    'padding:16px;color:#f88;font-family:monospace;font-size:13px;max-width:320px">' +
+    '<strong style="color:#e84393">Map error</strong><br><br>' + msg + '</div>';
+}
+
+window.onerror = function (msg, src, line) {
+  showError(msg + '<br><br>' + (src || '') + (line ? ':' + line : ''));
+  return false;
+};
+
+/* ─── Guard: Leaflet ────────────────────────────────────────── */
+if (typeof L === 'undefined') {
+  showError('Leaflet failed to load.<br>Check network connection or CSP.');
+  throw new Error('Leaflet not loaded');
+}
+
+/* ─── Guard: GeoData ────────────────────────────────────────── */
+if (typeof window.GeoData === 'undefined') {
+  showError('lib/geo-data.js failed to load.<br>Check file path.');
+  throw new Error('GeoData not loaded');
+}
+
+var _gd = window.GeoData;
+var FALL_LINE_GEOJSON    = _gd.FALL_LINE_GEOJSON;
+var COASTAL_PLAIN_GEOJSON = _gd.COASTAL_PLAIN_GEOJSON;
+var PIEDMONT_GEOJSON     = _gd.PIEDMONT_GEOJSON;
+var STYLES               = _gd.STYLES;
+var makeRegionPopup      = _gd.makeRegionPopup;
+var makeFallLinePopup    = _gd.makeFallLinePopup;
 
 
 /* ─── Map initialization ────────────────────────────────────── */
 
-const map = L.map('map', {
-  center: [37.5407, -77.4360],   // Downtown Richmond, VA
+var map = L.map('map', {
+  center: [37.5407, -77.4360],
   zoom: 11,
   zoomControl: true,
-  attributionControl: false,     // custom attribution in our legend panel
+  attributionControl: false,
 });
 
-/* ─── Base tile layer (CARTO dark_all — free, no API key) ────────
-   Policy: CARTO tiles are free for low-traffic / personal use.
-   Attribution required: OSM contributors + CARTO (shown in legend panel).
-   CARTO does not support Leaflet's {r} retina placeholder — use
-   L.Browser.retina to conditionally append @2x to the URL instead.
-   ──────────────────────────────────────────────────────────────── */
-const tileScale = L.Browser.retina ? '@2x' : '';
+/* ─── Base tile layer (CARTO dark_all — free, no API key) ─────
+   Attribution required: OSM contributors + CARTO (shown in legend).
+   ────────────────────────────────────────────────────────────── */
+var tileScale = L.Browser.retina ? '@2x' : '';
 L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}' + tileScale + '.png',
-  {
-    subdomains: ['a', 'b', 'c', 'd'],
-    maxZoom: 20,
-  }
+  { subdomains: ['a', 'b', 'c', 'd'], maxZoom: 20 }
 ).addTo(map);
 
 
 /* ─── Layer builders ────────────────────────────────────────── */
 
 function buildRegionLayer(geojson) {
-  const style = STYLES[geojson.properties.region];
+  var style = STYLES[geojson.properties.region];
   return L.geoJSON(geojson, {
-    style,
-    onEachFeature(feature, layer) {
+    style: style,
+    onEachFeature: function (feature, layer) {
       layer.bindPopup(makeRegionPopup(feature.properties), { maxWidth: 260 });
       layer.on('mouseover', function () {
         this.setStyle({ fillOpacity: STYLES.regionHover.fillOpacity });
@@ -64,17 +84,16 @@ function buildRegionLayer(geojson) {
   });
 }
 
-const coastalLayer  = buildRegionLayer(COASTAL_PLAIN_GEOJSON);
-const piedmontLayer = buildRegionLayer(PIEDMONT_GEOJSON);
+var coastalLayer  = buildRegionLayer(COASTAL_PLAIN_GEOJSON);
+var piedmontLayer = buildRegionLayer(PIEDMONT_GEOJSON);
 
-const fallLineLayer = L.geoJSON(FALL_LINE_GEOJSON, {
+var fallLineLayer = L.geoJSON(FALL_LINE_GEOJSON, {
   style: STYLES.fallLine,
-  onEachFeature(feature, layer) {
+  onEachFeature: function (feature, layer) {
     layer.bindPopup(makeFallLinePopup(), { maxWidth: 260 });
   },
 });
 
-// Add to map — regions first so fall line renders on top
 coastalLayer.addTo(map);
 piedmontLayer.addTo(map);
 fallLineLayer.addTo(map);
@@ -103,6 +122,6 @@ document.getElementById('toggle-fallline').addEventListener('change', function (
 
 /* ─── Initial viewport ──────────────────────────────────────── */
 map.fitBounds([
-  [37.42, -77.60],   // SW — western Henrico / Chesterfield
-  [37.65, -77.25],   // NE — eastern Henrico / New Kent border
+  [37.42, -77.60],
+  [37.65, -77.25],
 ]);
