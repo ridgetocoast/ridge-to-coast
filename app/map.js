@@ -30,15 +30,20 @@ const map = L.map('map', {
   attributionControl: false,     // custom attribution in our legend panel
 });
 
-/* ─── Base tile layer (CARTO Dark Matter — free, no API key) ─────
+/* ─── Base tile layer (CARTO dark_all — free, no API key) ────────
    Policy: CARTO tiles are free for low-traffic / personal use.
    Attribution required: OSM contributors + CARTO (shown in legend panel).
+   CARTO does not support Leaflet's {r} retina placeholder — use
+   L.Browser.retina to conditionally append @2x to the URL instead.
    ──────────────────────────────────────────────────────────────── */
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter_all/{z}/{x}/{y}{r}.png', {
-  subdomains: ['a', 'b', 'c', 'd'],
-  maxZoom: 19,
-  detectRetina: true,
-}).addTo(map);
+const tileScale = L.Browser.retina ? '@2x' : '';
+L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}' + tileScale + '.png',
+  {
+    subdomains: ['a', 'b', 'c', 'd'],
+    maxZoom: 20,
+  }
+).addTo(map);
 
 
 /* ─── Layer builders ────────────────────────────────────────── */
