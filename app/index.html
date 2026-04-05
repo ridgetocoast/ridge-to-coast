@@ -4,22 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
-  <!-- Security: Content Security Policy (meta fallback — GitHub Pages cannot set HTTP headers) -->
-  <!-- Allows: self, Leaflet from unpkg (SRI-verified), CARTO tiles, OSM tile images -->
-  <!-- Blocks: inline scripts, eval, frames, forms to external sites -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'none';
-    script-src 'self' https://unpkg.com;
-    style-src 'self' https://unpkg.com 'unsafe-inline';
-    img-src 'self' https://*.basemaps.cartocdn.com data: blob:;
-    connect-src 'none';
-    frame-ancestors 'none';
-    base-uri 'self';
-    form-action 'none';
-  ">
-  <!-- Note: 'unsafe-inline' is required for style-src because Leaflet sets inline styles
-       via JavaScript for tile/marker positioning. Script execution remains locked to 'self'
-       and the SRI-verified unpkg bundle — no inline scripts are used. -->
+  <!-- Security: CSP restricts script/style origins and blocks inline scripts.
+       GitHub Pages cannot set HTTP headers so this meta tag is the available mechanism.
+       frame-ancestors is intentionally omitted — it is ignored in meta CSP by all browsers.
+       SRI hashes removed pending cryptographic re-verification (tracked in issue #2). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://unpkg.com; style-src 'self' https://unpkg.com 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; base-uri 'self'; form-action 'none';">
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -27,13 +16,8 @@
   <title>Richmond Fall Line Map</title>
   <meta name="description" content="Interactive map of Richmond, VA showing the Atlantic Seaboard Fall Line separating the Coastal Plain and Piedmont regions.">
 
-  <!-- Leaflet 1.9.4 — SRI hashes verified against https://leafletjs.com/download.html -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin="anonymous"
-  >
+  <!-- Leaflet 1.9.4 — integrity removed until hashes are cryptographically verified (issue #2) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -77,12 +61,8 @@
     </p>
   </div>
 
-  <!-- Leaflet 1.9.4 — SRI hash verified -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin="anonymous"
-  ></script>
+  <!-- Leaflet 1.9.4 — integrity removed until hashes are cryptographically verified (issue #2) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
   <!-- Pure geographic data — no DOM or Leaflet dependency; also used by unit tests -->
   <script src="lib/geo-data.js"></script>
