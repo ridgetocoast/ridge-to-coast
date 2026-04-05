@@ -26,25 +26,23 @@ window.onerror = function (msg, src, line) {
   return false;
 };
 
-/* ─── Guard: Leaflet ────────────────────────────────────────── */
+/* ─── Guards ────────────────────────────────────────────────── */
 if (typeof L === 'undefined') {
-  showError('Leaflet failed to load.<br>Check network connection or CSP.');
+  showError('Leaflet failed to load.<br>Check network connection.');
   throw new Error('Leaflet not loaded');
 }
 
-/* ─── Guard: GeoData ────────────────────────────────────────── */
 if (typeof window.GeoData === 'undefined') {
   showError('lib/geo-data.js failed to load.<br>Check file path.');
   throw new Error('GeoData not loaded');
 }
 
-var _gd = window.GeoData;
-var FALL_LINE_GEOJSON    = _gd.FALL_LINE_GEOJSON;
-var COASTAL_PLAIN_GEOJSON = _gd.COASTAL_PLAIN_GEOJSON;
-var PIEDMONT_GEOJSON     = _gd.PIEDMONT_GEOJSON;
-var STYLES               = _gd.STYLES;
-var makeRegionPopup      = _gd.makeRegionPopup;
-var makeFallLinePopup    = _gd.makeFallLinePopup;
+/* ─── Single reference to GeoData — no re-declaring its names ──
+   geo-data.js uses const internally; re-declaring those same names
+   here (even with var) causes "already declared" in the browser's
+   shared global scope. Use a namespace alias instead.
+   ────────────────────────────────────────────────────────────── */
+var gd = window.GeoData;
 
 
 /* ─── Map initialization ────────────────────────────────────── */
@@ -69,13 +67,13 @@ L.tileLayer(
 /* ─── Layer builders ────────────────────────────────────────── */
 
 function buildRegionLayer(geojson) {
-  var style = STYLES[geojson.properties.region];
+  var style = gd.STYLES[geojson.properties.region];
   return L.geoJSON(geojson, {
     style: style,
     onEachFeature: function (feature, layer) {
-      layer.bindPopup(makeRegionPopup(feature.properties), { maxWidth: 260 });
+      layer.bindPopup(gd.makeRegionPopup(feature.properties), { maxWidth: 260 });
       layer.on('mouseover', function () {
-        this.setStyle({ fillOpacity: STYLES.regionHover.fillOpacity });
+        this.setStyle({ fillOpacity: gd.STYLES.regionHover.fillOpacity });
       });
       layer.on('mouseout', function () {
         this.setStyle({ fillOpacity: style.fillOpacity });
@@ -84,13 +82,13 @@ function buildRegionLayer(geojson) {
   });
 }
 
-var coastalLayer  = buildRegionLayer(COASTAL_PLAIN_GEOJSON);
-var piedmontLayer = buildRegionLayer(PIEDMONT_GEOJSON);
+var coastalLayer  = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
+var piedmontLayer = buildRegionLayer(gd.PIEDMONT_GEOJSON);
 
-var fallLineLayer = L.geoJSON(FALL_LINE_GEOJSON, {
-  style: STYLES.fallLine,
+var fallLineLayer = L.geoJSON(gd.FALL_LINE_GEOJSON, {
+  style: gd.STYLES.fallLine,
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(makeFallLinePopup(), { maxWidth: 260 });
+    layer.bindPopup(gd.makeFallLinePopup(), { maxWidth: 260 });
   },
 });
 

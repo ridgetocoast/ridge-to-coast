@@ -7,8 +7,13 @@
  *   - Node.js unit tests (loaded via require(); exports GeoData)
  *
  * Nothing in here may reference `L`, `document`, `window`, or `fetch`.
+ *
+ * Wrapped in an IIFE so internal const/let declarations stay scoped
+ * to this file and do not leak into the browser's global scope —
+ * preventing "already declared" conflicts with map.js.
  */
 
+(function () {
 'use strict';
 
 /* ─── Fall Line coordinates ─────────────────────────────────────
@@ -229,7 +234,7 @@ const GeoData = {
   minDistanceToFallLine,
 };
 
-// Browser: attach to window so map.js and index.html can access it
+// Browser: attach to window so map.js can access it
 if (typeof window !== 'undefined') {
   window.GeoData = GeoData;
 }
@@ -238,3 +243,5 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined') {
   module.exports = GeoData;
 }
+
+}()); // end IIFE
