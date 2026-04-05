@@ -4,7 +4,7 @@ on:
   push:
     branches: ["**"]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 # Minimal permissions — this workflow only reads code and uploads artifacts.
 # It never writes to the repo or calls the GitHub API.
