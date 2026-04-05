@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+
+  <!-- Security: Content Security Policy (meta fallback — GitHub Pages cannot set HTTP headers) -->
+  <!-- Allows: self, Leaflet from unpkg (SRI-verified), CARTO tiles, OSM tile images -->
+  <!-- Blocks: inline scripts, eval, frames, forms to external sites -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' https://unpkg.com;
+    style-src 'self' https://unpkg.com 'unsafe-inline';
+    img-src 'self' https://*.basemaps.cartocdn.com data: blob:;
+    connect-src 'none';
+    frame-ancestors 'none';
+    base-uri 'self';
+    form-action 'none';
+  ">
+  <!-- Note: 'unsafe-inline' is required for style-src because Leaflet sets inline styles
+       via JavaScript for tile/marker positioning. Script execution remains locked to 'self'
+       and the SRI-verified unpkg bundle — no inline scripts are used. -->
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+  <title>Richmond Fall Line Map</title>
+  <meta name="description" content="Interactive map of Richmond, VA showing the Atlantic Seaboard Fall Line separating the Coastal Plain and Piedmont regions.">
+
+  <!-- Leaflet 1.9.4 — SRI hashes verified against https://leafletjs.com/download.html -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="anonymous"
+  >
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>Richmond Fall Line</h1>
+    <p class="subtitle">Coastal Plain &amp; Piedmont regions</p>
+  </header>
+
+  <div id="map" role="region" aria-label="Interactive map of Richmond, VA fall line"></div>
+
+  <div id="legend" aria-label="Map legend">
+    <h2>Legend</h2>
+    <div class="legend-item">
+      <span class="swatch coastal"></span>
+      <span>Coastal Plain (Tidewater)</span>
+    </div>
+    <div class="legend-item">
+      <span class="swatch piedmont"></span>
+      <span>Piedmont</span>
+    </div>
+    <div class="legend-item">
+      <span class="swatch fallline"></span>
+      <span>Fall Line <em>(approximate)</em></span>
+    </div>
+    <hr>
+    <div class="layer-toggles">
+      <label class="toggle">
+        <input type="checkbox" id="toggle-regions" checked>
+        Region shading
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-fallline" checked>
+        Fall line
+      </label>
+    </div>
+    <p class="attribution-note">
+      &copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap</a>
+      contributors &copy; <a href="https://carto.com/attributions" rel="noopener noreferrer" target="_blank">CARTO</a>
+    </p>
+  </div>
+
+  <!-- Leaflet 1.9.4 — SRI hash verified -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Pure geographic data — no DOM or Leaflet dependency; also used by unit tests -->
+  <script src="lib/geo-data.js"></script>
+
+  <script src="map.js"></script>
+</body>
+</html>

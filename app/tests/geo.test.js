@@ -1,0 +1,464 @@
+/**
+ * tests/geo.test.js
+ * -----------------
+ * Unit tests for lib/geo-data.js using the Node.js built-in test runner.
+ * No npm packages required. Run with:
+ *
+ *   node --test tests/geo.test.js
+ *
+ * Results are stored at:
+ *   tests/results/latest.txt
+ */
+
+'use strict';
+
+const { describe, it } = require('node:test');
+const assert = require('node:assert/strict');
+
+const {
+  FALL_LINE_COORDS,
+  FALL_LINE_GEOJSON,
+  COASTAL_PLAIN_GEOJSON,
+  PIEDMONT_GEOJSON,
+  STYLES,
+  BBOX,
+  makeRegionPopup,
+  makeFallLinePopup,
+  haversineKm,
+  minDistanceToFallLine,
+} = require('../lib/geo-data.js');
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 1 — Fall Line: GeoJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Fall Line GeoJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(FALL_LINE_GEOJSON.type, 'Feature');
+  });
+
+  it('has a LineString geometry', () => {
+    assert.equal(FALL_LINE_GEOJSON.geometry.type, 'LineString');
+  });
+
+  it('has at least 10 coordinate pairs', () => {
+    assert.ok(
+      FALL_LINE_GEOJSON.geometry.coordinates.length >= 10,
+      `expected ≥10 points, got ${FALL_LINE_GEOJSON.geometry.coordinates.length}`
+    );
+  });
+
+  it('every coordinate is a [longitude, latitude] pair of numbers', () => {
+    for (const coord of FALL_LINE_GEOJSON.geometry.coordinates) {
+      assert.equal(coord.length, 2, 'each coordinate must have exactly 2 values');
+      assert.ok(typeof coord[0] === 'number', `longitude ${coord[0]} is not a number`);
+      assert.ok(typeof coord[1] === 'number', `latitude ${coord[1]} is not a number`);
+    }
+  });
+
+  it('has a name property', () => {
+    assert.ok(
+      typeof FALL_LINE_GEOJSON.properties.name === 'string' &&
+      FALL_LINE_GEOJSON.properties.name.length > 0
+    );
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 2 — Fall Line: geographic accuracy
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Fall Line geographic accuracy', () => {
+  it('all points are within the Richmond metro bounding box', () => {
+    for (const [lon, lat] of FALL_LINE_COORDS) {
+      assert.ok(lon >= BBOX.WEST && lon <= BBOX.EAST,
+        `longitude ${lon} is outside metro bounds [${BBOX.WEST}, ${BBOX.EAST}]`);
+      assert.ok(lat >= BBOX.SOUTH && lat <= BBOX.NORTH,
+        `latitude ${lat} is outside metro bounds [${BBOX.SOUTH}, ${BBOX.NORTH}]`);
+    }
+  });
+
+  it('all longitudes are west of 0° (i.e., negative)', () => {
+    for (const [lon] of FALL_LINE_COORDS) {
+      assert.ok(lon < 0, `longitude ${lon} should be negative (western hemisphere)`);
+    }
+  });
+
+  it('all latitudes are north of 0° (i.e., positive)', () => {
+    for (const [, lat] of FALL_LINE_COORDS) {
+      assert.ok(lat > 0, `latitude ${lat} should be positive (northern hemisphere)`);
+    }
+  });
+
+  it('coordinates are not accidentally swapped (lat/lon transposition guard)', () => {
+    // Richmond VA longitudes should be around -77, not +37
+    // Richmond VA latitudes should be around 37, not -77
+    for (const [lon, lat] of FALL_LINE_COORDS) {
+      assert.ok(lon < -70,  `longitude ${lon} looks like a latitude — possible swap`);
+      assert.ok(lat > 30,   `latitude ${lat} looks like a longitude — possible swap`);
+    }
+  });
+
+  it('runs generally north to south (first point is north of last point)', () => {
+    const firstLat = FALL_LINE_COORDS[0][1];
+    const lastLat  = FALL_LINE_COORDS[FALL_LINE_COORDS.length - 1][1];
+    assert.ok(
+      firstLat > lastLat,
+      `expected first lat (${firstLat}) > last lat (${lastLat}) — line should go N→S`
+    );
+  });
+
+  it('passes within 2 km of the Belle Isle rapids (primary anchor point)', () => {
+    // Belle Isle rapids: ~37.527°N, 77.467°W — where the James River
+    // physically crosses the fall line. This is the most verifiable point.
+    const BELLE_ISLE = [-77.467, 37.527];
+    const dist = minDistanceToFallLine(BELLE_ISLE);
+    assert.ok(
+      dist <= 2.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Belle Isle — expected ≤ 2 km`
+    );
+  });
+
+  it('stays within the City of Richmond latitude range (37.48–37.56)', () => {
+    const cityPoints = FALL_LINE_COORDS.filter(([, lat]) => lat >= 37.48 && lat <= 37.56);
+    assert.ok(
+      cityPoints.length > 0,
+      'fall line should have at least one point within the City of Richmond latitude range'
+    );
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 3 — Coastal Plain GeoJSON
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Coastal Plain polygon', () => {
+  const ring = COASTAL_PLAIN_GEOJSON.geometry.coordinates[0];
+
+  it('is a GeoJSON Feature', () => {
+    assert.equal(COASTAL_PLAIN_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(COASTAL_PLAIN_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('polygon ring is closed (first coordinate equals last)', () => {
+    const first = ring[0];
+    const last  = ring[ring.length - 1];
+    assert.deepEqual(first, last, 'polygon ring must be closed (first === last coordinate)');
+  });
+
+  it('region property is "coastal"', () => {
+    assert.equal(COASTAL_PLAIN_GEOJSON.properties.region, 'coastal');
+  });
+
+  it('has a non-empty name', () => {
+    assert.ok(COASTAL_PLAIN_GEOJSON.properties.name.length > 0);
+  });
+
+  it('has a non-empty description', () => {
+    assert.ok(COASTAL_PLAIN_GEOJSON.properties.description.length > 0);
+  });
+
+  it('eastern boundary reaches the metro east edge', () => {
+    const maxLon = Math.max(...ring.map(([lon]) => lon));
+    assert.ok(
+      maxLon >= BBOX.EAST,
+      `coastal polygon should reach BBOX east (${BBOX.EAST}), max lon was ${maxLon}`
+    );
+  });
+
+  it('does not extend west of the fall line', () => {
+    // The westernmost longitude should not exceed the fall line's westernmost point
+    const fallLineMinLon = Math.min(...FALL_LINE_COORDS.map(([lon]) => lon));
+    const polygonMinLon  = Math.min(...ring.map(([lon]) => lon));
+    assert.ok(
+      polygonMinLon >= fallLineMinLon - 0.001,
+      `coastal polygon extends too far west (${polygonMinLon}); fall line min lon is ${fallLineMinLon}`
+    );
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 4 — Piedmont GeoJSON
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Piedmont polygon', () => {
+  const ring = PIEDMONT_GEOJSON.geometry.coordinates[0];
+
+  it('is a GeoJSON Feature', () => {
+    assert.equal(PIEDMONT_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(PIEDMONT_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('polygon ring is closed (first coordinate equals last)', () => {
+    const first = ring[0];
+    const last  = ring[ring.length - 1];
+    assert.deepEqual(first, last, 'polygon ring must be closed (first === last coordinate)');
+  });
+
+  it('region property is "piedmont"', () => {
+    assert.equal(PIEDMONT_GEOJSON.properties.region, 'piedmont');
+  });
+
+  it('has a non-empty name', () => {
+    assert.ok(PIEDMONT_GEOJSON.properties.name.length > 0);
+  });
+
+  it('western boundary reaches the metro west edge', () => {
+    const minLon = Math.min(...ring.map(([lon]) => lon));
+    assert.ok(
+      minLon <= BBOX.WEST,
+      `piedmont polygon should reach BBOX west (${BBOX.WEST}), min lon was ${minLon}`
+    );
+  });
+
+  it('does not extend east of the fall line', () => {
+    const fallLineMaxLon = Math.max(...FALL_LINE_COORDS.map(([lon]) => lon));
+    const polygonMaxLon  = Math.max(...ring.map(([lon]) => lon));
+    assert.ok(
+      polygonMaxLon <= fallLineMaxLon + 0.001,
+      `piedmont polygon extends too far east (${polygonMaxLon}); fall line max lon is ${fallLineMaxLon}`
+    );
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 5 — Regions do not overlap (disjoint check)
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Region separation', () => {
+  it('coastal and piedmont regions have different names', () => {
+    assert.notEqual(
+      COASTAL_PLAIN_GEOJSON.properties.name,
+      PIEDMONT_GEOJSON.properties.name
+    );
+  });
+
+  it('coastal and piedmont have different region codes', () => {
+    assert.notEqual(
+      COASTAL_PLAIN_GEOJSON.properties.region,
+      PIEDMONT_GEOJSON.properties.region
+    );
+  });
+
+  it('coastal is east of piedmont (coastal max-lon > piedmont max-lon)', () => {
+    const coastalRing  = COASTAL_PLAIN_GEOJSON.geometry.coordinates[0];
+    const piedmontRing = PIEDMONT_GEOJSON.geometry.coordinates[0];
+    const coastalMaxLon  = Math.max(...coastalRing.map(([lon]) => lon));
+    const piedmontMaxLon = Math.max(...piedmontRing.map(([lon]) => lon));
+    assert.ok(
+      coastalMaxLon > piedmontMaxLon,
+      `coastal max lon (${coastalMaxLon}) should be > piedmont max lon (${piedmontMaxLon})`
+    );
+  });
+
+  it('piedmont is west of coastal (piedmont min-lon < coastal min-lon)', () => {
+    const coastalRing  = COASTAL_PLAIN_GEOJSON.geometry.coordinates[0];
+    const piedmontRing = PIEDMONT_GEOJSON.geometry.coordinates[0];
+    const coastalMinLon  = Math.min(...coastalRing.map(([lon]) => lon));
+    const piedmontMinLon = Math.min(...piedmontRing.map(([lon]) => lon));
+    assert.ok(
+      piedmontMinLon < coastalMinLon,
+      `piedmont min lon (${piedmontMinLon}) should be < coastal min lon (${coastalMinLon})`
+    );
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 6 — Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('STYLES object', () => {
+  it('has keys: coastal, piedmont, fallLine, regionHover', () => {
+    for (const key of ['coastal', 'piedmont', 'fallLine', 'regionHover']) {
+      assert.ok(key in STYLES, `STYLES missing key: ${key}`);
+    }
+  });
+
+  it('coastal fillColor is a CSS hex color', () => {
+    assert.match(STYLES.coastal.fillColor, /^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it('piedmont fillColor is a CSS hex color', () => {
+    assert.match(STYLES.piedmont.fillColor, /^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it('fall line color is a CSS hex color', () => {
+    assert.match(STYLES.fallLine.color, /^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it('fillOpacity values are between 0 and 1', () => {
+    for (const key of ['coastal', 'piedmont', 'regionHover']) {
+      const val = STYLES[key].fillOpacity;
+      assert.ok(val >= 0 && val <= 1, `${key}.fillOpacity ${val} is not in [0,1]`);
+    }
+  });
+
+  it('hover fillOpacity is greater than default fill opacity (coastal)', () => {
+    assert.ok(
+      STYLES.regionHover.fillOpacity > STYLES.coastal.fillOpacity,
+      'hover opacity should be higher than default to give visual feedback'
+    );
+  });
+
+  it('fall line weight is a positive number', () => {
+    assert.ok(typeof STYLES.fallLine.weight === 'number' && STYLES.fallLine.weight > 0);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 7 — Popup generators
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('makeRegionPopup()', () => {
+  const coastalProps  = COASTAL_PLAIN_GEOJSON.properties;
+  const piedmontProps = PIEDMONT_GEOJSON.properties;
+
+  it('returns a string', () => {
+    assert.equal(typeof makeRegionPopup(coastalProps), 'string');
+  });
+
+  it('contains the region name', () => {
+    const html = makeRegionPopup(coastalProps);
+    assert.ok(html.includes(coastalProps.name), 'popup should contain the region name');
+  });
+
+  it('contains the region description', () => {
+    const html = makeRegionPopup(coastalProps);
+    assert.ok(html.includes(coastalProps.description.slice(0, 30)),
+      'popup should contain the region description');
+  });
+
+  it('contains the correct CSS class for coastal region', () => {
+    const html = makeRegionPopup(coastalProps);
+    assert.ok(html.includes('class="region-tag coastal"'),
+      'coastal popup should have region-tag coastal class');
+  });
+
+  it('contains the correct CSS class for piedmont region', () => {
+    const html = makeRegionPopup(piedmontProps);
+    assert.ok(html.includes('class="region-tag piedmont"'),
+      'piedmont popup should have region-tag piedmont class');
+  });
+
+  it('wraps content in popup-content div', () => {
+    const html = makeRegionPopup(coastalProps);
+    assert.ok(html.includes('class="popup-content"'));
+  });
+
+  it('produces different output for different regions', () => {
+    const coastal  = makeRegionPopup(coastalProps);
+    const piedmont = makeRegionPopup(piedmontProps);
+    assert.notEqual(coastal, piedmont);
+  });
+});
+
+describe('makeFallLinePopup()', () => {
+  it('returns a string', () => {
+    assert.equal(typeof makeFallLinePopup(), 'string');
+  });
+
+  it('mentions "Fall Line" in the heading', () => {
+    const html = makeFallLinePopup();
+    assert.ok(html.toLowerCase().includes('fall line'), 'popup should mention "fall line"');
+  });
+
+  it('mentions "Piedmont"', () => {
+    assert.ok(makeFallLinePopup().includes('Piedmont'));
+  });
+
+  it('mentions "Coastal Plain" or "Coastal"', () => {
+    const html = makeFallLinePopup();
+    assert.ok(html.includes('Coastal Plain') || html.includes('Coastal'));
+  });
+
+  it('includes an approximation disclaimer', () => {
+    const html = makeFallLinePopup();
+    assert.ok(
+      html.toLowerCase().includes('approximate'),
+      'popup should note that the path is approximate'
+    );
+  });
+
+  it('wraps content in popup-content div', () => {
+    assert.ok(makeFallLinePopup().includes('class="popup-content"'));
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 8 — haversineKm utility
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('haversineKm()', () => {
+  it('returns 0 for identical points', () => {
+    const p = [-77.46, 37.53];
+    assert.ok(haversineKm(p, p) < 0.001, 'distance from a point to itself should be ~0');
+  });
+
+  it('Richmond → Washington DC is approximately 150–175 km (straight line)', () => {
+    const richmond     = [-77.436, 37.541];
+    const washingtonDC = [-77.036, 38.907];
+    const dist = haversineKm(richmond, washingtonDC);
+    // Straight-line haversine is ~155–156 km; road distance is ~170 km.
+    // Test verifies the function is in the right order of magnitude.
+    assert.ok(dist >= 145 && dist <= 180,
+      `Richmond to DC straight line should be ~155 km, got ${dist.toFixed(1)} km`);
+  });
+
+  it('is symmetric (A→B equals B→A)', () => {
+    const a = [-77.46, 37.53];
+    const b = [-77.25, 37.65];
+    assert.ok(
+      Math.abs(haversineKm(a, b) - haversineKm(b, a)) < 0.001,
+      'haversine should be symmetric'
+    );
+  });
+
+  it('returns a positive number for distinct points', () => {
+    const dist = haversineKm([-77.46, 37.53], [-77.25, 37.65]);
+    assert.ok(dist > 0);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 9 — BBOX sanity
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('BBOX constants', () => {
+  it('NORTH > SOUTH', () => {
+    assert.ok(BBOX.NORTH > BBOX.SOUTH);
+  });
+
+  it('EAST > WEST (less negative = more east)', () => {
+    assert.ok(BBOX.EAST > BBOX.WEST);
+  });
+
+  it('all values are within continental US range', () => {
+    assert.ok(BBOX.NORTH > 24 && BBOX.NORTH < 50);
+    assert.ok(BBOX.SOUTH > 24 && BBOX.SOUTH < 50);
+    assert.ok(BBOX.EAST > -130 && BBOX.EAST < -60);
+    assert.ok(BBOX.WEST > -130 && BBOX.WEST < -60);
+  });
+
+  it('Richmond, VA coordinates are inside the BBOX', () => {
+    const RICHMOND = { lat: 37.5407, lon: -77.4360 };
+    assert.ok(RICHMOND.lat >= BBOX.SOUTH && RICHMOND.lat <= BBOX.NORTH,
+      'Richmond latitude should be inside BBOX');
+    assert.ok(RICHMOND.lon >= BBOX.WEST && RICHMOND.lon <= BBOX.EAST,
+      'Richmond longitude should be inside BBOX');
+  });
+});

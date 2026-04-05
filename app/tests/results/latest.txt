@@ -1,0 +1,434 @@
+TAP version 13
+# Subtest: Fall Line GeoJSON structure
+    # Subtest: is a GeoJSON Feature
+    ok 1 - is a GeoJSON Feature
+      ---
+      duration_ms: 0.542613
+      type: 'test'
+      ...
+    # Subtest: has a LineString geometry
+    ok 2 - has a LineString geometry
+      ---
+      duration_ms: 0.133799
+      type: 'test'
+      ...
+    # Subtest: has at least 10 coordinate pairs
+    ok 3 - has at least 10 coordinate pairs
+      ---
+      duration_ms: 0.175831
+      type: 'test'
+      ...
+    # Subtest: every coordinate is a [longitude, latitude] pair of numbers
+    ok 4 - every coordinate is a [longitude, latitude] pair of numbers
+      ---
+      duration_ms: 0.166007
+      type: 'test'
+      ...
+    # Subtest: has a name property
+    ok 5 - has a name property
+      ---
+      duration_ms: 0.326315
+      type: 'test'
+      ...
+    1..5
+ok 1 - Fall Line GeoJSON structure
+  ---
+  duration_ms: 2.212615
+  type: 'suite'
+  ...
+# Subtest: Fall Line geographic accuracy
+    # Subtest: all points are within the Richmond metro bounding box
+    ok 1 - all points are within the Richmond metro bounding box
+      ---
+      duration_ms: 0.373524
+      type: 'test'
+      ...
+    # Subtest: all longitudes are west of 0° (i.e., negative)
+    ok 2 - all longitudes are west of 0° (i.e., negative)
+      ---
+      duration_ms: 0.20886
+      type: 'test'
+      ...
+    # Subtest: all latitudes are north of 0° (i.e., positive)
+    ok 3 - all latitudes are north of 0° (i.e., positive)
+      ---
+      duration_ms: 1.051747
+      type: 'test'
+      ...
+    # Subtest: coordinates are not accidentally swapped (lat/lon transposition guard)
+    ok 4 - coordinates are not accidentally swapped (lat/lon transposition guard)
+      ---
+      duration_ms: 0.32017
+      type: 'test'
+      ...
+    # Subtest: runs generally north to south (first point is north of last point)
+    ok 5 - runs generally north to south (first point is north of last point)
+      ---
+      duration_ms: 0.20793
+      type: 'test'
+      ...
+    # Subtest: passes within 2 km of the Belle Isle rapids (primary anchor point)
+    ok 6 - passes within 2 km of the Belle Isle rapids (primary anchor point)
+      ---
+      duration_ms: 0.194703
+      type: 'test'
+      ...
+    # Subtest: stays within the City of Richmond latitude range (37.48–37.56)
+    ok 7 - stays within the City of Richmond latitude range (37.48–37.56)
+      ---
+      duration_ms: 0.129618
+      type: 'test'
+      ...
+    1..7
+ok 2 - Fall Line geographic accuracy
+  ---
+  duration_ms: 2.832102
+  type: 'suite'
+  ...
+# Subtest: Coastal Plain polygon
+    # Subtest: is a GeoJSON Feature
+    ok 1 - is a GeoJSON Feature
+      ---
+      duration_ms: 0.10416
+      type: 'test'
+      ...
+    # Subtest: has a Polygon geometry
+    ok 2 - has a Polygon geometry
+      ---
+      duration_ms: 0.056679
+      type: 'test'
+      ...
+    # Subtest: polygon ring is closed (first coordinate equals last)
+    ok 3 - polygon ring is closed (first coordinate equals last)
+      ---
+      duration_ms: 1.184809
+      type: 'test'
+      ...
+    # Subtest: region property is "coastal"
+    ok 4 - region property is "coastal"
+      ---
+      duration_ms: 0.067865
+      type: 'test'
+      ...
+    # Subtest: has a non-empty name
+    ok 5 - has a non-empty name
+      ---
+      duration_ms: 0.043679
+      type: 'test'
+      ...
+    # Subtest: has a non-empty description
+    ok 6 - has a non-empty description
+      ---
+      duration_ms: 0.038012
+      type: 'test'
+      ...
+    # Subtest: eastern boundary reaches the metro east edge
+    ok 7 - eastern boundary reaches the metro east edge
+      ---
+      duration_ms: 0.0865
+      type: 'test'
+      ...
+    # Subtest: does not extend west of the fall line
+    ok 8 - does not extend west of the fall line
+      ---
+      duration_ms: 0.077972
+      type: 'test'
+      ...
+    1..8
+ok 3 - Coastal Plain polygon
+  ---
+  duration_ms: 1.86218
+  type: 'suite'
+  ...
+# Subtest: Piedmont polygon
+    # Subtest: is a GeoJSON Feature
+    ok 1 - is a GeoJSON Feature
+      ---
+      duration_ms: 0.087967
+      type: 'test'
+      ...
+    # Subtest: has a Polygon geometry
+    ok 2 - has a Polygon geometry
+      ---
+      duration_ms: 0.047208
+      type: 'test'
+      ...
+    # Subtest: polygon ring is closed (first coordinate equals last)
+    ok 3 - polygon ring is closed (first coordinate equals last)
+      ---
+      duration_ms: 0.047798
+      type: 'test'
+      ...
+    # Subtest: region property is "piedmont"
+    ok 4 - region property is "piedmont"
+      ---
+      duration_ms: 0.068892
+      type: 'test'
+      ...
+    # Subtest: has a non-empty name
+    ok 5 - has a non-empty name
+      ---
+      duration_ms: 0.044781
+      type: 'test'
+      ...
+    # Subtest: western boundary reaches the metro west edge
+    ok 6 - western boundary reaches the metro west edge
+      ---
+      duration_ms: 0.074495
+      type: 'test'
+      ...
+    # Subtest: does not extend east of the fall line
+    ok 7 - does not extend east of the fall line
+      ---
+      duration_ms: 0.114102
+      type: 'test'
+      ...
+    1..7
+ok 4 - Piedmont polygon
+  ---
+  duration_ms: 0.591064
+  type: 'suite'
+  ...
+# Subtest: Region separation
+    # Subtest: coastal and piedmont regions have different names
+    ok 1 - coastal and piedmont regions have different names
+      ---
+      duration_ms: 0.09783
+      type: 'test'
+      ...
+    # Subtest: coastal and piedmont have different region codes
+    ok 2 - coastal and piedmont have different region codes
+      ---
+      duration_ms: 0.054399
+      type: 'test'
+      ...
+    # Subtest: coastal is east of piedmont (coastal max-lon > piedmont max-lon)
+    ok 3 - coastal is east of piedmont (coastal max-lon > piedmont max-lon)
+      ---
+      duration_ms: 0.188939
+      type: 'test'
+      ...
+    # Subtest: piedmont is west of coastal (piedmont min-lon < coastal min-lon)
+    ok 4 - piedmont is west of coastal (piedmont min-lon < coastal min-lon)
+      ---
+      duration_ms: 0.089563
+      type: 'test'
+      ...
+    1..4
+ok 5 - Region separation
+  ---
+  duration_ms: 0.511482
+  type: 'suite'
+  ...
+# Subtest: STYLES object
+    # Subtest: has keys: coastal, piedmont, fallLine, regionHover
+    ok 1 - has keys: coastal, piedmont, fallLine, regionHover
+      ---
+      duration_ms: 0.129049
+      type: 'test'
+      ...
+    # Subtest: coastal fillColor is a CSS hex color
+    ok 2 - coastal fillColor is a CSS hex color
+      ---
+      duration_ms: 0.142938
+      type: 'test'
+      ...
+    # Subtest: piedmont fillColor is a CSS hex color
+    ok 3 - piedmont fillColor is a CSS hex color
+      ---
+      duration_ms: 0.07197
+      type: 'test'
+      ...
+    # Subtest: fall line color is a CSS hex color
+    ok 4 - fall line color is a CSS hex color
+      ---
+      duration_ms: 0.086762
+      type: 'test'
+      ...
+    # Subtest: fillOpacity values are between 0 and 1
+    ok 5 - fillOpacity values are between 0 and 1
+      ---
+      duration_ms: 0.069425
+      type: 'test'
+      ...
+    # Subtest: hover fillOpacity is greater than default fill opacity (coastal)
+    ok 6 - hover fillOpacity is greater than default fill opacity (coastal)
+      ---
+      duration_ms: 0.054541
+      type: 'test'
+      ...
+    # Subtest: fall line weight is a positive number
+    ok 7 - fall line weight is a positive number
+      ---
+      duration_ms: 0.660946
+      type: 'test'
+      ...
+    1..7
+ok 6 - STYLES object
+  ---
+  duration_ms: 1.348697
+  type: 'suite'
+  ...
+# Subtest: makeRegionPopup()
+    # Subtest: returns a string
+    ok 1 - returns a string
+      ---
+      duration_ms: 0.341428
+      type: 'test'
+      ...
+    # Subtest: contains the region name
+    ok 2 - contains the region name
+      ---
+      duration_ms: 0.068848
+      type: 'test'
+      ...
+    # Subtest: contains the region description
+    ok 3 - contains the region description
+      ---
+      duration_ms: 0.050673
+      type: 'test'
+      ...
+    # Subtest: contains the correct CSS class for coastal region
+    ok 4 - contains the correct CSS class for coastal region
+      ---
+      duration_ms: 0.041862
+      type: 'test'
+      ...
+    # Subtest: contains the correct CSS class for piedmont region
+    ok 5 - contains the correct CSS class for piedmont region
+      ---
+      duration_ms: 0.041606
+      type: 'test'
+      ...
+    # Subtest: wraps content in popup-content div
+    ok 6 - wraps content in popup-content div
+      ---
+      duration_ms: 0.041695
+      type: 'test'
+      ...
+    # Subtest: produces different output for different regions
+    ok 7 - produces different output for different regions
+      ---
+      duration_ms: 0.042692
+      type: 'test'
+      ...
+    1..7
+ok 7 - makeRegionPopup()
+  ---
+  duration_ms: 0.78004
+  type: 'suite'
+  ...
+# Subtest: makeFallLinePopup()
+    # Subtest: returns a string
+    ok 1 - returns a string
+      ---
+      duration_ms: 0.15027
+      type: 'test'
+      ...
+    # Subtest: mentions "Fall Line" in the heading
+    ok 2 - mentions "Fall Line" in the heading
+      ---
+      duration_ms: 0.062805
+      type: 'test'
+      ...
+    # Subtest: mentions "Piedmont"
+    ok 3 - mentions "Piedmont"
+      ---
+      duration_ms: 0.042717
+      type: 'test'
+      ...
+    # Subtest: mentions "Coastal Plain" or "Coastal"
+    ok 4 - mentions "Coastal Plain" or "Coastal"
+      ---
+      duration_ms: 0.081776
+      type: 'test'
+      ...
+    # Subtest: includes an approximation disclaimer
+    ok 5 - includes an approximation disclaimer
+      ---
+      duration_ms: 0.059347
+      type: 'test'
+      ...
+    # Subtest: wraps content in popup-content div
+    ok 6 - wraps content in popup-content div
+      ---
+      duration_ms: 0.041347
+      type: 'test'
+      ...
+    1..6
+ok 8 - makeFallLinePopup()
+  ---
+  duration_ms: 0.537006
+  type: 'suite'
+  ...
+# Subtest: haversineKm()
+    # Subtest: returns 0 for identical points
+    ok 1 - returns 0 for identical points
+      ---
+      duration_ms: 0.08475
+      type: 'test'
+      ...
+    # Subtest: Richmond → Washington DC is approximately 150–175 km (straight line)
+    ok 2 - Richmond → Washington DC is approximately 150–175 km (straight line)
+      ---
+      duration_ms: 0.060393
+      type: 'test'
+      ...
+    # Subtest: is symmetric (A→B equals B→A)
+    ok 3 - is symmetric (A→B equals B→A)
+      ---
+      duration_ms: 0.051173
+      type: 'test'
+      ...
+    # Subtest: returns a positive number for distinct points
+    ok 4 - returns a positive number for distinct points
+      ---
+      duration_ms: 0.042377
+      type: 'test'
+      ...
+    1..4
+ok 9 - haversineKm()
+  ---
+  duration_ms: 0.309701
+  type: 'suite'
+  ...
+# Subtest: BBOX constants
+    # Subtest: NORTH > SOUTH
+    ok 1 - NORTH > SOUTH
+      ---
+      duration_ms: 0.093917
+      type: 'test'
+      ...
+    # Subtest: EAST > WEST (less negative = more east)
+    ok 2 - EAST > WEST (less negative = more east)
+      ---
+      duration_ms: 0.042142
+      type: 'test'
+      ...
+    # Subtest: all values are within continental US range
+    ok 3 - all values are within continental US range
+      ---
+      duration_ms: 0.051312
+      type: 'test'
+      ...
+    # Subtest: Richmond, VA coordinates are inside the BBOX
+    ok 4 - Richmond, VA coordinates are inside the BBOX
+      ---
+      duration_ms: 0.058498
+      type: 'test'
+      ...
+    1..4
+ok 10 - BBOX constants
+  ---
+  duration_ms: 0.339133
+  type: 'suite'
+  ...
+1..10
+# tests 59
+# suites 10
+# pass 59
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.798099
