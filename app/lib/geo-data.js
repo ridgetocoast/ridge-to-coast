@@ -88,9 +88,9 @@ const COASTAL_PLAIN_GEOJSON = {
     type: 'Polygon',
     coordinates: [[
       [BBOX_EAST, BBOX_NORTH],    // NE corner
-      ...fallLineReversed,        // south→north along fall line (east boundary)
-      [BBOX_EAST, BBOX_SOUTH],    // SE corner
-      [BBOX_EAST, BBOX_NORTH],    // close polygon
+      [BBOX_EAST, BBOX_SOUTH],    // SE corner  (south along east edge)
+      ...fallLineReversed,        // south→north along fall line (west boundary)
+      [BBOX_EAST, BBOX_NORTH],    // close polygon (east along north edge)
     ]],
   },
 };
