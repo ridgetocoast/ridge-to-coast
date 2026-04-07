@@ -4,8 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
-  <!-- CSP temporarily removed to isolate rendering bug (tracked in issue #2).
-       Will be restored with verified SRI hashes once map is confirmed working. -->
+  <!-- Content Security Policy
+       Leaflet is now vendored in lib/ so script-src requires only 'self' — no CDN domain needed.
+       'unsafe-inline' is required in style-src because Leaflet sets inline style attributes
+       via JavaScript for tile and marker positioning. Scripts are locked to 'self' only.
+       Tile images are loaded from CARTO (img-src). No XHR/fetch calls are made (connect-src omitted).
+       GitHub Pages cannot set HTTP headers so this meta tag is the available CSP mechanism.
+       Note: frame-ancestors is ignored in meta CSP by all browsers (HTTP header only).
+
+       Vendored Leaflet 1.9.4 SHA-256 hashes (for audit — files served from self, no integrity= needed):
+         lib/leaflet.js:  sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=
+         lib/leaflet.css: sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; base-uri 'self'; form-action 'none';">
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -13,8 +24,8 @@
   <title>Richmond Fall Line Map</title>
   <meta name="description" content="Interactive map of Richmond, VA showing the Atlantic Seaboard Fall Line separating the Coastal Plain and Piedmont regions.">
 
-  <!-- Leaflet 1.9.4 — integrity removed until hashes are cryptographically verified (issue #2) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
+  <link rel="stylesheet" href="lib/leaflet.css">
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -58,8 +69,8 @@
     </p>
   </div>
 
-  <!-- Leaflet 1.9.4 — integrity removed until hashes are cryptographically verified (issue #2) -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
+  <script src="lib/leaflet.js"></script>
 
   <!-- Pure geographic data — no DOM or Leaflet dependency; also used by unit tests -->
   <script src="lib/geo-data.js"></script>

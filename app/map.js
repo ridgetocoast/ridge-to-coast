@@ -2,46 +2,20 @@
  * map.js — Leaflet map initialisation and layer setup
  * ----------------------------------------------------
  * Depends on:
- *   - Leaflet (loaded before this script)
+ *   - lib/leaflet.js  (vendored, loaded before this script)
  *   - lib/geo-data.js (loaded before this script; exposes window.GeoData)
  */
 
 'use strict';
 
-/* ─── Visible error handler ─────────────────────────────────────
-   Shows any JS error directly in the map div so it's visible on
-   mobile without needing browser devtools. Remove once stable.
-   ────────────────────────────────────────────────────────────── */
-function showError(msg) {
-  var el = document.getElementById('map');
-  el.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:24px';
-  el.innerHTML =
-    '<div style="background:#3a1020;border:1px solid #e84393;border-radius:8px;' +
-    'padding:16px;color:#f88;font-family:monospace;font-size:13px;max-width:320px">' +
-    '<strong style="color:#e84393">Map error</strong><br><br>' + msg + '</div>';
-}
-
-window.onerror = function (msg, src, line) {
-  showError(msg + '<br><br>' + (src || '') + (line ? ':' + line : ''));
-  return false;
-};
-
 /* ─── Guards ────────────────────────────────────────────────── */
 if (typeof L === 'undefined') {
-  showError('Leaflet failed to load.<br>Check network connection.');
-  throw new Error('Leaflet not loaded');
+  throw new Error('Leaflet (lib/leaflet.js) failed to load');
 }
-
 if (typeof window.GeoData === 'undefined') {
-  showError('lib/geo-data.js failed to load.<br>Check file path.');
-  throw new Error('GeoData not loaded');
+  throw new Error('lib/geo-data.js failed to load');
 }
 
-/* ─── Single reference to GeoData — no re-declaring its names ──
-   geo-data.js uses const internally; re-declaring those same names
-   here (even with var) causes "already declared" in the browser's
-   shared global scope. Use a namespace alias instead.
-   ────────────────────────────────────────────────────────────── */
 var gd = window.GeoData;
 
 
@@ -55,7 +29,7 @@ var map = L.map('map', {
 });
 
 /* ─── Base tile layer (CARTO dark_all — free, no API key) ─────
-   Attribution required: OSM contributors + CARTO (shown in legend).
+   Attribution: OSM contributors + CARTO (shown in legend panel).
    ────────────────────────────────────────────────────────────── */
 var tileScale = L.Browser.retina ? '@2x' : '';
 L.tileLayer(
