@@ -84,6 +84,67 @@ function normaliseProperties(props) {
   return { zone: zone ? String(zone).trim() : 'unknown' };
 }
 
+// ── Strip coordinates outside bbox ────────────────────────────────────────
+// Removes consecutive duplicate points that arise after rounding.
+function dedupe(ring) {
+  return ring.filter(function (pt, i) {
+    if (i === 0) return true;
+    return pt[0] !== ring[i - 1][0] || pt[1] !== ring[i - 1][1];
+  });
+}
+
+// Simple stride-based decimation for dense rings.
+// Keeps every Nth point; always keeps first and last.
+function decimate(ring, stride) {
+  if (ring.length <= stride * 2) return ring;
+  const result = [];
+  for (var i = 0; i < ring.length; i++) {
+    if (i === 0 || i === ring.length - 1 || i % stride === 0) {
+      result.push(ring[i]);
+    }
+  }
+  return result;
+}
+
+// Keep only rings (or sub-polygons) that have any point inside the expanded bbox.
+// For each kept ring, filter out runs of points far outside the bbox to reduce size,
+// while preserving the ring's winding and closure.
+function stripRing(ring, bbox) {
+  // Round first, then dedupe
+  const rounded = dedupe(ring.map(function (pt) {
+    return [roundCoord(pt[0], 3), roundCoord(pt[1], 3)];
+  }));
+  // Keep if any point is within expanded bbox (already checked at feature level,
+  // but we also drop sub-rings of multipolygons that are entirely outside)
+  const inside = rounded.some(function (pt) {
+    return pt[0] >= bbox.west && pt[0] <= bbox.east &&
+           pt[1] >= bbox.south && pt[1] <= bbox.north;
+  });
+  if (!inside) return null;
+  // Decimate dense rings (>200 pts) — zone boundaries are smooth at this scale
+  const decimated = rounded.length > 200 ? decimate(rounded, 4) : rounded;
+  // Ensure ring is closed
+  const last = decimated[decimated.length - 1];
+  const first = decimated[0];
+  if (last[0] !== first[0] || last[1] !== first[1]) decimated.push(first);
+  return decimated.length >= 4 ? decimated : null;  // degenerate ring
+}
+
+function stripCoords(coords, type, bbox) {
+  if (type === 'Polygon') {
+    const rings = coords.map(function (r) { return stripRing(r, bbox); }).filter(Boolean);
+    return rings.length ? rings : null;
+  }
+  if (type === 'MultiPolygon') {
+    const polys = coords.map(function (poly) {
+      const rings = poly.map(function (r) { return stripRing(r, bbox); }).filter(Boolean);
+      return rings.length ? rings : null;
+    }).filter(Boolean);
+    return polys.length ? polys : null;
+  }
+  return null;
+}
+
 // ── Process ────────────────────────────────────────────────────────────────
 const expandedBbox = {
   west:  BBOX.west  - BUFFER,
@@ -95,15 +156,15 @@ const expandedBbox = {
 const clipped = data.features
   .filter(function (f) { return featureIntersectsBbox(f, expandedBbox); })
   .map(function (f) {
+    const coords = stripCoords(f.geometry.coordinates, f.geometry.type, expandedBbox);
+    if (!coords) return null;
     return {
       type: 'Feature',
       properties: normaliseProperties(f.properties),
-      geometry: {
-        type: f.geometry.type,
-        coordinates: roundCoords(f.geometry.coordinates, 4),
-      },
+      geometry: { type: f.geometry.type, coordinates: coords },
     };
-  });
+  })
+  .filter(Boolean);
 
 console.log('Features after bbox clip:', clipped.length);
 
