@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
   <!-- Content Security Policy
-       Leaflet is now vendored in lib/ so script-src requires only 'self' — no CDN domain needed.
+       Leaflet is vendored in lib/ so script-src requires only 'self' — no CDN domain needed.
        'unsafe-inline' is required in style-src because Leaflet sets inline style attributes
-       via JavaScript for tile and marker positioning. Scripts are locked to 'self' only.
-       Tile images are loaded from CARTO (img-src). No XHR/fetch calls are made (connect-src omitted).
+       via JavaScript for tile and marker positioning. Scripts are fully locked to 'self' only.
+       Tile images load from CARTO (img-src). No XHR/fetch calls are made (connect-src omitted).
        GitHub Pages cannot set HTTP headers so this meta tag is the available CSP mechanism.
        Note: frame-ancestors is ignored in meta CSP by all browsers (HTTP header only).
+
+       Browser extensions that inject Google Fonts (e.g. Poppins from fonts.gstatic.com) will
+       show a CSP blocked-resource warning in DevTools — this is expected and correct behaviour.
+       Our page does not load Google Fonts; the CSP is working as intended by blocking them.
 
        Vendored Leaflet 1.9.4 SHA-256 hashes (for audit — files served from self, no integrity= needed):
          lib/leaflet.js:  sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=
