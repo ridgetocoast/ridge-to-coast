@@ -26,6 +26,11 @@ const {
   makeFallLinePopup,
   haversineKm,
   minDistanceToFallLine,
+  HARDINESS_ZONE_COLORS,
+  HARDINESS_ZONE_INFO,
+  getZoneColor,
+  getZoneInfo,
+  makeZonePopup,
 } = require('../lib/geo-data.js');
 
 
@@ -460,5 +465,144 @@ describe('BBOX constants', () => {
       'Richmond latitude should be inside BBOX');
     assert.ok(RICHMOND.lon >= BBOX.WEST && RICHMOND.lon <= BBOX.EAST,
       'Richmond longitude should be inside BBOX');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 11 — Hardiness zone color mapping
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('HARDINESS_ZONE_COLORS', () => {
+  it('covers all zones relevant to Virginia (5a through 8b)', () => {
+    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
+    for (const zone of virginiaZones) {
+      assert.ok(zone in HARDINESS_ZONE_COLORS,
+        `HARDINESS_ZONE_COLORS should include zone ${zone}`);
+    }
+  });
+
+  it('all colors are valid CSS hex values', () => {
+    for (const [zone, color] of Object.entries(HARDINESS_ZONE_COLORS)) {
+      assert.match(color, /^#[0-9A-Fa-f]{6}$/,
+        `Zone ${zone} color "${color}" is not a valid 6-char hex color`);
+    }
+  });
+
+  it('warmer zones (8b) have a warmer/yellower color than cooler zones (5a)', () => {
+    // Parse hex to RGB and check that 8b has more red than 5a
+    function hexToRgb(hex) {
+      return {
+        r: parseInt(hex.slice(1, 3), 16),
+        g: parseInt(hex.slice(3, 5), 16),
+        b: parseInt(hex.slice(5, 7), 16),
+      };
+    }
+    const cool = hexToRgb(HARDINESS_ZONE_COLORS['5a']);
+    const warm = hexToRgb(HARDINESS_ZONE_COLORS['8b']);
+    // Warm zones should have higher red channel than cool zones
+    assert.ok(warm.r > cool.r,
+      'Zone 8b should have more red than zone 5a (warmer visual temperature)');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 12 — getZoneColor()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('getZoneColor()', () => {
+  it('returns correct color for zone 7b (Richmond fall line zone)', () => {
+    const color = getZoneColor('7b');
+    assert.equal(color, HARDINESS_ZONE_COLORS['7b']);
+  });
+
+  it('returns a valid hex color for all Virginia zones', () => {
+    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
+    for (const zone of virginiaZones) {
+      assert.match(getZoneColor(zone), /^#[0-9A-Fa-f]{6}$/,
+        `getZoneColor('${zone}') should return a hex color`);
+    }
+  });
+
+  it('returns a fallback grey for unknown zones', () => {
+    const fallback = getZoneColor('99z');
+    assert.match(fallback, /^#[0-9A-Fa-f]{6}$/,
+      'should return a valid hex color even for unknown zones');
+  });
+
+  it('returns different colors for different zones', () => {
+    assert.notEqual(getZoneColor('6a'), getZoneColor('8b'),
+      'different zones should have different colors');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 13 — getZoneInfo()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('getZoneInfo()', () => {
+  it('returns an object with tempRange and description', () => {
+    const info = getZoneInfo('7b');
+    assert.ok(typeof info.tempRange === 'string' && info.tempRange.length > 0);
+    assert.ok(typeof info.description === 'string' && info.description.length > 0);
+  });
+
+  it('tempRange for zone 7b mentions Richmond or fall line', () => {
+    // Zone 7b is the primary Richmond zone — description should reference it
+    const info = getZoneInfo('7b');
+    assert.ok(
+      info.description.toLowerCase().includes('richmond') ||
+      info.description.toLowerCase().includes('fall line'),
+      'Zone 7b description should mention Richmond or the fall line'
+    );
+  });
+
+  it('returns a safe fallback for unknown zones', () => {
+    const info = getZoneInfo('99z');
+    assert.ok(typeof info.tempRange === 'string');
+    assert.ok(typeof info.description === 'string');
+  });
+
+  it('all Virginia zone infos contain a degree symbol in tempRange', () => {
+    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
+    for (const zone of virginiaZones) {
+      const info = getZoneInfo(zone);
+      assert.ok(info.tempRange.includes('°'),
+        `Zone ${zone} tempRange should contain a degree symbol`);
+    }
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 14 — makeZonePopup()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('makeZonePopup()', () => {
+  it('returns a string', () => {
+    assert.equal(typeof makeZonePopup('7b'), 'string');
+  });
+
+  it('contains the zone identifier', () => {
+    assert.ok(makeZonePopup('7b').includes('7b'));
+  });
+
+  it('contains the word Zone', () => {
+    assert.ok(makeZonePopup('7b').toLowerCase().includes('zone'));
+  });
+
+  it('wraps content in popup-content div', () => {
+    assert.ok(makeZonePopup('7b').includes('class="popup-content"'));
+  });
+
+  it('produces different output for different zones', () => {
+    assert.notEqual(makeZonePopup('6a'), makeZonePopup('8b'));
+  });
+
+  it('includes temperature range', () => {
+    const html = makeZonePopup('7b');
+    assert.ok(html.includes('°'), 'popup should include temperature with degree symbol');
   });
 });

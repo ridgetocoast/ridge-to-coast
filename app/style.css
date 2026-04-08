@@ -224,6 +224,47 @@ html, body {
   .attribution-note  { grid-column: 1 / -1; }
 }
 
+/* ─── Hardiness legend ─────────────────────────────────────── */
+.hardiness-legend {
+  margin-top: 6px;
+}
+
+.legend-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.zone-swatches {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.zone-item {
+  margin-bottom: 0;
+}
+
+/* ─── Loading spinner ──────────────────────────────────────── */
+.loading-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #4a9eff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ─── Leaflet control override — dark theme ────────────────── */
 .leaflet-control-zoom a {
   background: rgba(20, 20, 40, 0.92) !important;

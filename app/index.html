@@ -8,7 +8,8 @@
        Leaflet is vendored in lib/ so script-src requires only 'self' — no CDN domain needed.
        'unsafe-inline' is required in style-src because Leaflet sets inline style attributes
        via JavaScript for tile and marker positioning. Scripts are fully locked to 'self' only.
-       Tile images load from CARTO (img-src). No XHR/fetch calls are made (connect-src omitted).
+       Tile images load from CARTO (img-src). connect-src 'self' allows fetch() of same-origin
+       data/hardiness.geojson for the plant hardiness layer.
        GitHub Pages cannot set HTTP headers so this meta tag is the available CSP mechanism.
        Note: frame-ancestors is ignored in meta CSP by all browsers (HTTP header only).
 
@@ -20,13 +21,13 @@
          lib/leaflet.js:  sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=
          lib/leaflet.css: sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; base-uri 'self'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; connect-src 'self'; base-uri 'self'; form-action 'none';">
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
   <title>Richmond Fall Line Map</title>
-  <meta name="description" content="Interactive map of Richmond, VA showing the Atlantic Seaboard Fall Line separating the Coastal Plain and Piedmont regions.">
+  <meta name="description" content="Interactive map of Richmond, VA showing the Atlantic Seaboard Fall Line, Coastal Plain and Piedmont regions, and USDA Plant Hardiness Zones.">
 
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <link rel="stylesheet" href="lib/leaflet.css">
@@ -56,6 +57,13 @@
       <span class="swatch fallline"></span>
       <span>Fall Line <em>(approximate)</em></span>
     </div>
+
+    <!-- Hardiness zone swatches — shown only when the layer is active -->
+    <div id="hardiness-legend" class="hardiness-legend" hidden>
+      <div class="legend-section-label">Hardiness Zones</div>
+      <div class="zone-swatches"></div>
+    </div>
+
     <hr>
     <div class="layer-toggles">
       <label class="toggle">
@@ -66,10 +74,18 @@
         <input type="checkbox" id="toggle-fallline" checked>
         Fall line
       </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-hardiness">
+        <span id="hardiness-toggle-label">
+          Hardiness zones
+          <span class="loading-spinner" id="hardiness-spinner" hidden aria-hidden="true"></span>
+        </span>
+      </label>
     </div>
     <p class="attribution-note">
       &copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap</a>
       contributors &copy; <a href="https://carto.com/attributions" rel="noopener noreferrer" target="_blank">CARTO</a>
+      &middot; <a href="https://planthardiness.ars.usda.gov" rel="noopener noreferrer" target="_blank">USDA PHZM</a>
     </p>
   </div>
 

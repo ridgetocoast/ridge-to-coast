@@ -220,6 +220,75 @@ function minDistanceToFallLine(target) {
 }
 
 
+/* ─── Plant Hardiness Zone helpers ──────────────────────────────
+   Zone colors follow the USDA standard palette.
+   Virginia spans approximately zones 5b–8b.
+   Each zone = 10°F range; a/b half-zones = 5°F each.
+   ────────────────────────────────────────────────────────────── */
+
+const HARDINESS_ZONE_COLORS = {
+  '5a': '#afd2e8', '5b': '#90bedd',
+  '6a': '#72a9d2', '6b': '#5595c8',
+  '7a': '#7ec87a', '7b': '#5aaf56',
+  '8a': '#f5d63c', '8b': '#f5a800',
+  '9a': '#f07800', '9b': '#e05000',
+};
+
+const HARDINESS_ZONE_INFO = {
+  '5a': { tempRange: '-20°F to -15°F (-29°C to -26°C)', description: 'Cool continental climate. Cold winters limit many broadleaf evergreens.' },
+  '5b': { tempRange: '-15°F to -10°F (-26°C to -23°C)', description: 'Cool continental climate. Long growing season with cold winters.' },
+  '6a': { tempRange: '-10°F to -5°F (-23°C to -21°C)',  description: 'Moderate climate. Suitable for a wide range of trees and shrubs.' },
+  '6b': { tempRange: '-5°F to 0°F (-21°C to -18°C)',    description: 'Moderate climate. Typical of the western Virginia Piedmont.' },
+  '7a': { tempRange: '0°F to 5°F (-18°C to -15°C)',     description: 'Mild winters. Most of the Richmond Piedmont falls here.' },
+  '7b': { tempRange: '5°F to 10°F (-15°C to -12°C)',    description: 'Mild winters with maritime influence. Richmond city and most of the fall line corridor.' },
+  '8a': { tempRange: '10°F to 15°F (-12°C to -9°C)',    description: 'Warm winters. Eastern Coastal Plain and Tidewater. Broadleaf evergreens thrive.' },
+  '8b': { tempRange: '15°F to 20°F (-9°C to -7°C)',     description: 'Very mild winters. Coastal Virginia near Hampton Roads.' },
+};
+
+/**
+ * Returns the fill color for a USDA hardiness zone string (e.g. "7b").
+ * Falls back to a neutral grey for unknown zones.
+ * @param {string} zone
+ * @returns {string} CSS color
+ */
+function getZoneColor(zone) {
+  return HARDINESS_ZONE_COLORS[zone] || '#cccccc';
+}
+
+/**
+ * Returns display info for a zone (tempRange, description).
+ * @param {string} zone
+ * @returns {{ tempRange: string, description: string }}
+ */
+function getZoneInfo(zone) {
+  return HARDINESS_ZONE_INFO[zone] || {
+    tempRange: 'Unknown',
+    description: 'No data available for this zone.',
+  };
+}
+
+/**
+ * Returns an HTML string for a hardiness zone popup.
+ * @param {string} zone  e.g. "7b"
+ * @returns {string}
+ */
+function makeZonePopup(zone) {
+  const info = getZoneInfo(zone);
+  const color = getZoneColor(zone);
+  return (
+    '<div class="popup-content">' +
+      '<h3>Hardiness Zone ' + zone + '</h3>' +
+      '<p>' + info.description + '</p>' +
+      '<p style="margin-top:6px;font-size:0.8rem;color:#aaa;">Avg. min. winter temp:<br>' +
+        '<strong style="color:#fff">' + info.tempRange + '</strong>' +
+      '</p>' +
+      '<span class="region-tag" style="background:' + color + '33;color:' + color +
+        ';border:1px solid ' + color + '88">Zone ' + zone + '</span>' +
+    '</div>'
+  );
+}
+
+
 /* ─── Export ─────────────────────────────────────────────────── */
 const GeoData = {
   FALL_LINE_COORDS,
@@ -232,6 +301,11 @@ const GeoData = {
   makeFallLinePopup,
   haversineKm,
   minDistanceToFallLine,
+  HARDINESS_ZONE_COLORS,
+  HARDINESS_ZONE_INFO,
+  getZoneColor,
+  getZoneInfo,
+  makeZonePopup,
 };
 
 // Browser: attach to window so map.js can access it

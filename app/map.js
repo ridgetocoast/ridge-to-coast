@@ -38,7 +38,7 @@ L.tileLayer(
 ).addTo(map);
 
 
-/* ─── Layer builders ────────────────────────────────────────── */
+/* ─── Fall line and region layers ───────────────────────────── */
 
 function buildRegionLayer(geojson) {
   var style = gd.STYLES[geojson.properties.region];
@@ -71,6 +71,99 @@ piedmontLayer.addTo(map);
 fallLineLayer.addTo(map);
 
 
+/* ─── Plant Hardiness Zone layer (lazy-loaded) ──────────────────
+   The GeoJSON is ~1.3MB raw / ~300KB gzip on the wire.
+   Only fetched when the user first enables the toggle.
+   Cached in memory so toggling off/on does not re-fetch.
+   ────────────────────────────────────────────────────────────── */
+
+var hardinessCache  = null;   // parsed GeoJSON, set on first successful fetch
+var hardinessLayer  = null;   // Leaflet layer, built once from cache
+
+var hardinessSpinner = document.getElementById('hardiness-spinner');
+var hardinessLegend  = document.getElementById('hardiness-legend');
+
+function setHardinessLoading(loading) {
+  hardinessSpinner.hidden = !loading;
+}
+
+function buildHardinessLegend(zones) {
+  var swatchContainer = hardinessLegend.querySelector('.zone-swatches');
+  swatchContainer.innerHTML = '';
+  zones.sort().forEach(function (zone) {
+    var color = gd.getZoneColor(zone);
+    var item = document.createElement('div');
+    item.className = 'legend-item zone-item';
+    item.innerHTML =
+      '<span class="swatch" style="background:' + color + ';border-color:' + color + '88"></span>' +
+      '<span>Zone ' + zone + '</span>';
+    swatchContainer.appendChild(item);
+  });
+  hardinessLegend.hidden = false;
+}
+
+function styleHardinessFeature(feature) {
+  var zone = feature.properties.zone || 'unknown';
+  return {
+    fillColor:   gd.getZoneColor(zone),
+    fillOpacity: 0.50,
+    color:       '#ffffff',
+    weight:      0.4,
+    opacity:     0.4,
+  };
+}
+
+function onEachHardinessFeature(feature, layer) {
+  var zone = feature.properties.zone || 'unknown';
+  layer.bindPopup(gd.makeZonePopup(zone), { maxWidth: 260 });
+}
+
+function loadAndShowHardinessLayer() {
+  // Already cached — just add to map
+  if (hardinessCache) {
+    map.addLayer(hardinessLayer);
+    return;
+  }
+
+  setHardinessLoading(true);
+
+  fetch('data/hardiness.geojson')
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status + ' loading hardiness.geojson');
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      hardinessCache = data;
+
+      hardinessLayer = L.geoJSON(data, {
+        style:          styleHardinessFeature,
+        onEachFeature:  onEachHardinessFeature,
+      });
+
+      // Build legend from zones present in the data
+      var zones = data._meta && data._meta.zones
+        ? data._meta.zones
+        : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
+      buildHardinessLegend(zones);
+
+      // Add below the fall line so the pink line remains on top
+      hardinessLayer.addTo(map);
+      fallLineLayer.bringToFront();
+
+      setHardinessLoading(false);
+    })
+    .catch(function (err) {
+      setHardinessLoading(false);
+      console.error('Hardiness layer failed to load:', err);
+      // Uncheck the toggle so state matches reality
+      document.getElementById('toggle-hardiness').checked = false;
+      alert('Plant hardiness data could not be loaded.\n' + err.message);
+    });
+}
+
+
 /* ─── Layer toggle controls ─────────────────────────────────── */
 
 document.getElementById('toggle-regions').addEventListener('change', function () {
@@ -88,6 +181,15 @@ document.getElementById('toggle-fallline').addEventListener('change', function (
     map.addLayer(fallLineLayer);
   } else {
     map.removeLayer(fallLineLayer);
+  }
+});
+
+document.getElementById('toggle-hardiness').addEventListener('change', function () {
+  if (this.checked) {
+    loadAndShowHardinessLayer();
+  } else {
+    if (hardinessLayer) map.removeLayer(hardinessLayer);
+    hardinessLegend.hidden = true;
   }
 });
 
