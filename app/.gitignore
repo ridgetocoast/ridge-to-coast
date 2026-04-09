@@ -1,3 +1,7 @@
 node_modules/
 package-lock.json
 package.json
+__pycache__/
+.pytest_cache/
+test-results/
+playwright-report/
