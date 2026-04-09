@@ -76,12 +76,12 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the Richmond metro bounding box', () => {
+  it('all points are within the DC–Richmond–Raleigh bounding box', () => {
     for (const [lon, lat] of FALL_LINE_COORDS) {
       assert.ok(lon >= BBOX.WEST && lon <= BBOX.EAST,
-        `longitude ${lon} is outside metro bounds [${BBOX.WEST}, ${BBOX.EAST}]`);
+        `longitude ${lon} is outside corridor bounds [${BBOX.WEST}, ${BBOX.EAST}]`);
       assert.ok(lat >= BBOX.SOUTH && lat <= BBOX.NORTH,
-        `latitude ${lat} is outside metro bounds [${BBOX.SOUTH}, ${BBOX.NORTH}]`);
+        `latitude ${lat} is outside corridor bounds [${BBOX.SOUTH}, ${BBOX.NORTH}]`);
     }
   });
 
@@ -126,12 +126,28 @@ describe('Fall Line geographic accuracy', () => {
     );
   });
 
-  it('stays within the City of Richmond latitude range (37.48–37.56)', () => {
+  it('has at least one point in the City of Richmond latitude range (37.48–37.56)', () => {
     const cityPoints = FALL_LINE_COORDS.filter(([, lat]) => lat >= 37.48 && lat <= 37.56);
     assert.ok(
       cityPoints.length > 0,
       'fall line should have at least one point within the City of Richmond latitude range'
     );
+  });
+
+  it('passes within 5 km of Great Falls of the Potomac (DC anchor)', () => {
+    // Great Falls rapids: ~39.000°N, 77.245°W — the Potomac fall line crossing
+    const GREAT_FALLS = [-77.245, 39.000];
+    const dist = minDistanceToFallLine(GREAT_FALLS);
+    assert.ok(dist <= 5.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Great Falls — expected ≤ 5 km`);
+  });
+
+  it('passes within 5 km of Falls of Neuse (Raleigh anchor)', () => {
+    // Falls of Neuse: ~35.897°N, 78.648°W — where the Neuse River crosses the fall line
+    const FALLS_OF_NEUSE = [-78.648, 35.897];
+    const dist = minDistanceToFallLine(FALLS_OF_NEUSE);
+    assert.ok(dist <= 5.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Falls of Neuse — expected ≤ 5 km`);
   });
 });
 
@@ -465,6 +481,22 @@ describe('BBOX constants', () => {
       'Richmond latitude should be inside BBOX');
     assert.ok(RICHMOND.lon >= BBOX.WEST && RICHMOND.lon <= BBOX.EAST,
       'Richmond longitude should be inside BBOX');
+  });
+
+  it('Washington DC coordinates are inside the BBOX', () => {
+    const DC = { lat: 38.9072, lon: -77.0369 };
+    assert.ok(DC.lat >= BBOX.SOUTH && DC.lat <= BBOX.NORTH,
+      'Washington DC latitude should be inside BBOX');
+    assert.ok(DC.lon >= BBOX.WEST && DC.lon <= BBOX.EAST,
+      'Washington DC longitude should be inside BBOX');
+  });
+
+  it('Raleigh, NC coordinates are inside the BBOX', () => {
+    const RALEIGH = { lat: 35.7796, lon: -78.6382 };
+    assert.ok(RALEIGH.lat >= BBOX.SOUTH && RALEIGH.lat <= BBOX.NORTH,
+      'Raleigh latitude should be inside BBOX');
+    assert.ok(RALEIGH.lon >= BBOX.WEST && RALEIGH.lon <= BBOX.EAST,
+      'Raleigh longitude should be inside BBOX');
   });
 });
 

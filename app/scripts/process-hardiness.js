@@ -20,12 +20,12 @@
 const fs   = require('fs');
 const path = require('path');
 
-// Richmond metro bounding box — matches BBOX in geo-data.js
+// DC–Richmond–Raleigh corridor bounding box — matches BBOX in geo-data.js
 const BBOX = {
-  west:  -77.70,
-  east:  -77.25,
-  south:  37.35,
-  north:  37.76,
+  west:  -79.20,
+  east:  -76.70,
+  south:  35.40,
+  north:  39.20,
 };
 
 // Expand slightly so zone polygons crossing the edge aren't clipped mid-feature

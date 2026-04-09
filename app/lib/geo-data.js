@@ -17,21 +17,42 @@
 'use strict';
 
 /* ─── Fall Line coordinates ─────────────────────────────────────
-   The Atlantic Seaboard Fall Line through the greater Richmond metro area.
-   Runs roughly NNE–SSW, passing through the James River rapids.
+   The Atlantic Seaboard Fall Line from the Washington DC area south
+   through Richmond, VA and on to the Raleigh, NC metro area.
+   Runs roughly NNE–SSW, tracing the boundary between ancient
+   crystalline Piedmont bedrock and soft Coastal Plain sediments.
 
-   Key anchor: Belle Isle rapids ≈ 37.527°N, 77.467°W
-   This is where the James River physically crosses the fall line —
-   the most geographically verifiable point in the city.
+   Key anchors (river crossings):
+     Potomac at Great Falls  ≈ 39.000°N, 77.245°W
+     Rappahannock at Fredericksburg ≈ 38.302°N, 77.468°W
+     James at Belle Isle, Richmond ≈ 37.527°N, 77.464°W
+     Appomattox at Petersburg ≈ 37.222°N, 77.395°W
+     Roanoke at Roanoke Rapids ≈ 36.462°N, 77.655°W
+     Neuse at Falls of Neuse, Raleigh ≈ 35.897°N, 78.648°W
 
    GeoJSON coordinate order: [longitude, latitude]
    Source: derived from USGS geological survey maps of the
-           Atlantic Coastal Plain / Piedmont boundary in Virginia.
+           Atlantic Coastal Plain / Piedmont boundary.
    ────────────────────────────────────────────────────────────── */
 const FALL_LINE_COORDS = [
-  [-77.440, 37.760],   // Northern extent — northern Hanover County
-  [-77.442, 37.720],   // Ashland / Hanover area
-  [-77.445, 37.680],   // Northern Henrico
+  // === Washington DC / Potomac ===
+  [-77.245, 39.200],   // Northern extent — Great Falls area at bbox north
+  [-77.245, 39.000],   // Great Falls of the Potomac (Mather Gorge rapids)
+  [-77.170, 38.905],   // Little Falls / Georgetown — head of Potomac tidal zone
+  [-77.130, 38.870],   // Arlington / Rosslyn
+  [-77.150, 38.830],   // Alexandria area
+  // === Northern Virginia ===
+  [-77.220, 38.770],   // Franconia / Springfield
+  [-77.290, 38.700],   // Prince William / Fairfax border
+  [-77.360, 38.600],   // Quantico / Triangle
+  [-77.420, 38.490],   // Stafford County
+  // === Fredericksburg ===
+  [-77.468, 38.302],   // Fredericksburg — Rappahannock River falls
+  [-77.460, 38.150],   // Caroline County
+  [-77.455, 38.000],   // Southern Caroline County
+  [-77.450, 37.830],   // Northern Hanover / Ashland approaches
+  // === Richmond area ===
+  [-77.445, 37.680],   // Northern Hanover County
   [-77.448, 37.650],   // Chamberlayne corridor
   [-77.455, 37.610],   // Near Laurel / Staples Mill
   [-77.460, 37.575],   // North Richmond
@@ -43,7 +64,23 @@ const FALL_LINE_COORDS = [
   [-77.455, 37.465],   // Northern Chesterfield
   [-77.450, 37.430],   // Central Chesterfield
   [-77.445, 37.390],   // Southern Chesterfield
-  [-77.442, 37.350],   // Southern extent — near Colonial Heights
+  [-77.442, 37.350],   // Colonial Heights
+  // === Petersburg / Southside Virginia ===
+  [-77.395, 37.222],   // Petersburg — Appomattox River falls
+  [-77.420, 37.100],   // Dinwiddie / Sussex County
+  [-77.480, 36.950],   // Emporia approaches
+  [-77.537, 36.686],   // Emporia — Meherrin River
+  // === North Carolina fall line ===
+  [-77.655, 36.462],   // Roanoke Rapids — Roanoke River falls
+  [-77.760, 36.280],   // Warren County, NC
+  [-77.960, 36.150],   // Vance / Franklin County
+  [-78.150, 36.050],   // Granville County
+  [-78.400, 35.950],   // Durham County western edge
+  [-78.570, 35.900],   // Durham — Eno / Flat Rivers area
+  [-78.648, 35.897],   // Falls of Neuse — Raleigh anchor
+  [-78.720, 35.820],   // South Raleigh / Wake County
+  [-78.820, 35.700],   // Southwest Wake County
+  [-78.960, 35.400],   // Southern extent — Harnett County line at bbox south
 ];
 
 const FALL_LINE_GEOJSON = {
@@ -60,17 +97,19 @@ const FALL_LINE_GEOJSON = {
 
 
 /* ─── Region polygons ───────────────────────────────────────────
-   Two polygons covering the Richmond metro bounding box, split at
-   the fall line. They share the fall line as their common boundary.
+   Two polygons covering the DC → Richmond → Raleigh corridor,
+   split at the fall line. They share the fall line as their
+   common boundary.
 
-   Metro bounding box: ~37.35–37.76°N, ~77.25–77.70°W
+   Bounding box: ~35.40–39.20°N, ~76.70–79.20°W
    ────────────────────────────────────────────────────────────── */
 
 // GeoJSON polygons must close: first coordinate repeated as last
-const BBOX_NORTH =  37.760;
-const BBOX_SOUTH =  37.350;
-const BBOX_EAST  = -77.250;  // less-negative = east in N. America
-const BBOX_WEST  = -77.700;
+// Covers Washington DC → Richmond VA → Raleigh NC fall line corridor
+const BBOX_NORTH =  39.200;   // north of DC (includes Maryland suburbs)
+const BBOX_SOUTH =  35.400;   // south of Raleigh
+const BBOX_EAST  = -76.700;   // east of DC / Chesapeake Bay approaches
+const BBOX_WEST  = -79.200;   // west of Raleigh Piedmont
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
@@ -81,8 +120,9 @@ const COASTAL_PLAIN_GEOJSON = {
     name: 'Coastal Plain (Tidewater)',
     description:
       'East of the fall line. Flat terrain underlain by soft sedimentary ' +
-      'deposits. Rivers are tidal and navigable. Historically settled by ' +
-      'the Powhatan Confederacy and early English colonists.',
+      'deposits — sandy soils with fast drainage and low water retention. ' +
+      'Rivers are tidal and navigable to the sea. Stretches from the DC ' +
+      'suburbs east through the Virginia Tidewater to coastal North Carolina.',
   },
   geometry: {
     type: 'Polygon',
@@ -102,8 +142,9 @@ const PIEDMONT_GEOJSON = {
     name: 'Piedmont',
     description:
       'West of the fall line. Rolling hills underlain by ancient crystalline ' +
-      'bedrock (granite, gneiss, schist). Rivers run fast over rapids. ' +
-      'Richmond was founded here at the head of navigation.',
+      'bedrock (granite, gneiss, schist). Heavy clay soils with poor drainage. ' +
+      'Rivers run fast over rapids at the fall line. Cities like Washington DC, ' +
+      'Richmond VA, and Raleigh NC each straddle or sit just above this boundary.',
   },
   geometry: {
     type: 'Polygon',
@@ -173,13 +214,13 @@ function makeFallLinePopup() {
     '<div class="popup-content">' +
       '<h3>Atlantic Seaboard Fall Line</h3>' +
       '<p>' +
-        'The geological boundary between the ancient crystalline rocks of the ' +
-        'Piedmont and the soft sedimentary deposits of the Coastal Plain. ' +
-        'Richmond was founded here because it was the furthest inland point ' +
-        'ships could navigate — the rapids mark where the river drops off the plateau.' +
+        'The geological boundary where ancient Piedmont crystalline rock meets ' +
+        'soft Coastal Plain sediments. Rivers drop over rapids here — the last ' +
+        'navigable point from the sea. Washington DC, Richmond VA, and Raleigh NC ' +
+        'all grew up at or near this boundary.' +
       '</p>' +
       '<p style="margin-top:6px; color:#888; font-size:0.75rem;">' +
-        'This path is approximate. The true boundary is gradational.' +
+        'This path is approximate. The true boundary is gradational over several miles.' +
       '</p>' +
     '</div>'
   );
@@ -238,10 +279,10 @@ const HARDINESS_ZONE_INFO = {
   '5a': { tempRange: '-20°F to -15°F (-29°C to -26°C)', description: 'Cool continental climate. Cold winters limit many broadleaf evergreens.' },
   '5b': { tempRange: '-15°F to -10°F (-26°C to -23°C)', description: 'Cool continental climate. Long growing season with cold winters.' },
   '6a': { tempRange: '-10°F to -5°F (-23°C to -21°C)',  description: 'Moderate climate. Suitable for a wide range of trees and shrubs.' },
-  '6b': { tempRange: '-5°F to 0°F (-21°C to -18°C)',    description: 'Moderate climate. Typical of the western Virginia Piedmont.' },
-  '7a': { tempRange: '0°F to 5°F (-18°C to -15°C)',     description: 'Mild winters. Most of the Richmond Piedmont falls here.' },
-  '7b': { tempRange: '5°F to 10°F (-15°C to -12°C)',    description: 'Mild winters with maritime influence. Richmond city and most of the fall line corridor.' },
-  '8a': { tempRange: '10°F to 15°F (-12°C to -9°C)',    description: 'Warm winters. Eastern Coastal Plain and Tidewater. Broadleaf evergreens thrive.' },
+  '6b': { tempRange: '-5°F to 0°F (-21°C to -18°C)',    description: 'Moderate climate. Typical of the northern Virginia Piedmont and DC suburbs.' },
+  '7a': { tempRange: '0°F to 5°F (-18°C to -15°C)',     description: 'Mild winters. DC metro area and northern Virginia fall line corridor.' },
+  '7b': { tempRange: '5°F to 10°F (-15°C to -12°C)',    description: 'Mild winters. Richmond VA city and the fall line corridor through central Virginia and into Raleigh NC.' },
+  '8a': { tempRange: '10°F to 15°F (-12°C to -9°C)',    description: 'Warm winters. Eastern Coastal Plain, Tidewater, and the Raleigh NC area. Broadleaf evergreens thrive.' },
   '8b': { tempRange: '15°F to 20°F (-9°C to -7°C)',     description: 'Very mild winters. Coastal Virginia near Hampton Roads.' },
 };
 

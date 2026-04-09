@@ -22,8 +22,8 @@ var gd = window.GeoData;
 /* ─── Map initialization ────────────────────────────────────── */
 
 var map = L.map('map', {
-  center: [37.5407, -77.4360],
-  zoom: 11,
+  center: [37.5, -78.0],
+  zoom: 7,
   zoomControl: true,
   attributionControl: false,
 });
@@ -194,8 +194,8 @@ document.getElementById('toggle-hardiness').addEventListener('change', function 
 });
 
 
-/* ─── Initial viewport ──────────────────────────────────────── */
+/* ─── Initial viewport — fit DC → Richmond → Raleigh corridor ── */
 map.fitBounds([
-  [37.42, -77.60],
-  [37.65, -77.25],
+  [35.40, -79.20],   // SW — south of Raleigh, west Piedmont
+  [39.20, -76.70],   // NE — north of DC, east Coastal Plain
 ]);
