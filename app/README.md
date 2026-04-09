@@ -39,8 +39,9 @@ Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Eac
 | Fall line / region data | Hand-crafted GeoJSON based on USGS geological surveys |
 | Hardiness zone data | [kgjenkins/ophz](https://github.com/kgjenkins/ophz) (USDA PHZM via PRISM Oregon State), clipped and processed |
 | Hosting | GitHub Pages (static, no backend, no build step) |
-| Tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
-| CI | GitHub Actions, Node 20 + 22 matrix |
+| Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
+| E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest |
+| CI | GitHub Actions — unit tests (Node 20 + 22) and E2E (Python 3.12 + Chromium) run in parallel |
 
 ---
 
@@ -61,15 +62,22 @@ Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Eac
 │   └── process-hardiness.js # CLI: clips raw ophz GeoJSON to corridor bbox, reduces precision
 ├── tests/
 │   ├── geo.test.js          # 80 unit tests (Node built-in runner, no npm needed)
-│   └── results/             # TAP output from CI runs
+│   ├── results/             # TAP output from CI runs
+│   └── e2e/
+│       ├── conftest.py      # pytest-playwright fixtures; auto-fails on uncaught JS errors
+│       ├── test_map.py      # 19 E2E tests (page load, layers, hardiness toggle, mobile)
+│       └── requirements.txt # pytest + pytest-playwright
 └── .github/
     └── workflows/
-        └── test.yml         # CI: runs tests on Node 20 and 22 for every push and PR
+        ├── test.yml         # Unit tests — Node 20 and 22, every push and PR
+        └── e2e.yml          # E2E tests — Python 3.12 + Chromium, every push and PR
 ```
 
 ---
 
 ## Running the tests
+
+### Unit tests (Node.js)
 
 No `npm install` needed. Requires Node.js 18+.
 
@@ -91,6 +99,28 @@ node --test tests/geo.test.js
 | 8 | `haversineKm()` (identity, Richmond→DC distance, symmetry) |
 | 9 | BBOX constants (DC, Richmond, and Raleigh all inside bounds) |
 | 11–14 | Hardiness zones (color map, `getZoneColor`, `getZoneInfo`, `makeZonePopup`) |
+
+### E2E tests (Python Playwright)
+
+Requires Python 3.8+ and internet access to install the browser once.
+
+```bash
+pip install -r tests/e2e/requirements.txt
+playwright install chromium
+python -m http.server 8000 &        # serve the static site locally
+python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
+```
+
+**19 tests across 4 suites:**
+
+| Suite | What it covers |
+|---|---|
+| Page load | Title correct, `#map` visible, legend visible, all 3 toggles present, no uncaught JS errors |
+| Layer rendering | SVG paths in overlay pane, region toggle removes/restores paths, fall line toggle |
+| Hardiness toggle | Default off, fetch returns HTTP 200, legend populates, paths added, hide on uncheck, second toggle uses cache (no re-fetch) |
+| Mobile (375×667) | Map fills screen, legend visible, subtitle hidden per CSS |
+
+Any uncaught JavaScript error during a test causes automatic failure via the `conftest.py` `page` fixture.
 
 ---
 
