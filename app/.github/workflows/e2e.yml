@@ -1,0 +1,66 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [master]
+
+# Minimal permissions — reads code and uploads artifacts only.
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright E2E (Python)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install -r tests/e2e/requirements.txt
+
+      - name: Install Playwright browser (Chromium)
+        run: playwright install --with-deps chromium
+
+      - name: Start local HTTP server
+        # Serves the repo root as a static site on port 8000.
+        # The & runs it in the background; CI step continues immediately.
+        run: python -m http.server 8000 &
+
+      - name: Wait for server to be ready
+        # Retry up to 10 times (10 s) before failing.
+        run: |
+          for i in $(seq 1 10); do
+            curl -sf http://localhost:8000 && echo "Server ready" && break
+            echo "Waiting for server... ($i)"
+            sleep 1
+          done
+
+      - name: Run E2E tests
+        run: |
+          pytest tests/e2e/ \
+            --base-url http://localhost:8000 \
+            --screenshot=only-on-failure \
+            --video=retain-on-failure \
+            --tracing=retain-on-failure \
+            -v
+        env:
+          # Suppress Playwright browser download progress noise in CI logs
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
+
+      - name: Upload Playwright artifacts
+        # Always upload so screenshots/traces are available when tests fail.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 30

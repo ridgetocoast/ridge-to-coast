@@ -248,6 +248,14 @@ html, body {
   margin-bottom: 0;
 }
 
+/* ─── Hardiness error notice ───────────────────────────────── */
+.hardiness-error {
+  font-size: 0.72rem;
+  color: #f87171;   /* red-400 — visible on dark background */
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
 /* ─── Loading spinner ──────────────────────────────────────── */
 .loading-spinner {
   display: inline-block;

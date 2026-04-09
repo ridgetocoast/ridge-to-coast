@@ -159,7 +159,12 @@ function loadAndShowHardinessLayer() {
       console.error('Hardiness layer failed to load:', err);
       // Uncheck the toggle so state matches reality
       document.getElementById('toggle-hardiness').checked = false;
-      alert('Plant hardiness data could not be loaded.\n' + err.message);
+      // Show inline error — alert() is intrusive and blocked in some contexts
+      var errEl = document.getElementById('hardiness-error');
+      if (errEl) {
+        errEl.textContent = 'Could not load zone data.';
+        errEl.hidden = false;
+      }
     });
 }
 
