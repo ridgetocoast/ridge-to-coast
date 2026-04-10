@@ -79,14 +79,13 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the eastern United States (VA / NC / MD extent)', () => {
-    // Fall line now spans MD/PA border (39.72°N) to NC/SC border (33.9°N),
-    // extending beyond the corridor BBOX which is used only for search relevance.
+  it('all points are within the Atlantic Seaboard fall line belt (PA to GA)', () => {
+    // Fall line spans Trenton NJ (40.22°N) to Augusta GA (33.47°N)
     for (const [lon, lat] of FALL_LINE_COORDS) {
       assert.ok(lon >= -85.0 && lon <= -74.0,
         `longitude ${lon} is outside the eastern US range [-85, -74]`);
-      assert.ok(lat >= 33.5 && lat <= 40.0,
-        `latitude ${lat} is outside the VA/NC/MD range [33.5, 40.0]`);
+      assert.ok(lat >= 33.0 && lat <= 41.0,
+        `latitude ${lat} is outside the PA–GA range [33.0, 41.0]`);
     }
   });
 
@@ -153,6 +152,22 @@ describe('Fall Line geographic accuracy', () => {
     const dist = minDistanceToFallLine(FALLS_OF_NEUSE);
     assert.ok(dist <= 5.0,
       `nearest fall line point is ${dist.toFixed(2)} km from Falls of Neuse — expected ≤ 5 km`);
+  });
+
+  it('passes within 10 km of Delaware River at Trenton NJ (northern anchor)', () => {
+    // Trenton NJ: ~40.220°N, 74.770°W — where the Delaware River crosses the fall line
+    const TRENTON = [-74.770, 40.220];
+    const dist = minDistanceToFallLine(TRENTON);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Trenton — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Savannah River at Augusta GA (southern anchor)', () => {
+    // Augusta GA: ~33.470°N, 82.020°W — where the Savannah River crosses the fall line
+    const AUGUSTA = [-82.020, 33.470];
+    const dist = minDistanceToFallLine(AUGUSTA);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Augusta GA — expected ≤ 10 km`);
   });
 });
 
@@ -713,16 +728,28 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(38.30, -77.47), true);
   });
 
+  it('returns true for Philadelphia, PA (39.95, -75.16)', () => {
+    assert.equal(isInCorridor(39.95, -75.16), true);
+  });
+
+  it('returns true for Columbia, SC (34.00, -81.03)', () => {
+    assert.equal(isInCorridor(34.00, -81.03), true);
+  });
+
+  it('returns true for Augusta, GA (33.47, -82.02)', () => {
+    assert.equal(isInCorridor(33.47, -82.02), true);
+  });
+
   it('returns false for New York City (40.71, -74.01) — north of corridor', () => {
     assert.equal(isInCorridor(40.71, -74.01), false);
   });
 
-  it('returns false for Charlotte, NC (35.23, -80.84) — west of corridor', () => {
-    assert.equal(isInCorridor(35.23, -80.84), false);
+  it('returns false for Louisville, KY (38.25, -85.76) — west of corridor', () => {
+    assert.equal(isInCorridor(38.25, -85.76), false);
   });
 
-  it('returns false for Virginia Beach, VA (36.85, -76.10) — east of corridor', () => {
-    assert.equal(isInCorridor(36.85, -76.10), false);
+  it('returns false for Miami, FL (25.77, -80.19) — south of corridor', () => {
+    assert.equal(isInCorridor(25.77, -80.19), false);
   });
 
   it('returns false for Atlanta, GA (33.75, -84.39) — south and west', () => {
