@@ -90,12 +90,12 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**114 tests across 17 suites:**
+**118 tests across 17 suites:**
 
 | Suite | What it covers |
 |---|---|
 | 1 | Fall line GeoJSON structure (Feature type, LineString, coord count, name) |
-| 2 | Geographic accuracy — PA–GA belt containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor, Trenton NJ anchor, Augusta GA anchor |
+| 2 | Geographic accuracy — PA–Columbus GA belt containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor, Trenton NJ anchor, Augusta GA anchor, Macon GA anchor, Columbus GA anchor |
 | 3 | Coastal Plain polygon (closed ring, region tag, east boundary, no west overshoot) |
 | 4 | Piedmont polygon (closed ring, region tag, west boundary, no east overshoot) |
 | 5 | Region separation (disjoint east/west checks) |
@@ -109,7 +109,7 @@ node --test tests/geo.test.js
 | 13 | `getZoneInfo()` (all required fields, temp range format) |
 | 14 | `makeZonePopup()` (HTML structure, zone badge, frost dates, growing season, plants) |
 | 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
-| 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Fredericksburg, Philadelphia, Columbia SC, Augusta GA; false for NYC, Louisville KY, Miami FL, Atlanta GA; BBOX boundary inclusive |
+| 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Fredericksburg, Philadelphia, Columbia SC, Augusta GA, Macon GA, Columbus GA; false for NYC, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
 | 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
 
 ### E2E tests (Python Playwright)
@@ -194,6 +194,9 @@ The fall line path is **approximate**, derived from published USGS geological ma
 | Raleigh, NC | Neuse (Falls of Neuse) | 35.897°N, 78.648°W |
 | Columbia, SC | Congaree / Saluda | 34.000°N, 81.030°W |
 | Augusta, GA | Savannah | 33.470°N, 82.020°W |
+| Milledgeville, GA | Oconee | 33.080°N, 83.230°W |
+| Macon, GA | Ocmulgee | 32.840°N, 83.630°W |
+| Columbus, GA | Chattahoochee | 32.460°N, 84.990°W |
 
 Frost date estimates in the hardiness zone popups are approximations based on USDA zone midpoints — consult your local agricultural extension office for precise planting dates.
 
@@ -205,12 +208,12 @@ Hardiness zone frost dates (first frost, last frost, growing season) are approxi
 
 - [x] Extend fall line corridor north to Philadelphia PA / Trenton NJ
 - [x] Extend fall line corridor south through Columbia SC to Augusta GA
+- [x] Extend fall line southwest to Macon GA / Columbus GA (Chattahoochee River falls)
 - [x] Location search (zip code / city) with Nominatim geocoding
 - [x] Collapsible legend (mobile-first, starts collapsed)
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
 - [ ] Add GA, PA, NJ, SC, NY hardiness data to pipeline (expand `data/hardiness.geojson`)
 - [ ] Extend fall line northeast to Paterson NJ / Westchester NY
-- [ ] Extend fall line southwest to Macon GA / Columbus GA
 - [ ] City markers for major fall line metros with click context (history, soil type, zone)
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)

@@ -79,13 +79,13 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the Atlantic Seaboard fall line belt (PA to GA)', () => {
-    // Fall line spans Trenton NJ (40.22°N) to Augusta GA (33.47°N)
+  it('all points are within the Atlantic Seaboard fall line belt (PA to Columbus GA)', () => {
+    // Fall line spans Trenton NJ (40.22°N) to Columbus GA (32.46°N)
     for (const [lon, lat] of FALL_LINE_COORDS) {
-      assert.ok(lon >= -85.0 && lon <= -74.0,
-        `longitude ${lon} is outside the eastern US range [-85, -74]`);
-      assert.ok(lat >= 33.0 && lat <= 41.0,
-        `latitude ${lat} is outside the PA–GA range [33.0, 41.0]`);
+      assert.ok(lon >= -85.5 && lon <= -74.0,
+        `longitude ${lon} is outside the eastern US range [-85.5, -74]`);
+      assert.ok(lat >= 32.0 && lat <= 41.0,
+        `latitude ${lat} is outside the PA–GA range [32.0, 41.0]`);
     }
   });
 
@@ -162,12 +162,28 @@ describe('Fall Line geographic accuracy', () => {
       `nearest fall line point is ${dist.toFixed(2)} km from Trenton — expected ≤ 10 km`);
   });
 
-  it('passes within 10 km of Savannah River at Augusta GA (southern anchor)', () => {
+  it('passes within 10 km of Savannah River at Augusta GA', () => {
     // Augusta GA: ~33.470°N, 82.020°W — where the Savannah River crosses the fall line
     const AUGUSTA = [-82.020, 33.470];
     const dist = minDistanceToFallLine(AUGUSTA);
     assert.ok(dist <= 10.0,
       `nearest fall line point is ${dist.toFixed(2)} km from Augusta GA — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Ocmulgee River at Macon GA', () => {
+    // Macon GA: ~32.840°N, 83.630°W — where the Ocmulgee River crosses the fall line
+    const MACON = [-83.630, 32.840];
+    const dist = minDistanceToFallLine(MACON);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Macon GA — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Chattahoochee River at Columbus GA (southern terminus)', () => {
+    // Columbus GA: ~32.460°N, 84.990°W — the southernmost fall line anchor
+    const COLUMBUS = [-84.990, 32.460];
+    const dist = minDistanceToFallLine(COLUMBUS);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Columbus GA — expected ≤ 10 km`);
   });
 });
 
@@ -740,6 +756,14 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(33.47, -82.02), true);
   });
 
+  it('returns true for Macon, GA (32.84, -83.63)', () => {
+    assert.equal(isInCorridor(32.84, -83.63), true);
+  });
+
+  it('returns true for Columbus, GA (32.46, -84.99)', () => {
+    assert.equal(isInCorridor(32.46, -84.99), true);
+  });
+
   it('returns false for New York City (40.71, -74.01) — north of corridor', () => {
     assert.equal(isInCorridor(40.71, -74.01), false);
   });
@@ -748,12 +772,12 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(38.25, -85.76), false);
   });
 
-  it('returns false for Miami, FL (25.77, -80.19) — south of corridor', () => {
-    assert.equal(isInCorridor(25.77, -80.19), false);
+  it('returns false for Jacksonville, FL (30.33, -81.66) — south of corridor', () => {
+    assert.equal(isInCorridor(30.33, -81.66), false);
   });
 
-  it('returns false for Atlanta, GA (33.75, -84.39) — south and west', () => {
-    assert.equal(isInCorridor(33.75, -84.39), false);
+  it('returns false for Miami, FL (25.77, -80.19) — south of corridor', () => {
+    assert.equal(isInCorridor(25.77, -80.19), false);
   });
 
   it('uses BBOX.NORTH/SOUTH/EAST/WEST boundaries (inclusive)', () => {

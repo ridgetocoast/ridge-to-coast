@@ -315,8 +315,8 @@ document.getElementById('locate-btn').addEventListener('click', function () {
 });
 
 
-/* ─── Initial viewport — fit DC → Richmond → Raleigh corridor ── */
+/* ─── Initial viewport — fit full fall line corridor ─────────── */
 map.fitBounds([
-  [33.30, -82.50],   // SW — Augusta GA / Aiken SC
+  [32.30, -85.20],   // SW — Columbus GA / Chattahoochee River falls
   [40.40, -74.60],   // NE — Philadelphia PA / Trenton NJ
 ]);

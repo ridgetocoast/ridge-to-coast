@@ -17,18 +17,22 @@
 'use strict';
 
 /* ─── Fall Line coordinates ─────────────────────────────────────
-   The Atlantic Seaboard Fall Line from the Washington DC area south
-   through Richmond, VA and on to the Raleigh, NC metro area.
-   Runs roughly NNE–SSW, tracing the boundary between ancient
-   crystalline Piedmont bedrock and soft Coastal Plain sediments.
+   The Atlantic Seaboard Fall Line from Trenton NJ / Philadelphia PA south
+   through Baltimore MD, Washington DC, Richmond VA, Raleigh NC, Columbia SC,
+   Augusta GA to Columbus GA. Runs roughly NNE–SSW, tracing the boundary
+   between ancient crystalline Piedmont bedrock and soft Coastal Plain sediments.
 
    Key anchors (river crossings):
+     Delaware at Trenton NJ ≈ 40.220°N, 74.770°W
      Potomac at Great Falls  ≈ 39.000°N, 77.245°W
      Rappahannock at Fredericksburg ≈ 38.302°N, 77.468°W
      James at Belle Isle, Richmond ≈ 37.527°N, 77.464°W
      Appomattox at Petersburg ≈ 37.222°N, 77.395°W
      Roanoke at Roanoke Rapids ≈ 36.462°N, 77.655°W
      Neuse at Falls of Neuse, Raleigh ≈ 35.897°N, 78.648°W
+     Savannah at Augusta GA ≈ 33.470°N, 82.020°W
+     Ocmulgee at Macon GA ≈ 32.840°N, 83.630°W
+     Chattahoochee at Columbus GA ≈ 32.460°N, 84.990°W
 
    GeoJSON coordinate order: [longitude, latitude]
    Source: derived from USGS geological survey maps of the
@@ -107,7 +111,13 @@ const FALL_LINE_COORDS = [
   [-80.340, 33.900],   // Sumter SC / Wateree River falls
   [-81.000, 34.000],   // Columbia SC / Congaree-Saluda confluence — "The Falls"
   [-81.720, 33.560],   // Aiken SC / South Fork Edisto
-  [-82.020, 33.470],   // Augusta GA / Savannah River falls — southern terminus
+  [-82.020, 33.470],   // Augusta GA / Savannah River falls
+  // === Georgia ===
+  [-82.500, 33.310],   // Wilkes County GA / Ogeechee River headwaters
+  [-83.230, 33.080],   // Milledgeville GA / Oconee River falls
+  [-83.630, 32.840],   // Macon GA / Ocmulgee River falls
+  [-84.120, 32.620],   // Fort Valley / Peach County GA
+  [-84.990, 32.460],   // Columbus GA / Chattahoochee River falls — southern terminus
 ];
 
 const FALL_LINE_GEOJSON = {
@@ -133,15 +143,15 @@ const FALL_LINE_GEOJSON = {
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
 const BBOX_NORTH =  40.500;   // above Trenton NJ / Philadelphia PA
-const BBOX_SOUTH =  33.300;   // below Augusta GA
+const BBOX_SOUTH =  32.300;   // below Columbus GA / Chattahoochee River falls
 const BBOX_EAST  = -74.500;   // eastern NJ / Philadelphia corridor
-const BBOX_WEST  = -83.000;   // west of Augusta GA
+const BBOX_WEST  = -85.100;   // west of Columbus GA
 
 // REGION: full corridor extent — used for Coastal Plain & Piedmont polygon bounds
 const REGION_NORTH =  40.500;  // Trenton NJ / Philadelphia PA area
-const REGION_SOUTH =  33.300;  // Augusta GA / Aiken SC area
+const REGION_SOUTH =  32.300;  // Columbus GA / Chattahoochee River falls
 const REGION_EAST  = -74.500;  // NJ coast / Philadelphia eastern extent
-const REGION_WEST  = -84.300;  // VA / TN-KY border (Appalachians)
+const REGION_WEST  = -85.100;  // west of Columbus GA
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
