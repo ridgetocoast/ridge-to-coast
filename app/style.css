@@ -188,6 +188,13 @@ html, body {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  /* Prevent overflow on small screens */
+  max-width: min(280px, calc(100vw - 24px)) !important;
+}
+
+.leaflet-popup-content {
+  max-width: 100% !important;
+  overflow-wrap: break-word;
 }
 
 .leaflet-popup-tip {
@@ -287,25 +294,33 @@ html, body {
 
 /* ─── Mobile adjustments ───────────────────────────────────── */
 @media (max-width: 480px) {
-  .app-header h1   { font-size: 1rem; }
+  .app-header h1        { font-size: 1rem; }
   .app-header .subtitle { display: none; }
 
+  /* Right-anchored compact panel — NOT full-width */
   #legend {
-    bottom: 66px; /* 56px search bar + 10px gap */
+    bottom: 66px;       /* 56px search bar + 10px gap */
     right: 8px;
-    left: 8px;
-    max-width: 100%;
-    /* Horizontal layout on small screens */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 12px;
-    padding: 10px 12px;
+    left: auto;         /* removes the full-width stretch */
+    max-width: 230px;
+    padding: 8px 12px;
   }
 
-  #legend h2         { grid-column: 1 / -1; }
-  #legend hr         { grid-column: 1 / -1; }
-  .layer-toggles     { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
-  .attribution-note  { grid-column: 1 / -1; }
+  /* Body scrollable when expanded on a small screen */
+  #legend-body {
+    max-height: calc(100dvh - 200px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Zone-fact grid: stack vertically on narrow popup widths */
+@media (max-width: 440px) {
+  .zone-fact {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+  .zone-fact-label { font-size: 0.68rem; }
 }
 
 /* ─── Hardiness zone labels (permanent tooltips on map) ──────

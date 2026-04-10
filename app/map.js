@@ -18,6 +18,12 @@ if (typeof window.GeoData === 'undefined') {
 
 var gd = window.GeoData;
 
+/* Shared popup options — autoPan clear of the fixed header (48px) and search bar (56px) */
+var POPUP_OPTS = {
+  autoPanPaddingTopLeft:     L.point(8, 56),
+  autoPanPaddingBottomRight: L.point(8, 64),
+};
+
 
 /* ─── Map initialization ────────────────────────────────────── */
 
@@ -45,7 +51,8 @@ function buildRegionLayer(geojson) {
   return L.geoJSON(geojson, {
     style: style,
     onEachFeature: function (feature, layer) {
-      layer.bindPopup(gd.makeRegionPopup(feature.properties), { maxWidth: 260 });
+      layer.bindPopup(gd.makeRegionPopup(feature.properties),
+        Object.assign({ maxWidth: 260 }, POPUP_OPTS));
       layer.on('mouseover', function () {
         this.setStyle({ fillOpacity: gd.STYLES.regionHover.fillOpacity });
       });
@@ -62,7 +69,8 @@ var piedmontLayer = buildRegionLayer(gd.PIEDMONT_GEOJSON);
 var fallLineLayer = L.geoJSON(gd.FALL_LINE_GEOJSON, {
   style: gd.STYLES.fallLine,
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(gd.makeFallLinePopup(), { maxWidth: 260 });
+    layer.bindPopup(gd.makeFallLinePopup(),
+      Object.assign({ maxWidth: 260 }, POPUP_OPTS));
   },
 });
 
@@ -115,7 +123,8 @@ function styleHardinessFeature(feature) {
 
 function onEachHardinessFeature(feature, layer) {
   var zone = feature.properties.zone || 'unknown';
-  layer.bindPopup(gd.makeZonePopup(zone), { maxWidth: 280 });
+  layer.bindPopup(gd.makeZonePopup(zone),
+    Object.assign({ maxWidth: 280 }, POPUP_OPTS));
   // Permanent label: zone code centered on each polygon, shown at zoom ≥ 9
   layer.bindTooltip(zone, {
     permanent:   true,
