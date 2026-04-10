@@ -21,7 +21,7 @@
          lib/leaflet.js:  sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=
          lib/leaflet.css: sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; connect-src 'self'; base-uri 'self'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; connect-src 'self' https://nominatim.openstreetmap.org; base-uri 'self'; form-action 'none';">
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -44,50 +44,65 @@
   <div id="map" role="region" aria-label="Interactive map of the Atlantic Seaboard Fall Line from Washington DC through Richmond VA to Raleigh NC"></div>
 
   <div id="legend" aria-label="Map legend">
-    <h2>Legend</h2>
-    <div class="legend-item">
-      <span class="swatch coastal"></span>
-      <span>Coastal Plain (Tidewater)</span>
+    <div class="legend-header">
+      <h2>Legend</h2>
+      <button id="legend-toggle" aria-label="Toggle legend" aria-expanded="true">&#x25BE;</button>
     </div>
-    <div class="legend-item">
-      <span class="swatch piedmont"></span>
-      <span>Piedmont</span>
-    </div>
-    <div class="legend-item">
-      <span class="swatch fallline"></span>
-      <span>Fall Line <em>(approximate)</em></span>
-    </div>
+    <div id="legend-body">
+      <div class="legend-item">
+        <span class="swatch coastal"></span>
+        <span>Coastal Plain (Tidewater)</span>
+      </div>
+      <div class="legend-item">
+        <span class="swatch piedmont"></span>
+        <span>Piedmont</span>
+      </div>
+      <div class="legend-item">
+        <span class="swatch fallline"></span>
+        <span>Fall Line <em>(approximate)</em></span>
+      </div>
 
-    <!-- Hardiness zone swatches — shown only when the layer is active -->
-    <div id="hardiness-legend" class="hardiness-legend" hidden>
-      <div class="legend-section-label">Hardiness Zones</div>
-      <div class="zone-swatches"></div>
-    </div>
+      <!-- Hardiness zone swatches — shown only when the layer is active -->
+      <div id="hardiness-legend" class="hardiness-legend" hidden>
+        <div class="legend-section-label">Hardiness Zones</div>
+        <div class="zone-swatches"></div>
+      </div>
 
-    <hr>
-    <div class="layer-toggles">
-      <label class="toggle">
-        <input type="checkbox" id="toggle-regions" checked>
-        Region shading
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="toggle-fallline" checked>
-        Fall line
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="toggle-hardiness">
-        <span id="hardiness-toggle-label">
-          Hardiness zones
-          <span class="loading-spinner" id="hardiness-spinner" hidden aria-hidden="true"></span>
-        </span>
-      </label>
-      <p id="hardiness-error" class="hardiness-error" hidden></p>
+      <hr>
+      <div class="layer-toggles">
+        <label class="toggle">
+          <input type="checkbox" id="toggle-regions" checked>
+          Region shading
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-fallline" checked>
+          Fall line
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-hardiness">
+          <span id="hardiness-toggle-label">
+            Hardiness zones
+            <span class="loading-spinner" id="hardiness-spinner" hidden aria-hidden="true"></span>
+          </span>
+        </label>
+        <p id="hardiness-error" class="hardiness-error" hidden></p>
+      </div>
+      <p class="attribution-note">
+        &copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap</a>
+        contributors &copy; <a href="https://carto.com/attributions" rel="noopener noreferrer" target="_blank">CARTO</a>
+        &middot; <a href="https://planthardiness.ars.usda.gov" rel="noopener noreferrer" target="_blank">USDA PHZM</a>
+      </p>
     </div>
-    <p class="attribution-note">
-      &copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">OpenStreetMap</a>
-      contributors &copy; <a href="https://carto.com/attributions" rel="noopener noreferrer" target="_blank">CARTO</a>
-      &middot; <a href="https://planthardiness.ars.usda.gov" rel="noopener noreferrer" target="_blank">USDA PHZM</a>
-    </p>
+  </div>
+
+  <div id="search-bar" aria-label="Location search">
+    <form id="search-form" role="search">
+      <input type="search" id="search-input" placeholder="Zip code or city&#x2026;"
+             maxlength="100" autocomplete="off" aria-label="Enter zip code or city">
+      <button type="button" id="locate-btn" aria-label="Use my location">&#x1F4CD;</button>
+      <button type="submit" aria-label="Search">&#x2192;</button>
+    </form>
+    <p id="search-status" class="search-status" hidden aria-live="polite"></p>
   </div>
 
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->

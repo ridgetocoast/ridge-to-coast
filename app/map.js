@@ -106,16 +106,23 @@ function styleHardinessFeature(feature) {
   var zone = feature.properties.zone || 'unknown';
   return {
     fillColor:   gd.getZoneColor(zone),
-    fillOpacity: 0.50,
-    color:       '#ffffff',
-    weight:      0.4,
-    opacity:     0.4,
+    fillOpacity: 0.28,   // semi-transparent so Piedmont/Coastal shading shows through
+    color:       gd.getZoneColor(zone),
+    weight:      0.8,
+    opacity:     0.5,
   };
 }
 
 function onEachHardinessFeature(feature, layer) {
   var zone = feature.properties.zone || 'unknown';
-  layer.bindPopup(gd.makeZonePopup(zone), { maxWidth: 260 });
+  layer.bindPopup(gd.makeZonePopup(zone), { maxWidth: 280 });
+  // Permanent label: zone code centered on each polygon, shown at zoom ≥ 9
+  layer.bindTooltip(zone, {
+    permanent:   true,
+    direction:   'center',
+    className:   'zone-label',
+    interactive: false,
+  });
 }
 
 function loadAndShowHardinessLayer() {
@@ -151,6 +158,7 @@ function loadAndShowHardinessLayer() {
       // Add below the fall line so the pink line remains on top
       hardinessLayer.addTo(map);
       fallLineLayer.bringToFront();
+      updateZoneLabels();
 
       setHardinessLoading(false);
     })
@@ -167,6 +175,20 @@ function loadAndShowHardinessLayer() {
       }
     });
 }
+
+
+/* ─── Zone label visibility (shown only at zoom ≥ 9) ───────── */
+
+function updateZoneLabels() {
+  var show = map.getZoom() >= 9;
+  map.getContainer().classList.toggle('hide-zone-labels', !show);
+}
+
+map.on('zoomend', function () {
+  if (hardinessLayer && map.hasLayer(hardinessLayer)) {
+    updateZoneLabels();
+  }
+});
 
 
 /* ─── Layer toggle controls ─────────────────────────────────── */
@@ -196,6 +218,91 @@ document.getElementById('toggle-hardiness').addEventListener('change', function 
     if (hardinessLayer) map.removeLayer(hardinessLayer);
     hardinessLegend.hidden = true;
   }
+});
+
+
+/* ─── Legend collapse / expand ──────────────────────────────── */
+
+var legendBody   = document.getElementById('legend-body');
+var legendToggle = document.getElementById('legend-toggle');
+
+// Mobile (≤600px): start collapsed to maximise map visibility
+if (window.innerWidth <= 600) {
+  legendBody.hidden = true;
+  legendToggle.setAttribute('aria-expanded', 'false');
+  legendToggle.textContent = '\u25B8'; // ▸
+}
+
+legendToggle.addEventListener('click', function () {
+  var collapsed = legendBody.hidden;
+  legendBody.hidden = !collapsed;
+  legendToggle.setAttribute('aria-expanded', String(collapsed));
+  legendToggle.textContent = collapsed ? '\u25BE' : '\u25B8'; // ▾ or ▸
+});
+
+
+/* ─── Location search ───────────────────────────────────────── */
+
+var searchForm   = document.getElementById('search-form');
+var searchInput  = document.getElementById('search-input');
+var searchStatus = document.getElementById('search-status');
+
+function showStatus(text) {
+  searchStatus.textContent = text;
+  searchStatus.hidden = !text;
+}
+
+function flyToResult(lat, lon, displayName) {
+  map.flyTo([lat, lon], 12, { duration: 1.5 });
+  if (!gd.isInCorridor(lat, lon)) {
+    showStatus(displayName + ' is outside the DC\u2013Raleigh corridor.');
+  } else {
+    searchStatus.hidden = true;
+  }
+}
+
+searchForm.addEventListener('submit', function (e) {
+  e.preventDefault();
+  var query = searchInput.value.trim();
+  if (!query) {
+    showStatus('Enter a zip code or city to search.');
+    return;
+  }
+  showStatus('Searching\u2026');
+  fetch(gd.buildSearchQuery(query), {
+    headers: { 'Accept': 'application/json' }
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (results) {
+      if (!results || results.length === 0) {
+        showStatus('\u201c' + query + '\u201d not found. Try a city name or zip code.');
+        return;
+      }
+      var r = results[0];
+      flyToResult(parseFloat(r.lat), parseFloat(r.lon), r.display_name || query);
+    })
+    .catch(function () {
+      showStatus('Search failed. Check your connection and try again.');
+    });
+});
+
+
+/* ─── GPS / geolocation ─────────────────────────────────────── */
+
+document.getElementById('locate-btn').addEventListener('click', function () {
+  if (!navigator.geolocation) {
+    showStatus('Geolocation is not supported by your browser.');
+    return;
+  }
+  showStatus('Finding your location\u2026');
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      flyToResult(pos.coords.latitude, pos.coords.longitude, 'your location');
+    },
+    function () {
+      showStatus('Could not get your location. Check browser permissions.');
+    }
+  );
 });
 
 
