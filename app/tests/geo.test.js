@@ -79,12 +79,14 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the DC–Richmond–Raleigh bounding box', () => {
+  it('all points are within the eastern United States (VA / NC / MD extent)', () => {
+    // Fall line now spans MD/PA border (39.72°N) to NC/SC border (33.9°N),
+    // extending beyond the corridor BBOX which is used only for search relevance.
     for (const [lon, lat] of FALL_LINE_COORDS) {
-      assert.ok(lon >= BBOX.WEST && lon <= BBOX.EAST,
-        `longitude ${lon} is outside corridor bounds [${BBOX.WEST}, ${BBOX.EAST}]`);
-      assert.ok(lat >= BBOX.SOUTH && lat <= BBOX.NORTH,
-        `latitude ${lat} is outside corridor bounds [${BBOX.SOUTH}, ${BBOX.NORTH}]`);
+      assert.ok(lon >= -85.0 && lon <= -74.0,
+        `longitude ${lon} is outside the eastern US range [-85, -74]`);
+      assert.ok(lat >= 33.5 && lat <= 40.0,
+        `latitude ${lat} is outside the VA/NC/MD range [33.5, 40.0]`);
     }
   });
 

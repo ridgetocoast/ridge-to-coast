@@ -35,8 +35,15 @@
            Atlantic Coastal Plain / Piedmont boundary.
    ────────────────────────────────────────────────────────────── */
 const FALL_LINE_COORDS = [
+  // === Maryland (north of DC) ===
+  [-76.000, 39.720],   // MD/PA border — northern terminus of the fall line
+  [-76.080, 39.540],   // Susquehanna River / Havre de Grace
+  [-76.340, 39.520],   // Bel Air / Bush River
+  [-76.440, 39.440],   // Gunpowder Falls
+  [-76.620, 39.330],   // Baltimore / Jones Falls
+  [-76.730, 39.270],   // Elkridge / Patapsco River
+  [-76.900, 39.090],   // Laurel / Patuxent River falls
   // === Washington DC / Potomac ===
-  [-77.245, 39.200],   // Northern extent — Great Falls area at bbox north
   [-77.245, 39.000],   // Great Falls of the Potomac (Mather Gorge rapids)
   [-77.170, 38.905],   // Little Falls / Georgetown — head of Potomac tidal zone
   [-77.130, 38.870],   // Arlington / Rosslyn
@@ -80,7 +87,16 @@ const FALL_LINE_COORDS = [
   [-78.648, 35.897],   // Falls of Neuse — Raleigh anchor
   [-78.720, 35.820],   // South Raleigh / Wake County
   [-78.820, 35.700],   // Southwest Wake County
-  [-78.960, 35.400],   // Southern extent — Harnett County line at bbox south
+  // === Southern North Carolina ===
+  [-78.870, 35.560],   // Fuquay-Varina / Harnett County
+  [-78.870, 35.390],   // Cape Fear River near Lillington
+  [-79.170, 35.350],   // Western Harnett / Lee County
+  [-79.450, 35.170],   // Moore County / Southern Pines
+  [-79.780, 34.930],   // Rockingham / Pee Dee River falls
+  [-79.460, 34.770],   // Laurinburg / Scotland County
+  [-79.010, 34.620],   // Lumberton / Lumber River
+  [-78.700, 34.270],   // Whiteville / Columbus County
+  [-78.350, 33.900],   // Brunswick County / NC–SC border — southern terminus
 ];
 
 const FALL_LINE_GEOJSON = {
@@ -104,12 +120,17 @@ const FALL_LINE_GEOJSON = {
    Bounding box: ~35.40–39.20°N, ~76.70–79.20°W
    ────────────────────────────────────────────────────────────── */
 
-// GeoJSON polygons must close: first coordinate repeated as last
-// Covers Washington DC → Richmond VA → Raleigh NC fall line corridor
+// BBOX: corridor bounding box — used by isInCorridor() for search relevance
 const BBOX_NORTH =  39.200;   // north of DC (includes Maryland suburbs)
 const BBOX_SOUTH =  35.400;   // south of Raleigh
 const BBOX_EAST  = -76.700;   // east of DC / Chesapeake Bay approaches
 const BBOX_WEST  = -79.200;   // west of Raleigh Piedmont
+
+// REGION: full-state extent — used for Coastal Plain & Piedmont polygon bounds
+const REGION_NORTH =  39.720;  // MD / PA border
+const REGION_SOUTH =  33.900;  // NC / SC border
+const REGION_EAST  = -75.200;  // Outer Banks / Eastern Shore
+const REGION_WEST  = -84.300;  // VA / TN-KY border (Appalachians)
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
@@ -121,16 +142,16 @@ const COASTAL_PLAIN_GEOJSON = {
     description:
       'East of the fall line. Flat terrain underlain by soft sedimentary ' +
       'deposits — sandy soils with fast drainage and low water retention. ' +
-      'Rivers are tidal and navigable to the sea. Stretches from the DC ' +
-      'suburbs east through the Virginia Tidewater to coastal North Carolina.',
+      'Rivers are tidal and navigable to the sea. Stretches from the Maryland ' +
+      'Eastern Shore through the Virginia Tidewater to coastal North Carolina.',
   },
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [BBOX_EAST, BBOX_NORTH],    // NE corner
-      [BBOX_EAST, BBOX_SOUTH],    // SE corner  (south along east edge)
-      ...fallLineReversed,        // south→north along fall line (west boundary)
-      [BBOX_EAST, BBOX_NORTH],    // close polygon (east along north edge)
+      [REGION_EAST, REGION_NORTH],  // NE corner (Eastern Shore / MD-PA border lat)
+      [REGION_EAST, REGION_SOUTH],  // SE corner (Outer Banks / NC-SC border lat)
+      ...fallLineReversed,          // south→north along fall line (west boundary)
+      [REGION_EAST, REGION_NORTH],  // close polygon
     ]],
   },
 };
@@ -143,16 +164,17 @@ const PIEDMONT_GEOJSON = {
     description:
       'West of the fall line. Rolling hills underlain by ancient crystalline ' +
       'bedrock (granite, gneiss, schist). Heavy clay soils with poor drainage. ' +
-      'Rivers run fast over rapids at the fall line. Cities like Washington DC, ' +
-      'Richmond VA, and Raleigh NC each straddle or sit just above this boundary.',
+      'Rivers run fast over rapids at the fall line. Extends from the Maryland ' +
+      'Piedmont through central Virginia to the North Carolina Piedmont Triad ' +
+      'and Sandhills, bounded by the Blue Ridge and Appalachians to the west.',
   },
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [BBOX_WEST, BBOX_NORTH],    // NW corner
-      ...FALL_LINE_COORDS,        // north→south along fall line (east boundary)
-      [BBOX_WEST, BBOX_SOUTH],    // SW corner
-      [BBOX_WEST, BBOX_NORTH],    // close polygon
+      [REGION_WEST, REGION_NORTH],  // NW corner (Appalachians / MD-PA border lat)
+      ...FALL_LINE_COORDS,          // north→south along fall line (east boundary)
+      [REGION_WEST, REGION_SOUTH],  // SW corner (Appalachians / NC-SC border lat)
+      [REGION_WEST, REGION_NORTH],  // close polygon
     ]],
   },
 };
