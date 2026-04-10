@@ -1,8 +1,8 @@
 # Fall Line to Coast
 
-An interactive web map of the **Atlantic Seaboard Fall Line** corridor — the geological boundary dividing the Piedmont (crystalline bedrock, rolling hills) from the Coastal Plain (Tidewater, sedimentary, flat) along the eastern United States.
+An interactive web map of the **Atlantic Seaboard Fall Line** — the geological boundary dividing the Piedmont (crystalline bedrock, rolling hills) from the Coastal Plain (Tidewater, sedimentary, flat) along the eastern United States.
 
-The map currently covers three fall line metro areas: **Washington DC · Richmond VA · Raleigh NC**
+The map covers the full fall line corridor from **Philadelphia PA / Trenton NJ** south through Washington DC, Richmond VA, and Raleigh NC to **Augusta GA**, including the Piedmont and Coastal Plain regions of VA, NC, MD, PA, and SC.
 
 Live at **[loobo07.github.io](https://loobo07.github.io)**
 
@@ -12,20 +12,22 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 
 | Layer | Description |
 |---|---|
-| **Fall Line** | Approximate path of the geological boundary from Great Falls/DC (39.2°N) through Fredericksburg, Richmond, Petersburg, Emporia VA, Roanoke Rapids NC, and Falls of Neuse to south Raleigh (35.4°N) |
+| **Fall Line** | Approximate path of the geological boundary from Trenton NJ (40.2°N) south through Baltimore, DC, Fredericksburg, Richmond, Petersburg, Roanoke Rapids, Raleigh, Lumberton NC, Conway SC, Columbia SC, and Aiken SC to Augusta GA (33.5°N) |
 | **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea |
 | **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line |
-| **Hardiness Zones** | USDA Plant Hardiness Zones 5b–8a for the corridor, lazy-loaded from processed GeoJSON (lazy fetch, cached in memory) |
-| **Click/tap popups** | Tap any region, the fall line, or a hardiness zone for geological and climate context |
+| **Hardiness Zones** | USDA Plant Hardiness Zones 5b–8a overlaid on the corridor (VA, NC, MD data); lazy-loaded and cached in memory |
+| **Click/tap popups** | Tap any region, the fall line, or a hardiness zone for geological and climate context — 5-fact zone cards show min temp, first/last frost, growing season, and plants |
 | **Layer toggles** | Show/hide region shading, fall line, and hardiness zones independently |
+| **Location search** | Search by zip code or city; uses Nominatim geocoding with corridor detection |
+| **Collapsible legend** | Starts collapsed on mobile (≤600px) to maximise map area; tap ▸ to expand |
 
 ### Why these cities?
 
-Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Each city was founded at the head of navigation — the furthest inland point ships could reach before the river dropped over rapids onto the Piedmont plateau. The fall line explains:
+Philadelphia, DC, Richmond, Raleigh, and Columbia SC all sit at or near the fall line. Each city was founded at the **head of navigation** — the furthest inland point ships could reach before the river dropped over rapids onto the Piedmont plateau. The fall line explains:
 
 - **Soil type** — Piedmont clay west of the line vs Coastal Plain sand east of it
 - **Drainage** — opposite amendments needed for each soil type
-- **Plant hardiness** — zones 6a–7b in the DC/Richmond corridor, 7b–8a in Raleigh
+- **Plant hardiness** — zones 6a–7b in the DC/Richmond corridor, 7b–8a in Raleigh and the Carolinas
 - **Native plant communities** — the ecotone (transition zone) supports unique biodiversity
 
 ---
@@ -38,6 +40,7 @@ Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Eac
 | Base tiles | [CARTO](https://carto.com) `dark_all` (free, no API key) |
 | Fall line / region data | Hand-crafted GeoJSON based on USGS geological surveys |
 | Hardiness zone data | [kgjenkins/ophz](https://github.com/kgjenkins/ophz) (USDA PHZM via PRISM Oregon State), clipped and processed |
+| Location search | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap geocoding, no API key) |
 | Hosting | GitHub Pages (static, no backend, no build step) |
 | Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
 | E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest |
@@ -48,9 +51,9 @@ Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Eac
 ## Project structure
 
 ```
-├── index.html               # App shell, CSP meta header, layer toggles, legend
+├── index.html               # App shell, CSP meta header, layer toggles, legend, search bar
 ├── style.css                # Responsive layout, dark theme, mobile-first
-├── map.js                   # Leaflet initialisation, layer logic, lazy hardiness loader
+├── map.js                   # Leaflet initialisation, layer logic, lazy hardiness loader, search
 ├── lib/
 │   ├── geo-data.js          # Pure geographic data and helpers (no Leaflet/DOM dependency)
 │   ├── leaflet.js           # Vendored Leaflet 1.9.4
@@ -61,11 +64,13 @@ Washington DC, Richmond VA, and Raleigh NC all sit at or near the fall line. Eac
 ├── scripts/
 │   └── process-hardiness.js # CLI: clips raw ophz GeoJSON to corridor bbox, reduces precision
 ├── tests/
-│   ├── geo.test.js          # 80 unit tests (Node built-in runner, no npm needed)
+│   ├── geo.test.js          # 114 unit tests across 17 suites (Node built-in runner, no npm needed)
 │   ├── results/             # TAP output from CI runs
 │   └── e2e/
 │       ├── conftest.py      # pytest-playwright fixtures; auto-fails on uncaught JS errors
 │       ├── test_map.py      # 19 E2E tests (page load, layers, hardiness toggle, mobile)
+│       ├── test_search.py   # 12 E2E tests (search bar, Nominatim calls, corridor detection)
+│       ├── test_legend_toggle.py  # 9 E2E tests (collapse/expand, mobile start state)
 │       └── requirements.txt # pytest + pytest-playwright
 └── .github/
     └── workflows/
@@ -85,20 +90,27 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**80 tests across 14 suites:**
+**114 tests across 17 suites:**
 
 | Suite | What it covers |
 |---|---|
 | 1 | Fall line GeoJSON structure (Feature type, LineString, coord count, name) |
-| 2 | Geographic accuracy — corridor bbox containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor |
+| 2 | Geographic accuracy — PA–GA belt containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor, Trenton NJ anchor, Augusta GA anchor |
 | 3 | Coastal Plain polygon (closed ring, region tag, east boundary, no west overshoot) |
 | 4 | Piedmont polygon (closed ring, region tag, west boundary, no east overshoot) |
 | 5 | Region separation (disjoint east/west checks) |
 | 6 | STYLES object (color formats, opacity range, hover contrast) |
-| 7 | `makeRegionPopup()` and `makeFallLinePopup()` (HTML structure, content) |
-| 8 | `haversineKm()` (identity, Richmond→DC distance, symmetry) |
-| 9 | BBOX constants (DC, Richmond, and Raleigh all inside bounds) |
-| 11–14 | Hardiness zones (color map, `getZoneColor`, `getZoneInfo`, `makeZonePopup`) |
+| 7 | `makeRegionPopup()` (HTML structure, content, CSS classes, per-region variation) |
+| 8 | `makeFallLinePopup()` (returns string, mentions Fall Line, Piedmont, Coastal Plain, approximation) |
+| 9 | `haversineKm()` (identity, Richmond→DC distance, symmetry) |
+| 10 | BBOX constants (DC, Richmond, and Raleigh all inside bounds) |
+| 11 | `HARDINESS_ZONE_COLORS` map (coverage, hex format) |
+| 12 | `getZoneColor()` (known zones, unknown fallback) |
+| 13 | `getZoneInfo()` (all required fields, temp range format) |
+| 14 | `makeZonePopup()` (HTML structure, zone badge, frost dates, growing season, plants) |
+| 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
+| 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Fredericksburg, Philadelphia, Columbia SC, Augusta GA; false for NYC, Louisville KY, Miami FL, Atlanta GA; BBOX boundary inclusive |
+| 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
 
 ### E2E tests (Python Playwright)
 
@@ -111,14 +123,13 @@ python -m http.server 8000 &        # serve the static site locally
 python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 ```
 
-**19 tests across 4 suites:**
+**40 tests across 3 suites:**
 
-| Suite | What it covers |
-|---|---|
-| Page load | Title correct, `#map` visible, legend visible, all 3 toggles present, no uncaught JS errors |
-| Layer rendering | SVG paths in overlay pane, region toggle removes/restores paths, fall line toggle |
-| Hardiness toggle | Default off, fetch returns HTTP 200, legend populates, paths added, hide on uncheck, second toggle uses cache (no re-fetch) |
-| Mobile (375×667) | Map fills screen, legend visible, subtitle hidden per CSS |
+| File | Tests | What it covers |
+|---|---|---|
+| `test_map.py` | 19 | Page load, layer toggles, hardiness fetch/cache/legend, mobile viewport |
+| `test_search.py` | 12 | Search bar structure, Nominatim call routing, corridor detection, empty-submit handling |
+| `test_legend_toggle.py` | 9 | Collapse/expand toggle, mobile start state (collapsed), desktop start state (expanded), layer toggles after expand |
 
 Any uncaught JavaScript error during a test causes automatic failure via the `conftest.py` `page` fixture.
 
@@ -152,13 +163,15 @@ node scripts/process-hardiness.js /tmp/ophz_merged.geojson data/hardiness.geojso
 
 Result: 155 features, zones 5b–8a, ~253 KB (91% reduction from 2.8 MB source).
 
+**Known data gaps:** Washington DC (not a US state — excluded from state-level ophz files), Pennsylvania (fall line corridor north of MD), New Jersey, South Carolina, and Georgia are not yet included in `data/hardiness.geojson`. Adding them requires downloading the corresponding ophz state files and re-running the pipeline with expanded bbox constants in `scripts/process-hardiness.js`.
+
 ---
 
 ## Security
 
-- **Content Security Policy** — enforced via `<meta>` tag (GitHub Pages cannot set HTTP headers). Locks scripts to `'self'`, tiles to CARTO, no eval, no inline scripts.
+- **Content Security Policy** — enforced via `<meta>` tag (GitHub Pages cannot set HTTP headers). Locks scripts to `'self'`, tiles to CARTO, geocoding to Nominatim, no eval, no inline scripts.
 - **Vendored Leaflet** — `lib/leaflet.js` and `lib/leaflet.css` are copied directly from the npm package. No CDN trust required.
-- **No API keys** — CARTO `dark_all` tiles are free and keyless. All data is static and same-origin.
+- **No API keys** — CARTO `dark_all` tiles and Nominatim geocoding are free and keyless. All data is static and same-origin (except the geocoding API call).
 - **No backend** — fully static; no server-side code surface.
 
 ---
@@ -167,23 +180,37 @@ Result: 155 features, zones 5b–8a, ~253 KB (91% reduction from 2.8 MB source).
 
 The fall line path is **approximate**, derived from published USGS geological maps. The true boundary is gradational — it varies with the underlying bedrock over a zone of several miles. Key verifiable river crossings used as anchors:
 
-| City | River | Coordinates |
+| City / Location | River | Coordinates |
 |---|---|---|
+| Trenton NJ | Delaware | 40.220°N, 74.770°W |
+| Philadelphia PA | Schuylkill / Delaware | 40.000°N, 75.100°W |
+| Wilmington DE | Brandywine Creek | 39.740°N, 75.540°W |
+| Baltimore MD | Jones Falls / Patapsco | 39.270°N, 76.730°W |
 | Great Falls, MD/VA | Potomac | 39.000°N, 77.245°W |
 | Fredericksburg, VA | Rappahannock | 38.302°N, 77.468°W |
 | Richmond, VA | James (Belle Isle) | 37.527°N, 77.464°W |
 | Petersburg, VA | Appomattox | 37.222°N, 77.395°W |
 | Roanoke Rapids, NC | Roanoke | 36.462°N, 77.655°W |
 | Raleigh, NC | Neuse (Falls of Neuse) | 35.897°N, 78.648°W |
+| Columbia, SC | Congaree / Saluda | 34.000°N, 81.030°W |
+| Augusta, GA | Savannah | 33.470°N, 82.020°W |
+
+Frost date estimates in the hardiness zone popups are approximations based on USDA zone midpoints — consult your local agricultural extension office for precise planting dates.
 
 ---
 
 ## Roadmap
 
-- [ ] City markers for DC, Richmond, and Raleigh with click context (history, soil type, zone)
+- [x] Extend fall line corridor north to Philadelphia PA / Trenton NJ
+- [x] Extend fall line corridor south through Columbia SC to Augusta GA
+- [x] Location search (zip code / city) with Nominatim geocoding
+- [x] Collapsible legend (mobile-first, starts collapsed)
+- [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
+- [ ] Add GA, PA, NJ, SC, NY hardiness data to pipeline (expand `data/hardiness.geojson`)
+- [ ] Extend fall line northeast to Paterson NJ / Westchester NY
+- [ ] Extend fall line southwest to Macon GA / Columbus GA
+- [ ] City markers for major fall line metros with click context (history, soil type, zone)
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
-- [ ] Planting calendar integration — last/first frost dates per fall line metro
-- [ ] Expand fall line corridor north (Philadelphia, Trenton) and south (Columbia SC, Augusta GA)
 - [ ] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2))
 - [ ] Community garden network layer — fall line cities sharing growing knowledge

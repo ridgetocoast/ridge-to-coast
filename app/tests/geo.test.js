@@ -153,6 +153,22 @@ describe('Fall Line geographic accuracy', () => {
     assert.ok(dist <= 5.0,
       `nearest fall line point is ${dist.toFixed(2)} km from Falls of Neuse — expected ≤ 5 km`);
   });
+
+  it('passes within 10 km of Delaware River at Trenton NJ (northern anchor)', () => {
+    // Trenton NJ: ~40.220°N, 74.770°W — where the Delaware River crosses the fall line
+    const TRENTON = [-74.770, 40.220];
+    const dist = minDistanceToFallLine(TRENTON);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Trenton — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Savannah River at Augusta GA (southern anchor)', () => {
+    // Augusta GA: ~33.470°N, 82.020°W — where the Savannah River crosses the fall line
+    const AUGUSTA = [-82.020, 33.470];
+    const dist = minDistanceToFallLine(AUGUSTA);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Augusta GA — expected ≤ 10 km`);
+  });
 });
 
 
@@ -710,6 +726,18 @@ describe('isInCorridor()', () => {
 
   it('returns true for Fredericksburg, VA (38.30, -77.47)', () => {
     assert.equal(isInCorridor(38.30, -77.47), true);
+  });
+
+  it('returns true for Philadelphia, PA (39.95, -75.16)', () => {
+    assert.equal(isInCorridor(39.95, -75.16), true);
+  });
+
+  it('returns true for Columbia, SC (34.00, -81.03)', () => {
+    assert.equal(isInCorridor(34.00, -81.03), true);
+  });
+
+  it('returns true for Augusta, GA (33.47, -82.02)', () => {
+    assert.equal(isInCorridor(33.47, -82.02), true);
   });
 
   it('returns false for New York City (40.71, -74.01) — north of corridor', () => {
