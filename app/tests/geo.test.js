@@ -31,6 +31,9 @@ const {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
+  isValidUSZipCode,
+  isInCorridor,
+  buildSearchQuery,
 } = require('../lib/geo-data.js');
 
 
@@ -636,5 +639,154 @@ describe('makeZonePopup()', () => {
   it('includes temperature range', () => {
     const html = makeZonePopup('7b');
     assert.ok(html.includes('°'), 'popup should include temperature with degree symbol');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 15 — isValidUSZipCode()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('isValidUSZipCode()', () => {
+  it('returns true for a valid 5-digit zip (Richmond 23219)', () => {
+    assert.equal(isValidUSZipCode('23219'), true);
+  });
+
+  it('returns true for a valid 5-digit zip (Raleigh 27601)', () => {
+    assert.equal(isValidUSZipCode('27601'), true);
+  });
+
+  it('returns true for a valid 5-digit zip (DC 20001)', () => {
+    assert.equal(isValidUSZipCode('20001'), true);
+  });
+
+  it('returns false for a 4-digit string', () => {
+    assert.equal(isValidUSZipCode('1234'), false);
+  });
+
+  it('returns false for a 6-digit string', () => {
+    assert.equal(isValidUSZipCode('123456'), false);
+  });
+
+  it('returns false for letters', () => {
+    assert.equal(isValidUSZipCode('abcde'), false);
+  });
+
+  it('returns false for mixed alphanumeric', () => {
+    assert.equal(isValidUSZipCode('2321a'), false);
+  });
+
+  it('returns false for zip+4 format', () => {
+    assert.equal(isValidUSZipCode('23219-1234'), false);
+  });
+
+  it('returns false for empty string', () => {
+    assert.equal(isValidUSZipCode(''), false);
+  });
+
+  it('trims leading/trailing whitespace before checking', () => {
+    assert.equal(isValidUSZipCode('  23219  '), true);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 16 — isInCorridor()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('isInCorridor()', () => {
+  it('returns true for Richmond, VA (37.54, -77.44)', () => {
+    assert.equal(isInCorridor(37.54, -77.44), true);
+  });
+
+  it('returns true for Raleigh, NC (35.78, -78.64)', () => {
+    assert.equal(isInCorridor(35.78, -78.64), true);
+  });
+
+  it('returns true for Washington, DC (38.90, -77.04)', () => {
+    assert.equal(isInCorridor(38.90, -77.04), true);
+  });
+
+  it('returns true for Fredericksburg, VA (38.30, -77.47)', () => {
+    assert.equal(isInCorridor(38.30, -77.47), true);
+  });
+
+  it('returns false for New York City (40.71, -74.01) — north of corridor', () => {
+    assert.equal(isInCorridor(40.71, -74.01), false);
+  });
+
+  it('returns false for Charlotte, NC (35.23, -80.84) — west of corridor', () => {
+    assert.equal(isInCorridor(35.23, -80.84), false);
+  });
+
+  it('returns false for Virginia Beach, VA (36.85, -76.10) — east of corridor', () => {
+    assert.equal(isInCorridor(36.85, -76.10), false);
+  });
+
+  it('returns false for Atlanta, GA (33.75, -84.39) — south and west', () => {
+    assert.equal(isInCorridor(33.75, -84.39), false);
+  });
+
+  it('uses BBOX.NORTH/SOUTH/EAST/WEST boundaries (inclusive)', () => {
+    // Exactly on the boundary should be inside
+    assert.equal(isInCorridor(BBOX.NORTH, BBOX.EAST), true);
+    assert.equal(isInCorridor(BBOX.SOUTH, BBOX.WEST), true);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 17 — buildSearchQuery()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('buildSearchQuery()', () => {
+  it('returns a string for a zip code input', () => {
+    assert.equal(typeof buildSearchQuery('23219'), 'string');
+  });
+
+  it('returns a string for a city name input', () => {
+    assert.equal(typeof buildSearchQuery('Richmond VA'), 'string');
+  });
+
+  it('zip code uses postalcode= parameter', () => {
+    const url = buildSearchQuery('23219');
+    assert.ok(url.includes('postalcode=23219'), `expected postalcode=23219 in: ${url}`);
+  });
+
+  it('city name uses q= parameter', () => {
+    const url = buildSearchQuery('Richmond VA');
+    assert.ok(url.includes('q='), `expected q= parameter in: ${url}`);
+  });
+
+  it('always targets Nominatim domain', () => {
+    const zip  = buildSearchQuery('23219');
+    const city = buildSearchQuery('Raleigh NC');
+    assert.ok(zip.includes('nominatim.openstreetmap.org'), 'zip URL should use Nominatim');
+    assert.ok(city.includes('nominatim.openstreetmap.org'), 'city URL should use Nominatim');
+  });
+
+  it('always requests JSON format', () => {
+    assert.ok(buildSearchQuery('23219').includes('format=json'));
+    assert.ok(buildSearchQuery('Raleigh NC').includes('format=json'));
+  });
+
+  it('always limits to 1 result', () => {
+    assert.ok(buildSearchQuery('23219').includes('limit=1'));
+    assert.ok(buildSearchQuery('Raleigh NC').includes('limit=1'));
+  });
+
+  it('always restricts to US (countrycodes=us)', () => {
+    assert.ok(buildSearchQuery('23219').includes('countrycodes=us'));
+    assert.ok(buildSearchQuery('Raleigh NC').includes('countrycodes=us'));
+  });
+
+  it('encodes special characters in city names', () => {
+    const url = buildSearchQuery('Washington, DC');
+    assert.ok(!url.includes(' '), 'URL should not contain raw spaces');
+  });
+
+  it('trims whitespace from input before building URL', () => {
+    const url = buildSearchQuery('  23219  ');
+    assert.ok(url.includes('postalcode=23219'), 'should trim whitespace before checking zip');
   });
 });

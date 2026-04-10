@@ -45,7 +45,7 @@ html, body {
 #map {
   position: fixed;
   top: 48px;   /* below header */
-  bottom: 0;
+  bottom: 56px; /* above search bar */
   left: 0;
   right: 0;
   z-index: 1;
@@ -54,7 +54,7 @@ html, body {
 /* ─── Legend Panel ─────────────────────────────────────────── */
 #legend {
   position: fixed;
-  bottom: 16px;
+  bottom: 72px; /* 56px search bar + 16px gap */
   right: 12px;
   z-index: 1000;
   background: rgba(20, 20, 40, 0.92);
@@ -68,13 +68,35 @@ html, body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* ─── Legend Header (title + toggle button) ────────────────── */
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 #legend h2 {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #aaa;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+}
+
+#legend-toggle {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+#legend-toggle:hover {
+  color: #fff;
 }
 
 .legend-item {
@@ -201,13 +223,75 @@ html, body {
 .region-tag.coastal  { background: rgba(70, 130, 220, 0.3); color: #89b8f5; border: 1px solid rgba(70,130,220,0.4); }
 .region-tag.piedmont { background: rgba(200, 130, 50, 0.3);  color: #f5c070; border: 1px solid rgba(200,130,50,0.4); }
 
+/* ─── Search Bar ───────────────────────────────────────────── */
+#search-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(20, 20, 40, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#search-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#search-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #eee;
+  font-size: 0.88rem;
+  padding: 6px 10px;
+  outline: none;
+}
+
+#search-input::placeholder { color: #666; }
+#search-input:focus { border-color: rgba(74, 158, 255, 0.6); }
+
+#locate-btn,
+#search-form [type=submit] {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #ddd;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 6px 10px;
+  min-width: 36px;
+}
+
+#locate-btn:hover,
+#search-form [type=submit]:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.search-status {
+  font-size: 0.78rem;
+  color: #aaa;
+  padding: 0 2px;
+  line-height: 1.3;
+}
+
 /* ─── Mobile adjustments ───────────────────────────────────── */
 @media (max-width: 480px) {
   .app-header h1   { font-size: 1rem; }
   .app-header .subtitle { display: none; }
 
   #legend {
-    bottom: 10px;
+    bottom: 66px; /* 56px search bar + 10px gap */
     right: 8px;
     left: 8px;
     max-width: 100%;
@@ -222,6 +306,84 @@ html, body {
   #legend hr         { grid-column: 1 / -1; }
   .layer-toggles     { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
   .attribution-note  { grid-column: 1 / -1; }
+}
+
+/* ─── Hardiness zone labels (permanent tooltips on map) ──────
+   Hidden below zoom 9 via .hide-zone-labels class on map container.
+   ────────────────────────────────────────────────────────────── */
+.zone-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Remove Leaflet's tooltip arrow */
+.zone-label::before { display: none !important; }
+
+/* Hide labels at low zoom */
+.hide-zone-labels .zone-label { display: none !important; }
+
+/* ─── Hardiness zone popup card ────────────────────────────── */
+.zone-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 8px;
+  margin-bottom: 6px;
+}
+
+.zone-popup-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0;
+}
+
+.zone-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  line-height: 1.6;
+}
+
+.zone-desc {
+  font-size: 0.78rem;
+  color: #bbb;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.zone-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 7px;
+}
+
+.zone-fact {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 6px;
+  font-size: 0.77rem;
+  line-height: 1.4;
+}
+
+.zone-fact-label {
+  color: #888;
+  font-size: 0.72rem;
+}
+
+.zone-fact-value {
+  color: #ddd;
 }
 
 /* ─── Hardiness legend ─────────────────────────────────────── */

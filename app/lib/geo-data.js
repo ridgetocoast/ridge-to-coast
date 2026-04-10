@@ -276,14 +276,70 @@ const HARDINESS_ZONE_COLORS = {
 };
 
 const HARDINESS_ZONE_INFO = {
-  '5a': { tempRange: '-20°F to -15°F (-29°C to -26°C)', description: 'Cool continental climate. Cold winters limit many broadleaf evergreens.' },
-  '5b': { tempRange: '-15°F to -10°F (-26°C to -23°C)', description: 'Cool continental climate. Long growing season with cold winters.' },
-  '6a': { tempRange: '-10°F to -5°F (-23°C to -21°C)',  description: 'Moderate climate. Suitable for a wide range of trees and shrubs.' },
-  '6b': { tempRange: '-5°F to 0°F (-21°C to -18°C)',    description: 'Moderate climate. Typical of the northern Virginia Piedmont and DC suburbs.' },
-  '7a': { tempRange: '0°F to 5°F (-18°C to -15°C)',     description: 'Mild winters. DC metro area and northern Virginia fall line corridor.' },
-  '7b': { tempRange: '5°F to 10°F (-15°C to -12°C)',    description: 'Mild winters. Richmond VA city and the fall line corridor through central Virginia and into Raleigh NC.' },
-  '8a': { tempRange: '10°F to 15°F (-12°C to -9°C)',    description: 'Warm winters. Eastern Coastal Plain, Tidewater, and the Raleigh NC area. Broadleaf evergreens thrive.' },
-  '8b': { tempRange: '15°F to 20°F (-9°C to -7°C)',     description: 'Very mild winters. Coastal Virginia near Hampton Roads.' },
+  '5a': {
+    tempRange:     '-20°F to -15°F (-29°C to -26°C)',
+    description:   'Cool continental climate. Cold winters limit many broadleaf evergreens.',
+    firstFrost:    'early October',
+    lastFrost:     'early May',
+    growingSeason: '~155 days',
+    plants:        'forsythia, peonies, most hardy roses, crabapple, lilac',
+  },
+  '5b': {
+    tempRange:     '-15°F to -10°F (-26°C to -23°C)',
+    description:   'Cool continental climate. Long growing season with cold winters.',
+    firstFrost:    'mid-October',
+    lastFrost:     'late April',
+    growingSeason: '~170 days',
+    plants:        'forsythia, peonies, most roses, crabapple, Eastern redbud',
+  },
+  '6a': {
+    tempRange:     '-10°F to -5°F (-23°C to -21°C)',
+    description:   'Moderate climate. Suitable for a wide range of trees and shrubs.',
+    firstFrost:    'late October',
+    lastFrost:     'mid-April',
+    growingSeason: '~180 days',
+    plants:        'dogwood, azalea, boxwood, ornamental grasses, most roses',
+  },
+  '6b': {
+    tempRange:     '-5°F to 0°F (-21°C to -18°C)',
+    description:   'Moderate climate. Typical of the northern Virginia Piedmont and DC suburbs.',
+    firstFrost:    'early November',
+    lastFrost:     'early April',
+    growingSeason: '~195 days',
+    plants:        'dogwood, azalea, boxwood, crepe myrtle (marginal), American holly',
+  },
+  '7a': {
+    tempRange:     '0°F to 5°F (-18°C to -15°C)',
+    description:   'Mild winters. DC metro area and northern Virginia fall line corridor.',
+    firstFrost:    'early–mid November',
+    lastFrost:     'late March',
+    growingSeason: '~210 days',
+    plants:        'crepe myrtle, camellia (marginal), gardenia (marginal), Encore azaleas',
+  },
+  '7b': {
+    tempRange:     '5°F to 10°F (-15°C to -12°C)',
+    description:   'Mild winters. Richmond VA city and the fall line corridor through central Virginia and into Raleigh NC.',
+    firstFrost:    'mid–late November',
+    lastFrost:     'mid-March',
+    growingSeason: '~220 days',
+    plants:        'southern magnolia, camellia, gardenia, crepe myrtle, nandina',
+  },
+  '8a': {
+    tempRange:     '10°F to 15°F (-12°C to -9°C)',
+    description:   'Warm winters. Eastern Coastal Plain, Tidewater, and the Raleigh NC area. Broadleaf evergreens thrive.',
+    firstFrost:    'late November',
+    lastFrost:     'early–mid March',
+    growingSeason: '~235 days',
+    plants:        'fig, tea olive (osmanthus), live oak, pittosporum, loropetalum',
+  },
+  '8b': {
+    tempRange:     '15°F to 20°F (-9°C to -7°C)',
+    description:   'Very mild winters. Coastal Virginia near Hampton Roads.',
+    firstFrost:    'early December',
+    lastFrost:     'late February',
+    growingSeason: '~250 days',
+    plants:        'loquat, large crepe myrtle, sabal palm (marginal), gardenias freely',
+  },
 };
 
 /**
@@ -297,36 +353,97 @@ function getZoneColor(zone) {
 }
 
 /**
- * Returns display info for a zone (tempRange, description).
+ * Returns display info for a zone.
  * @param {string} zone
- * @returns {{ tempRange: string, description: string }}
+ * @returns {{ tempRange: string, description: string, firstFrost: string, lastFrost: string, growingSeason: string, plants: string }}
  */
 function getZoneInfo(zone) {
   return HARDINESS_ZONE_INFO[zone] || {
-    tempRange: 'Unknown',
-    description: 'No data available for this zone.',
+    tempRange:     'Unknown',
+    description:   'No data available for this zone.',
+    firstFrost:    'unknown',
+    lastFrost:     'unknown',
+    growingSeason: 'unknown',
+    plants:        'unknown',
   };
 }
 
 /**
- * Returns an HTML string for a hardiness zone popup.
+ * Returns an HTML string for a hardiness zone popup with five zone facts.
  * @param {string} zone  e.g. "7b"
  * @returns {string}
  */
 function makeZonePopup(zone) {
-  const info = getZoneInfo(zone);
+  const info  = getZoneInfo(zone);
   const color = getZoneColor(zone);
+  const row = function (label, value) {
+    return (
+      '<div class="zone-fact">' +
+        '<span class="zone-fact-label">' + label + '</span>' +
+        '<span class="zone-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
   return (
     '<div class="popup-content">' +
-      '<h3>Hardiness Zone ' + zone + '</h3>' +
-      '<p>' + info.description + '</p>' +
-      '<p style="margin-top:6px;font-size:0.8rem;color:#aaa;">Avg. min. winter temp:<br>' +
-        '<strong style="color:#fff">' + info.tempRange + '</strong>' +
-      '</p>' +
-      '<span class="region-tag" style="background:' + color + '33;color:' + color +
-        ';border:1px solid ' + color + '88">Zone ' + zone + '</span>' +
+      '<div class="zone-popup-header" style="border-left:3px solid ' + color + '">' +
+        '<h3>Zone ' + zone + '</h3>' +
+        '<span class="zone-badge" style="background:' + color + ';color:#1a1a2e">Zone ' + zone + '</span>' +
+      '</div>' +
+      '<p class="zone-desc">' + info.description + '</p>' +
+      '<div class="zone-facts">' +
+        row('Min. winter temp', info.tempRange) +
+        row('First frost',      info.firstFrost) +
+        row('Last frost',       info.lastFrost) +
+        row('Growing season',   info.growingSeason) +
+        row('Thrives here',     info.plants) +
+      '</div>' +
     '</div>'
   );
+}
+
+
+/* ─── Location search helpers ────────────────────────────────────
+   Pure functions used by map.js for the location search feature.
+   All are dependency-free so they can be unit-tested in Node.js.
+   ────────────────────────────────────────────────────────────── */
+
+/**
+ * Returns true if the input is a valid US 5-digit zip code.
+ * Trims surrounding whitespace before checking.
+ * @param {string} input
+ * @returns {boolean}
+ */
+function isValidUSZipCode(input) {
+  return /^\d{5}$/.test(String(input).trim());
+}
+
+/**
+ * Returns true if the given coordinates fall within the
+ * DC–Richmond–Raleigh corridor bounding box.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {boolean}
+ */
+function isInCorridor(lat, lon) {
+  return lat >= BBOX_SOUTH && lat <= BBOX_NORTH &&
+         lon >= BBOX_WEST  && lon <= BBOX_EAST;
+}
+
+/**
+ * Builds a Nominatim (OpenStreetMap) geocoding URL for the given input.
+ * Zip codes use the postalcode= parameter; everything else uses q=.
+ * Always restricts to US results and requests a single JSON result.
+ * @param {string} input  Zip code or city/place name
+ * @returns {string}      Nominatim search URL
+ */
+function buildSearchQuery(input) {
+  var q    = String(input).trim();
+  var base = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us';
+  if (isValidUSZipCode(q)) {
+    return base + '&postalcode=' + encodeURIComponent(q);
+  }
+  return base + '&q=' + encodeURIComponent(q);
 }
 
 
@@ -347,6 +464,9 @@ const GeoData = {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
+  isValidUSZipCode,
+  isInCorridor,
+  buildSearchQuery,
 };
 
 // Browser: attach to window so map.js can access it
