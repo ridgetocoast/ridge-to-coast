@@ -35,8 +35,12 @@
            Atlantic Coastal Plain / Piedmont boundary.
    ────────────────────────────────────────────────────────────── */
 const FALL_LINE_COORDS = [
+  // === Pennsylvania / New Jersey / Delaware ===
+  [-74.770, 40.220],   // Trenton NJ / Delaware River falls — northern terminus
+  [-75.100, 40.000],   // Philadelphia PA / Schuylkill and Delaware falls
+  [-75.540, 39.740],   // Wilmington DE / Brandywine Creek falls
   // === Maryland (north of DC) ===
-  [-76.000, 39.720],   // MD/PA border — northern terminus of the fall line
+  [-76.000, 39.720],   // MD/PA border
   [-76.080, 39.540],   // Susquehanna River / Havre de Grace
   [-76.340, 39.520],   // Bel Air / Bush River
   [-76.440, 39.440],   // Gunpowder Falls
@@ -96,7 +100,14 @@ const FALL_LINE_COORDS = [
   [-79.460, 34.770],   // Laurinburg / Scotland County
   [-79.010, 34.620],   // Lumberton / Lumber River
   [-78.700, 34.270],   // Whiteville / Columbus County
-  [-78.350, 33.900],   // Brunswick County / NC–SC border — southern terminus
+  [-78.350, 33.900],   // Brunswick County / NC–SC border
+  // === South Carolina ===
+  [-79.050, 33.800],   // Conway SC / Waccamaw River
+  [-79.830, 33.700],   // Kingstree SC / Black River
+  [-80.340, 33.900],   // Sumter SC / Wateree River falls
+  [-81.000, 34.000],   // Columbia SC / Congaree-Saluda confluence — "The Falls"
+  [-81.720, 33.560],   // Aiken SC / South Fork Edisto
+  [-82.020, 33.470],   // Augusta GA / Savannah River falls — southern terminus
 ];
 
 const FALL_LINE_GEOJSON = {
@@ -121,15 +132,15 @@ const FALL_LINE_GEOJSON = {
    ────────────────────────────────────────────────────────────── */
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
-const BBOX_NORTH =  39.200;   // north of DC (includes Maryland suburbs)
-const BBOX_SOUTH =  35.400;   // south of Raleigh
-const BBOX_EAST  = -76.700;   // east of DC / Chesapeake Bay approaches
-const BBOX_WEST  = -79.200;   // west of Raleigh Piedmont
+const BBOX_NORTH =  40.500;   // above Trenton NJ / Philadelphia PA
+const BBOX_SOUTH =  33.300;   // below Augusta GA
+const BBOX_EAST  = -74.500;   // eastern NJ / Philadelphia corridor
+const BBOX_WEST  = -83.000;   // west of Augusta GA
 
-// REGION: full-state extent — used for Coastal Plain & Piedmont polygon bounds
-const REGION_NORTH =  39.720;  // MD / PA border
-const REGION_SOUTH =  33.900;  // NC / SC border
-const REGION_EAST  = -75.200;  // Outer Banks / Eastern Shore
+// REGION: full corridor extent — used for Coastal Plain & Piedmont polygon bounds
+const REGION_NORTH =  40.500;  // Trenton NJ / Philadelphia PA area
+const REGION_SOUTH =  33.300;  // Augusta GA / Aiken SC area
+const REGION_EAST  = -74.500;  // NJ coast / Philadelphia eastern extent
 const REGION_WEST  = -84.300;  // VA / TN-KY border (Appalachians)
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();

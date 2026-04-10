@@ -317,6 +317,6 @@ document.getElementById('locate-btn').addEventListener('click', function () {
 
 /* ─── Initial viewport — fit DC → Richmond → Raleigh corridor ── */
 map.fitBounds([
-  [35.40, -79.20],   // SW — south of Raleigh, west Piedmont
-  [39.20, -76.70],   // NE — north of DC, east Coastal Plain
+  [33.30, -82.50],   // SW — Augusta GA / Aiken SC
+  [40.40, -74.60],   // NE — Philadelphia PA / Trenton NJ
 ]);

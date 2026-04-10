@@ -79,14 +79,13 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the eastern United States (VA / NC / MD extent)', () => {
-    // Fall line now spans MD/PA border (39.72°N) to NC/SC border (33.9°N),
-    // extending beyond the corridor BBOX which is used only for search relevance.
+  it('all points are within the Atlantic Seaboard fall line belt (PA to GA)', () => {
+    // Fall line spans Trenton NJ (40.22°N) to Augusta GA (33.47°N)
     for (const [lon, lat] of FALL_LINE_COORDS) {
       assert.ok(lon >= -85.0 && lon <= -74.0,
         `longitude ${lon} is outside the eastern US range [-85, -74]`);
-      assert.ok(lat >= 33.5 && lat <= 40.0,
-        `latitude ${lat} is outside the VA/NC/MD range [33.5, 40.0]`);
+      assert.ok(lat >= 33.0 && lat <= 41.0,
+        `latitude ${lat} is outside the PA–GA range [33.0, 41.0]`);
     }
   });
 
@@ -717,12 +716,12 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(40.71, -74.01), false);
   });
 
-  it('returns false for Charlotte, NC (35.23, -80.84) — west of corridor', () => {
-    assert.equal(isInCorridor(35.23, -80.84), false);
+  it('returns false for Louisville, KY (38.25, -85.76) — west of corridor', () => {
+    assert.equal(isInCorridor(38.25, -85.76), false);
   });
 
-  it('returns false for Virginia Beach, VA (36.85, -76.10) — east of corridor', () => {
-    assert.equal(isInCorridor(36.85, -76.10), false);
+  it('returns false for Miami, FL (25.77, -80.19) — south of corridor', () => {
+    assert.equal(isInCorridor(25.77, -80.19), false);
   });
 
   it('returns false for Atlanta, GA (33.75, -84.39) — south and west', () => {
