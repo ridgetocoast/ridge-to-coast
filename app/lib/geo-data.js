@@ -17,12 +17,17 @@
 'use strict';
 
 /* ─── Fall Line coordinates ─────────────────────────────────────
-   The Atlantic Seaboard Fall Line from Trenton NJ / Philadelphia PA south
-   through Baltimore MD, Washington DC, Richmond VA, Raleigh NC, Columbia SC,
-   Augusta GA to Columbus GA. Runs roughly NNE–SSW, tracing the boundary
-   between ancient crystalline Piedmont bedrock and soft Coastal Plain sediments.
+   The Atlantic Seaboard Fall Line from Peekskill NY / Hudson Highlands south
+   through Paterson NJ, New Brunswick NJ, Trenton NJ, Philadelphia PA,
+   Baltimore MD, Washington DC, Richmond VA, Raleigh NC, Columbia SC,
+   Augusta GA, Macon GA to Columbus GA. Runs roughly NNE–SSW, tracing the
+   boundary between ancient crystalline Piedmont bedrock and soft Coastal
+   Plain sediments.
 
    Key anchors (river crossings):
+     Hudson at Peekskill NY ≈ 41.290°N, 73.920°W
+     Passaic at Paterson NJ  ≈ 40.917°N, 74.174°W
+     Raritan at New Brunswick NJ ≈ 40.490°N, 74.445°W
      Delaware at Trenton NJ ≈ 40.220°N, 74.770°W
      Potomac at Great Falls  ≈ 39.000°N, 77.245°W
      Rappahannock at Fredericksburg ≈ 38.302°N, 77.468°W
@@ -39,8 +44,17 @@
            Atlantic Coastal Plain / Piedmont boundary.
    ────────────────────────────────────────────────────────────── */
 const FALL_LINE_COORDS = [
+  // === New York / New Jersey (northeast extension) ===
+  [-73.920, 41.290],   // Peekskill NY — Hudson Highlands boundary — northern terminus
+  [-74.140, 41.120],   // Suffern NY / Ramapo River gorge, NY–NJ state border
+  [-74.300, 41.000],   // Pompton NJ / Ramapo–Pompton River falls
+  [-74.174, 40.917],   // Paterson NJ / Great Falls of the Passaic — Hamilton's industrial city
+  [-74.310, 40.710],   // Passaic County / Watchung escarpment
+  [-74.380, 40.600],   // Bound Brook NJ / South Branch Raritan falls
+  [-74.445, 40.490],   // New Brunswick NJ / Raritan River falls
+  [-74.625, 40.320],   // Princeton Junction NJ / Millstone Brook transition
   // === Pennsylvania / New Jersey / Delaware ===
-  [-74.770, 40.220],   // Trenton NJ / Delaware River falls — northern terminus
+  [-74.770, 40.220],   // Trenton NJ / Delaware River falls
   [-75.100, 40.000],   // Philadelphia PA / Schuylkill and Delaware falls
   [-75.540, 39.740],   // Wilmington DE / Brandywine Creek falls
   // === Maryland (north of DC) ===
@@ -142,15 +156,15 @@ const FALL_LINE_GEOJSON = {
    ────────────────────────────────────────────────────────────── */
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
-const BBOX_NORTH =  40.500;   // above Trenton NJ / Philadelphia PA
+const BBOX_NORTH =  41.400;   // above Peekskill NY / Hudson Highlands
 const BBOX_SOUTH =  32.300;   // below Columbus GA / Chattahoochee River falls
-const BBOX_EAST  = -74.500;   // eastern NJ / Philadelphia corridor
+const BBOX_EAST  = -73.800;   // east of Peekskill NY
 const BBOX_WEST  = -85.100;   // west of Columbus GA
 
 // REGION: full corridor extent — used for Coastal Plain & Piedmont polygon bounds
-const REGION_NORTH =  40.500;  // Trenton NJ / Philadelphia PA area
+const REGION_NORTH =  41.400;  // Peekskill NY / Hudson Highlands
 const REGION_SOUTH =  32.300;  // Columbus GA / Chattahoochee River falls
-const REGION_EAST  = -74.500;  // NJ coast / Philadelphia eastern extent
+const REGION_EAST  = -73.800;  // east of Peekskill NY
 const REGION_WEST  = -85.100;  // west of Columbus GA
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();

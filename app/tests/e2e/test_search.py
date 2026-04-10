@@ -157,15 +157,15 @@ def test_no_results_shows_not_found(page):
 
 
 def test_outside_corridor_shows_note(page):
-    """Result outside the DC–Raleigh corridor triggers a corridor note."""
+    """Result outside the fall line corridor triggers a corridor note."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-    # New York City — clearly outside the corridor
+    # Boston MA — north of the corridor (BBOX_NORTH ~41.4°N, Boston ~42.4°N)
     page.route(NOMINATIM_PATTERN, lambda r: mock_nominatim(
-        r, "40.7128", "-74.0060", "New York City, New York"
+        r, "42.3601", "-71.0589", "Boston, Massachusetts"
     ))
 
-    page.locator("#search-input").fill("New York City")
+    page.locator("#search-input").fill("Boston MA")
     page.locator("#search-form").locator("[type=submit]").click()
 
     status = page.locator("#search-status")

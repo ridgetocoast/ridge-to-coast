@@ -79,13 +79,13 @@ describe('Fall Line GeoJSON structure', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('Fall Line geographic accuracy', () => {
-  it('all points are within the Atlantic Seaboard fall line belt (PA to Columbus GA)', () => {
-    // Fall line spans Trenton NJ (40.22°N) to Columbus GA (32.46°N)
+  it('all points are within the Atlantic Seaboard fall line belt (Peekskill NY to Columbus GA)', () => {
+    // Fall line spans Peekskill NY (41.29°N) to Columbus GA (32.46°N)
     for (const [lon, lat] of FALL_LINE_COORDS) {
-      assert.ok(lon >= -85.5 && lon <= -74.0,
-        `longitude ${lon} is outside the eastern US range [-85.5, -74]`);
-      assert.ok(lat >= 32.0 && lat <= 41.0,
-        `latitude ${lat} is outside the PA–GA range [32.0, 41.0]`);
+      assert.ok(lon >= -85.5 && lon <= -73.5,
+        `longitude ${lon} is outside the eastern US range [-85.5, -73.5]`);
+      assert.ok(lat >= 32.0 && lat <= 41.5,
+        `latitude ${lat} is outside the NY–GA range [32.0, 41.5]`);
     }
   });
 
@@ -154,12 +154,36 @@ describe('Fall Line geographic accuracy', () => {
       `nearest fall line point is ${dist.toFixed(2)} km from Falls of Neuse — expected ≤ 5 km`);
   });
 
-  it('passes within 10 km of Delaware River at Trenton NJ (northern anchor)', () => {
+  it('passes within 10 km of Delaware River at Trenton NJ', () => {
     // Trenton NJ: ~40.220°N, 74.770°W — where the Delaware River crosses the fall line
     const TRENTON = [-74.770, 40.220];
     const dist = minDistanceToFallLine(TRENTON);
     assert.ok(dist <= 10.0,
       `nearest fall line point is ${dist.toFixed(2)} km from Trenton — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Raritan River at New Brunswick NJ', () => {
+    // New Brunswick NJ: ~40.490°N, 74.445°W — Raritan River fall line crossing
+    const NEW_BRUNSWICK = [-74.445, 40.490];
+    const dist = minDistanceToFallLine(NEW_BRUNSWICK);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from New Brunswick — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Great Falls of the Passaic at Paterson NJ', () => {
+    // Paterson NJ: ~40.917°N, 74.174°W — Hamilton's industrial city, Passaic falls
+    const PATERSON = [-74.174, 40.917];
+    const dist = minDistanceToFallLine(PATERSON);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Paterson — expected ≤ 10 km`);
+  });
+
+  it('passes within 10 km of Peekskill NY (Hudson Highlands — northern terminus)', () => {
+    // Peekskill NY: ~41.290°N, 73.920°W — Hudson Highlands boundary
+    const PEEKSKILL = [-73.920, 41.290];
+    const dist = minDistanceToFallLine(PEEKSKILL);
+    assert.ok(dist <= 10.0,
+      `nearest fall line point is ${dist.toFixed(2)} km from Peekskill — expected ≤ 10 km`);
   });
 
   it('passes within 10 km of Savannah River at Augusta GA', () => {
@@ -748,6 +772,18 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(39.95, -75.16), true);
   });
 
+  it('returns true for New Brunswick, NJ (40.49, -74.45)', () => {
+    assert.equal(isInCorridor(40.49, -74.45), true);
+  });
+
+  it('returns true for Paterson, NJ (40.92, -74.17)', () => {
+    assert.equal(isInCorridor(40.92, -74.17), true);
+  });
+
+  it('returns true for Peekskill, NY (41.29, -73.92)', () => {
+    assert.equal(isInCorridor(41.29, -73.92), true);
+  });
+
   it('returns true for Columbia, SC (34.00, -81.03)', () => {
     assert.equal(isInCorridor(34.00, -81.03), true);
   });
@@ -764,8 +800,12 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(32.46, -84.99), true);
   });
 
-  it('returns false for New York City (40.71, -74.01) — north of corridor', () => {
-    assert.equal(isInCorridor(40.71, -74.01), false);
+  it('returns false for Boston, MA (42.36, -71.06) — north of corridor', () => {
+    assert.equal(isInCorridor(42.36, -71.06), false);
+  });
+
+  it('returns false for Montauk, NY (41.03, -71.95) — east of corridor', () => {
+    assert.equal(isInCorridor(41.03, -71.95), false);
   });
 
   it('returns false for Louisville, KY (38.25, -85.76) — west of corridor', () => {

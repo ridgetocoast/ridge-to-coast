@@ -12,7 +12,7 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 
 | Layer / Feature | Description |
 |---|---|
-| **Fall Line** | Approximate path of the geological boundary from Trenton NJ (40.2°N) south through Baltimore, DC, Fredericksburg, Richmond, Petersburg, Roanoke Rapids, Raleigh, Lumberton NC, Conway SC, Columbia SC, and Aiken SC to Augusta GA (33.5°N) |
+| **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ (Great Falls of the Passaic), New Brunswick NJ (Raritan River), Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N) |
 | **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea |
 | **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line |
 | **Hardiness Zones** | USDA Plant Hardiness Zones 5b–8a, lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
@@ -23,7 +23,7 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 
 ### Why these cities?
 
-Philadelphia, DC, Richmond, Raleigh, and Columbia SC all sit at or near the fall line. Each city was founded at the **head of navigation** — the furthest inland point ships could reach before the river dropped over rapids onto the Piedmont plateau. The fall line explains:
+Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh, Columbia SC, and Columbus GA all sit at or near the fall line. Each city was founded at the **head of navigation** — the furthest inland point ships could reach before the river dropped over rapids onto the Piedmont plateau. The fall line explains:
 
 - **Soil type** — Piedmont clay west of the line vs Coastal Plain sand east of it
 - **Drainage** — opposite amendments needed for each soil type
@@ -90,12 +90,12 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**118 tests across 17 suites:**
+**125 tests across 17 suites:**
 
 | Suite | What it covers |
 |---|---|
 | 1 | Fall line GeoJSON structure (Feature type, LineString, coord count, name) |
-| 2 | Geographic accuracy — PA–Columbus GA belt containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor, Trenton NJ anchor, Augusta GA anchor, Macon GA anchor, Columbus GA anchor |
+| 2 | Geographic accuracy — NY–GA belt containment, hemisphere guards, N→S direction, Belle Isle anchor, Great Falls anchor, Falls of Neuse anchor, Trenton NJ anchor, New Brunswick NJ anchor, Paterson NJ anchor, Peekskill NY anchor, Macon GA anchor, Columbus GA anchor |
 | 3 | Coastal Plain polygon (closed ring, region tag, east boundary, no west overshoot) |
 | 4 | Piedmont polygon (closed ring, region tag, west boundary, no east overshoot) |
 | 5 | Region separation (disjoint east/west checks) |
@@ -109,7 +109,7 @@ node --test tests/geo.test.js
 | 13 | `getZoneInfo()` (all required fields, temp range format) |
 | 14 | `makeZonePopup()` (HTML structure, zone badge, frost dates, growing season, plants) |
 | 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
-| 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Fredericksburg, Philadelphia, Columbia SC, Augusta GA, Macon GA, Columbus GA; false for NYC, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
+| 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Philadelphia, New Brunswick NJ, Paterson NJ, Peekskill NY, Columbia SC, Macon GA, Columbus GA; false for Boston MA, Montauk NY, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
 | 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
 
 ### E2E tests (Python Playwright)
@@ -182,6 +182,9 @@ The fall line path is **approximate**, derived from published USGS geological ma
 
 | City / Location | River | Coordinates |
 |---|---|---|
+| Peekskill NY | Hudson (Highlands boundary) | 41.290°N, 73.920°W |
+| Paterson NJ | Passaic (Great Falls) | 40.917°N, 74.174°W |
+| New Brunswick NJ | Raritan | 40.490°N, 74.445°W |
 | Trenton NJ | Delaware | 40.220°N, 74.770°W |
 | Philadelphia PA | Schuylkill / Delaware | 40.000°N, 75.100°W |
 | Wilmington DE | Brandywine Creek | 39.740°N, 75.540°W |
@@ -209,11 +212,11 @@ Hardiness zone frost dates (first frost, last frost, growing season) are approxi
 - [x] Extend fall line corridor north to Philadelphia PA / Trenton NJ
 - [x] Extend fall line corridor south through Columbia SC to Augusta GA
 - [x] Extend fall line southwest to Macon GA / Columbus GA (Chattahoochee River falls)
+- [x] Extend fall line northeast to Paterson NJ / Peekskill NY (Hudson Highlands)
 - [x] Location search (zip code / city) with Nominatim geocoding
 - [x] Collapsible legend (mobile-first, starts collapsed)
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
-- [ ] Add GA, PA, NJ, SC, NY hardiness data to pipeline (expand `data/hardiness.geojson`)
-- [ ] Extend fall line northeast to Paterson NJ / Westchester NY
+- [ ] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson`)
 - [ ] City markers for major fall line metros with click context (history, soil type, zone)
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)

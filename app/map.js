@@ -318,5 +318,5 @@ document.getElementById('locate-btn').addEventListener('click', function () {
 /* ─── Initial viewport — fit full fall line corridor ─────────── */
 map.fitBounds([
   [32.30, -85.20],   // SW — Columbus GA / Chattahoochee River falls
-  [40.40, -74.60],   // NE — Philadelphia PA / Trenton NJ
+  [41.40, -73.70],   // NE — Peekskill NY / Hudson Highlands
 ]);
