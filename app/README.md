@@ -44,7 +44,7 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 | Geocoding | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap) — free, no API key |
 | Hosting | GitHub Pages (static, no backend, no build step) |
 | Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
-| E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest |
+| E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest (71 tests across 6 files) |
 | CI | GitHub Actions — unit tests (Node 20 + 22) and E2E (Python 3.12 + Chromium) run in parallel |
 
 ---
@@ -74,6 +74,7 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 │       ├── test_search.py   # 12 E2E tests (search bar UI, geocoding, corridor messaging)
 │       ├── test_legend_toggle.py  # 9 E2E tests (collapsible legend, mobile/desktop state)
 │       ├── test_markers.py  # 12 E2E tests (city markers toggle, popup content, mobile)
+│       ├── test_visual_rendering.py  # 19 E2E tests (SVG colors, opacities, hover, toggles)
 │       └── requirements.txt # pytest + pytest-playwright
 └── .github/
     └── workflows/
@@ -127,7 +128,7 @@ python -m http.server 8000 &        # serve the static site locally
 python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 ```
 
-**52 tests across 4 files:**
+**71 tests across 5 files:**
 
 | File | Tests | What it covers |
 |---|---|---|
@@ -135,6 +136,7 @@ python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 | `test_search.py` | 12 | Search bar structure, zip vs city routing, Nominatim calls, corridor detection, GPS button |
 | `test_legend_toggle.py` | 9 | Collapse/expand, mobile start state (collapsed), desktop start state (expanded), layer toggles work after expand |
 | `test_markers.py` | 12 | City marker DOM presence, legend toggle on/off, popup content (city name, river, zone, region badge), mobile viewport |
+| `test_visual_rendering.py` | 19 | SVG fill/stroke colors and opacities for all layers, hover opacity transitions, city marker count, toggle visual effect |
 
 Any uncaught JavaScript error during a test causes automatic failure via the `conftest.py` `page` fixture.
 
@@ -248,5 +250,5 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Clip Coastal Plain polygon to the actual US coastline — replaced the straight ~73.8°W eastern boundary with Natural Earth 50m coastline data; blue overlay no longer extends over the Atlantic Ocean
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
-- [ ] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2))
+- [x] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2)) — 19 tests verifying SVG fill/stroke colors, opacities, hover transitions, and layer toggle visual effect
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
