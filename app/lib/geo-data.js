@@ -169,6 +169,74 @@ const REGION_WEST  = -85.100;  // west of Columbus GA
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
+/* ─── Atlantic coastline (eastern boundary of Coastal Plain) ────────────────
+   US Atlantic coast from Peekskill NY south to the SC/GA coast, used as the
+   eastern boundary of COASTAL_PLAIN_GEOJSON instead of an arbitrary straight
+   longitude line. Prevents the Coastal Plain overlay from shading open ocean.
+
+   Algorithm: for each 0.2° latitude band, keep the easternmost coastline
+   point across all Natural Earth 50m features. This naturally jumps across
+   bay mouths (Delaware Bay, Chesapeake Bay, Pamlico Sound) without tracing
+   bay interiors that would create self-intersecting polygon rings.
+
+   Source: Natural Earth 50m Coastline — public domain.
+   Pipeline: node scripts/extract-coastline.js ne_50m_coastline.geojson
+   ────────────────────────────────────────────────────────────── */
+const EAST_COAST_COORDS = [
+  // US Atlantic coastline, N→S, outer (ocean-facing) coast.
+  // Bay mouths (Delaware Bay, Chesapeake Bay, Pamlico Sound) are
+  // jumped by keeping the easternmost point per 0.2° latitude band.
+  // Source: Natural Earth 50m Coastline (public domain).
+  // Generated: node scripts/extract-coastline.js ne_50m_coastline.geojson
+  // First point = fall line N terminus (Peekskill NY) for polygon closure.
+  [-73.920, 41.290],  // Peekskill NY — polygon anchor (= fall line N terminus)
+  [-73.583, 41.022],  // NJ/NY coast — Raritan Bay area
+  [-73.574, 40.920],  // Sandy Hook gateway
+  [-73.799, 40.641],  // NJ coast — Sea Bright area
+  [-73.621, 40.600],  // NJ coast
+  [-73.958, 40.328],  // NJ coast — Manasquan area
+  [-74.004, 40.171],  // NJ coast — Point Pleasant
+  [-74.049, 39.923],  // NJ coast — Barnegat area
+  [-74.080, 39.788],  // NJ coast — Toms River area
+  [-74.250, 39.529],  // NJ coast — Ship Bottom / Long Beach Island
+  [-74.429, 39.387],  // NJ coast — Atlantic City
+  [-74.794, 39.002],  // NJ coast — Stone Harbor / Wildwood
+  [-74.923, 38.941],  // Cape May NJ
+  [-75.084, 38.723],  // Cape Henlopen DE — bay mouth jump from Cape May
+  [-75.036, 38.503],  // Rehoboth Beach / Lewes DE
+  [-75.051, 38.383],  // Assateague Island north / Ocean City MD
+  [-75.136, 38.181],  // Assateague Island south
+  [-75.333, 37.888],  // Chincoteague Island VA
+  [-75.596, 37.631],  // Wallops Island VA
+  [-75.587, 37.559],  // Eastern Shore VA
+  [-75.854, 37.297],  // Eastern Shore VA — approaching Cape Charles
+  [-75.934, 37.152],  // Cape Charles VA — tip of Delmarva Peninsula
+  [-75.966, 36.862],  // Virginia Beach / Cape Henry — bay mouth jump
+  [-75.890, 36.657],  // Currituck Banks / NC state line
+  [-75.857, 36.551],  // NC outer banks — Nags Head area
+  [-75.758, 36.229],  // NC outer banks — continuing south
+  [-75.728, 36.104],  // NC outer banks — Kill Devil Hills
+  [-75.534, 35.819],  // NC outer banks — Outer Banks / Oregon Inlet
+  [-75.479, 35.717],  // NC outer banks — Outer Banks mid-section
+  [-75.456, 35.564],  // NC outer banks — approaching Cape Hatteras
+  [-75.509, 35.280],  // Cape Hatteras NC — southernmost Outer Banks tip
+  [-75.782, 35.190],  // Core Banks — south of Cape Hatteras
+  [-76.207, 34.939],  // Cape Lookout area
+  [-76.437, 34.756],  // Beaufort / Morehead City NC
+  [-77.380, 34.527],  // Surf City / Topsail Island NC
+  [-77.650, 34.358],  // Wrightsville Beach NC
+  [-77.861, 34.149],  // Wilmington NC area
+  [-77.928, 33.940],  // Cape Fear NC
+  [-78.841, 33.724],  // Brunswick County / Holden Beach NC
+  [-79.138, 33.406],  // Myrtle Beach SC
+  [-79.194, 33.244],  // Pawleys Island SC
+  [-79.229, 33.185],  // SC coast
+  [-79.615, 32.909],  // Georgetown SC
+  [-79.805, 32.787],  // SC coast — approaching Charleston
+  [-80.123, 32.589],  // Charleston SC / Isle of Palms
+  [-80.486, 32.352],  // SC coast — southern corridor limit
+];
+
 const COASTAL_PLAIN_GEOJSON = {
   type: 'Feature',
   properties: {
@@ -177,16 +245,16 @@ const COASTAL_PLAIN_GEOJSON = {
     description:
       'East of the fall line. Flat terrain underlain by soft sedimentary ' +
       'deposits — sandy soils with fast drainage and low water retention. ' +
-      'Rivers are tidal and navigable to the sea. Stretches from the Maryland ' +
-      'Eastern Shore through the Virginia Tidewater to coastal North Carolina.',
+      'Rivers are tidal and navigable to the sea. Extends from the New Jersey ' +
+      'coast south through the Virginia Tidewater, North Carolina Outer Banks, ' +
+      'and South Carolina coast to the Georgia border.',
   },
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [REGION_EAST, REGION_NORTH],  // NE corner (Eastern Shore / MD-PA border lat)
-      [REGION_EAST, REGION_SOUTH],  // SE corner (Outer Banks / NC-SC border lat)
+      ...EAST_COAST_COORDS,         // north→south along outer Atlantic coast
       ...fallLineReversed,          // south→north along fall line (west boundary)
-      [REGION_EAST, REGION_NORTH],  // close polygon
+      EAST_COAST_COORDS[0],         // close polygon at Peekskill NY
     ]],
   },
 };
@@ -730,6 +798,7 @@ function buildSearchQuery(input) {
 /* ─── Export ─────────────────────────────────────────────────── */
 const GeoData = {
   FALL_LINE_COORDS,
+  EAST_COAST_COORDS,
   FALL_LINE_GEOJSON,
   COASTAL_PLAIN_GEOJSON,
   PIEDMONT_GEOJSON,
