@@ -397,6 +397,14 @@ const HARDINESS_ZONE_INFO = {
     growingSeason: '~250 days',
     plants:        'loquat, large crepe myrtle, sabal palm (marginal), gardenias freely',
   },
+  '9a': {
+    tempRange:     '20°F to 25°F (-7°C to -4°C)',
+    description:   'Subtropical. Coastal Georgia and the South Carolina Lowcountry — rarely freezes hard.',
+    firstFrost:    'late December',
+    lastFrost:     'mid-February',
+    growingSeason: '~295 days',
+    plants:        'live oak, sago palm, sweet olive (osmanthus), camellias, wax myrtle, bougainvillea (marginal)',
+  },
 };
 
 /**

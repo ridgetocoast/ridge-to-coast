@@ -90,7 +90,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**125 tests across 17 suites:**
+**126 tests across 17 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -106,7 +106,7 @@ node --test tests/geo.test.js
 | 10 | BBOX constants (DC, Richmond, and Raleigh all inside bounds) |
 | 11 | `HARDINESS_ZONE_COLORS` map (coverage, hex format) |
 | 12 | `getZoneColor()` (known zones, unknown fallback) |
-| 13 | `getZoneInfo()` (all required fields, temp range format) |
+| 13 | `getZoneInfo()` (all required fields, temp range format, 9a subtropical description) |
 | 14 | `makeZonePopup()` (HTML structure, zone badge, frost dates, growing season, plants) |
 | 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
 | 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Philadelphia, New Brunswick NJ, Paterson NJ, Peekskill NY, Columbia SC, Macon GA, Columbus GA; false for Boston MA, Montauk NY, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
@@ -137,33 +137,34 @@ Any uncaught JavaScript error during a test causes automatic failure via the `co
 
 ## Hardiness zone data pipeline
 
-The raw ophz GeoJSON files (~1–1.6 MB per state) are not committed. Run the processing script to regenerate `data/hardiness.geojson`:
+The raw ophz GeoJSON files (~0.1–1.6 MB per state) are not committed. Run the processing script to regenerate `data/hardiness.geojson`:
 
 ```bash
-# Download source files
-curl -L https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson/ophz_VA.geojson -o /tmp/ophz_VA.geojson
-curl -L https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson/ophz_NC.geojson -o /tmp/ophz_NC.geojson
-curl -L https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson/ophz_MD.geojson -o /tmp/ophz_MD.geojson
+BASE=https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson
 
-# Merge states
+# Download all fall-line states
+for STATE in PA NJ DE MD VA NC SC GA; do
+  curl -sL "$BASE/ophz_${STATE}.geojson" -o /tmp/ophz_${STATE}.geojson
+done
+
+# Merge into one file
 node -e "
   const fs = require('fs');
-  const merged = { type:'FeatureCollection', features: [
-    ...JSON.parse(fs.readFileSync('/tmp/ophz_VA.geojson')).features,
-    ...JSON.parse(fs.readFileSync('/tmp/ophz_NC.geojson')).features,
-    ...JSON.parse(fs.readFileSync('/tmp/ophz_MD.geojson')).features,
-  ]};
-  fs.writeFileSync('/tmp/ophz_merged.geojson', JSON.stringify(merged));
-  console.log('Features:', merged.features.length);
+  const states = ['PA','NJ','DE','MD','VA','NC','SC','GA'];
+  const features = states.flatMap(s =>
+    JSON.parse(fs.readFileSync('/tmp/ophz_' + s + '.geojson')).features);
+  fs.writeFileSync('/tmp/ophz_merged.geojson',
+    JSON.stringify({ type:'FeatureCollection', features }));
+  console.log('Total features:', features.length);
 "
 
-# Process (clips to corridor bbox, reduces coordinate precision, deduplicates)
+# Clip to corridor bbox, decimate, reduce precision
 node scripts/process-hardiness.js /tmp/ophz_merged.geojson data/hardiness.geojson
 ```
 
-Result: 155 features, zones 5b–8a, ~253 KB (91% reduction from 2.8 MB source).
+Result: 1429 features, zones 5a–9a, ~1169 KB raw / ~261 KB gzip (79% raw reduction from 5.3 MB source). GitHub Pages serves gzip automatically.
 
-**Known data gaps:** Washington DC (not a US state — excluded from state-level ophz files), Pennsylvania (fall line corridor north of MD), New Jersey, South Carolina, and Georgia are not yet included in `data/hardiness.geojson`. Adding them requires downloading the corresponding ophz state files and re-running the pipeline with expanded bbox constants in `scripts/process-hardiness.js`.
+**Known data gaps:** Washington DC is not a US state so is excluded from state-level ophz files. DC zone polygons from Maryland border to DC proper may have gaps near Rock Creek Park and the Potomac waterfront.
 
 ---
 
@@ -216,7 +217,7 @@ Hardiness zone frost dates (first frost, last frost, growing season) are approxi
 - [x] Location search (zip code / city) with Nominatim geocoding
 - [x] Collapsible legend (mobile-first, starts collapsed)
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
-- [ ] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson`)
+- [x] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson` to all 8 fall-line states: PA NJ DE MD VA NC SC GA, zones 5a–9a)
 - [ ] City markers for major fall line metros with click context (history, soil type, zone)
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
