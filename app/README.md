@@ -15,9 +15,10 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 | **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ (Great Falls of the Passaic), New Brunswick NJ (Raritan River), Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N) |
 | **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea |
 | **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line |
-| **Hardiness Zones** | USDA Plant Hardiness Zones 5b–8a, lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
+| **Hardiness Zones** | USDA Plant Hardiness Zones 5a–9a across 8 fall-line states (PA NJ DE MD VA NC SC GA), lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
 | **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive |
-| **Layer toggles** | Show/hide region shading, fall line, and hardiness zones independently |
+| **City markers** | 15 fall line metros (Peekskill NY → Columbus GA) shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
+| **Layer toggles** | Show/hide region shading, fall line, city markers, and hardiness zones independently |
 | **Location search** | Bottom search bar — enter a zip code or city name to fly the map to that location. GPS "locate me" button also supported. Results outside the corridor get a contextual note. |
 | **Collapsible legend** | Toggle button collapses/expands the legend panel. Starts collapsed on mobile (≤600 px) to maximise map visibility; starts expanded on desktop. |
 
@@ -64,13 +65,14 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 ├── scripts/
 │   └── process-hardiness.js # CLI: clips raw ophz GeoJSON to corridor bbox, reduces precision
 ├── tests/
-│   ├── geo.test.js          # 114 unit tests across 17 suites (Node built-in runner, no npm needed)
+│   ├── geo.test.js          # 143 unit tests across 18 suites (Node built-in runner, no npm needed)
 │   ├── results/             # TAP output from CI runs
 │   └── e2e/
 │       ├── conftest.py      # pytest-playwright fixtures; auto-fails on uncaught JS errors
 │       ├── test_map.py      # 19 E2E tests (page load, layers, hardiness toggle, mobile)
 │       ├── test_search.py   # 12 E2E tests (search bar UI, geocoding, corridor messaging)
 │       ├── test_legend_toggle.py  # 9 E2E tests (collapsible legend, mobile/desktop state)
+│       ├── test_markers.py  # 12 E2E tests (city markers toggle, popup content, mobile)
 │       └── requirements.txt # pytest + pytest-playwright
 └── .github/
     └── workflows/
@@ -90,7 +92,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**126 tests across 17 suites:**
+**143 tests across 18 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -111,6 +113,7 @@ node --test tests/geo.test.js
 | 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
 | 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Philadelphia, New Brunswick NJ, Paterson NJ, Peekskill NY, Columbia SC, Macon GA, Columbus GA; false for Boston MA, Montauk NY, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
 | 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
+| 18 | `FALL_LINE_CITIES` array + `makeMarkerPopup()` (data structure, required fields, corridor BBOX check, popup HTML — city name, river, soil, zone badge, region badge) |
 
 ### E2E tests (Python Playwright)
 
@@ -123,13 +126,14 @@ python -m http.server 8000 &        # serve the static site locally
 python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 ```
 
-**40 tests across 3 files:**
+**52 tests across 4 files:**
 
 | File | Tests | What it covers |
 |---|---|---|
 | `test_map.py` | 19 | Page load, layer toggles (regions, fall line, hardiness), fetch/cache, mobile viewport |
 | `test_search.py` | 12 | Search bar structure, zip vs city routing, Nominatim calls, corridor detection, GPS button |
 | `test_legend_toggle.py` | 9 | Collapse/expand, mobile start state (collapsed), desktop start state (expanded), layer toggles work after expand |
+| `test_markers.py` | 12 | City marker DOM presence, legend toggle on/off, popup content (city name, river, zone, region badge), mobile viewport |
 
 Any uncaught JavaScript error during a test causes automatic failure via the `conftest.py` `page` fixture.
 
@@ -218,7 +222,7 @@ Hardiness zone frost dates (first frost, last frost, growing season) are approxi
 - [x] Collapsible legend (mobile-first, starts collapsed)
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
 - [x] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson` to all 8 fall-line states: PA NJ DE MD VA NC SC GA, zones 5a–9a)
-- [ ] City markers for major fall line metros with click context (history, soil type, zone)
+- [x] City markers for major fall line metros with click context (history, soil type, zone)
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
 - [ ] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2))

@@ -31,6 +31,8 @@ const {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
+  FALL_LINE_CITIES,
+  makeMarkerPopup,
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
@@ -891,5 +893,144 @@ describe('buildSearchQuery()', () => {
   it('trims whitespace from input before building URL', () => {
     const url = buildSearchQuery('  23219  ');
     assert.ok(url.includes('postalcode=23219'), 'should trim whitespace before checking zip');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 18 — FALL_LINE_CITIES and makeMarkerPopup()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
+  it('FALL_LINE_CITIES is an array', () => {
+    assert.ok(Array.isArray(FALL_LINE_CITIES));
+  });
+
+  it('has at least 12 cities', () => {
+    assert.ok(
+      FALL_LINE_CITIES.length >= 12,
+      `expected ≥12 cities, got ${FALL_LINE_CITIES.length}`
+    );
+  });
+
+  it('each city has all required fields', () => {
+    const required = ['name', 'state', 'lat', 'lon', 'river', 'note', 'soil', 'region', 'zone'];
+    for (const city of FALL_LINE_CITIES) {
+      for (const field of required) {
+        assert.ok(
+          city[field] !== undefined && city[field] !== '',
+          `${city.name} missing required field: ${field}`
+        );
+      }
+    }
+  });
+
+  it('all city latitudes are within the eastern US', () => {
+    for (const city of FALL_LINE_CITIES) {
+      assert.ok(
+        city.lat >= 32.0 && city.lat <= 42.0,
+        `${city.name} lat ${city.lat} outside [32, 42]`
+      );
+    }
+  });
+
+  it('all city longitudes are within the eastern US', () => {
+    for (const city of FALL_LINE_CITIES) {
+      assert.ok(
+        city.lon >= -86.0 && city.lon <= -73.0,
+        `${city.name} lon ${city.lon} outside [-86, -73]`
+      );
+    }
+  });
+
+  it('all city regions are piedmont or coastal', () => {
+    for (const city of FALL_LINE_CITIES) {
+      assert.ok(
+        city.region === 'piedmont' || city.region === 'coastal',
+        `${city.name} has invalid region: ${city.region}`
+      );
+    }
+  });
+
+  it('all cities are within the corridor BBOX', () => {
+    for (const city of FALL_LINE_CITIES) {
+      assert.ok(
+        isInCorridor(city.lat, city.lon),
+        `${city.name} (${city.lat}, ${city.lon}) is outside the corridor BBOX`
+      );
+    }
+  });
+
+  it('Richmond is present with correct data', () => {
+    const richmond = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    assert.ok(richmond, 'Richmond not found in FALL_LINE_CITIES');
+    assert.strictEqual(richmond.state, 'VA');
+    assert.strictEqual(richmond.zone, '7b');
+    assert.strictEqual(richmond.region, 'piedmont');
+    assert.ok(richmond.river.includes('James'), 'Richmond river should be the James');
+  });
+
+  it('Columbus GA is present and is piedmont zone 8b', () => {
+    const columbus = FALL_LINE_CITIES.find(c => c.name === 'Columbus' && c.state === 'GA');
+    assert.ok(columbus, 'Columbus GA not found');
+    assert.strictEqual(columbus.zone, '8b');
+    assert.strictEqual(columbus.region, 'piedmont');
+  });
+
+  it('Peekskill NY is present as the northernmost city', () => {
+    const peekskill = FALL_LINE_CITIES.find(c => c.name === 'Peekskill');
+    assert.ok(peekskill, 'Peekskill not found');
+    assert.strictEqual(peekskill.state, 'NY');
+    const maxLat = Math.max(...FALL_LINE_CITIES.map(c => c.lat));
+    assert.strictEqual(peekskill.lat, maxLat, 'Peekskill should have the highest latitude');
+  });
+
+  it('makeMarkerPopup() returns a non-empty string', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.strictEqual(typeof html, 'string');
+    assert.ok(html.length > 0);
+  });
+
+  it('popup contains city name and state', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.ok(html.includes('Richmond'), 'popup missing city name');
+    assert.ok(html.includes('VA'), 'popup missing state');
+  });
+
+  it('popup contains river name', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.ok(html.includes('James River'), 'popup missing river name');
+  });
+
+  it('popup contains soil info', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.ok(html.includes('Cecil'), 'popup missing soil series');
+  });
+
+  it('popup contains zone badge', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.ok(html.includes('7b'), 'popup missing zone');
+    assert.ok(html.includes('zone-badge'), 'popup missing zone-badge class');
+  });
+
+  it('popup contains region badge with correct class', () => {
+    const richmond = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const htmlR = makeMarkerPopup(richmond);
+    assert.ok(htmlR.includes('city-region-badge piedmont'), 'Richmond popup missing piedmont badge');
+
+    const dc = FALL_LINE_CITIES.find(c => c.name === 'Washington');
+    const htmlDC = makeMarkerPopup(dc);
+    assert.ok(htmlDC.includes('city-region-badge coastal'), 'DC popup missing coastal badge');
+  });
+
+  it('popup contains founding note text', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const html = makeMarkerPopup(city);
+    assert.ok(html.includes('Belle Isle') || html.includes('James'), 'popup missing founding note');
   });
 });
