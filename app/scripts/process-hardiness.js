@@ -1,18 +1,37 @@
 /**
  * scripts/process-hardiness.js
  * ----------------------------
- * Clips the full USDA hardiness GeoJSON to the Richmond metro bounding box
- * and reduces coordinate precision to 4 decimal places (~11m accuracy).
- * Typically reduces file size by 60-70%.
+ * Clips the full USDA hardiness GeoJSON to the fall line corridor bounding box
+ * and reduces coordinate precision to 3 decimal places (~111m accuracy).
+ * Typically reduces file size by 85-92%.
  *
  * Usage:
  *   node scripts/process-hardiness.js <input.geojson> [output.geojson]
  *
  * If no output path given, writes to data/hardiness.geojson (default).
  *
- * The input file can be from:
+ * The input file can be a single-state or pre-merged multi-state GeoJSON from:
  *   - Open Plant Hardiness Zones: https://github.com/kgjenkins/ophz
  *   - USDA ArcGIS Hub: https://usda-plant-hardiness-zone-map-usdaars.hub.arcgis.com/
+ *
+ * Full pipeline (all fall-line states: PA NJ DE MD VA NC SC GA):
+ *
+ *   BASE=https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson
+ *   for STATE in PA NJ DE MD VA NC SC GA; do
+ *     curl -sL "$BASE/ophz_${STATE}.geojson" -o /tmp/ophz_${STATE}.geojson
+ *   done
+ *
+ *   node -e "
+ *     const fs = require('fs');
+ *     const states = ['PA','NJ','DE','MD','VA','NC','SC','GA'];
+ *     const features = states.flatMap(s =>
+ *       JSON.parse(fs.readFileSync('/tmp/ophz_' + s + '.geojson')).features);
+ *     fs.writeFileSync('/tmp/ophz_merged.geojson',
+ *       JSON.stringify({ type:'FeatureCollection', features }));
+ *     console.log('Total features:', features.length);
+ *   "
+ *
+ *   node scripts/process-hardiness.js /tmp/ophz_merged.geojson data/hardiness.geojson
  */
 
 'use strict';
@@ -20,12 +39,13 @@
 const fs   = require('fs');
 const path = require('path');
 
-// DC–Richmond–Raleigh corridor bounding box — matches BBOX in geo-data.js
+// Full fall line corridor bounding box — matches BBOX in geo-data.js
+// Peekskill NY (north) → Columbus GA (south); NJ coast (east) → Appalachians (west)
 const BBOX = {
-  west:  -79.20,
-  east:  -76.70,
-  south:  35.40,
-  north:  39.20,
+  west:  -85.20,
+  east:  -73.80,
+  south:  32.20,
+  north:  41.50,
 };
 
 // Expand slightly so zone polygons crossing the edge aren't clipped mid-feature
@@ -121,8 +141,8 @@ function stripRing(ring, bbox) {
            pt[1] >= bbox.south && pt[1] <= bbox.north;
   });
   if (!inside) return null;
-  // Decimate dense rings (>200 pts) — zone boundaries are smooth at this scale
-  const decimated = rounded.length > 200 ? decimate(rounded, 4) : rounded;
+  // Decimate dense rings — zone boundaries are smooth curves; drop interior detail
+  const decimated = rounded.length > 100 ? decimate(rounded, 6) : rounded;
   // Ensure ring is closed
   const last = decimated[decimated.length - 1];
   const first = decimated[0];

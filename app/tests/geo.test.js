@@ -566,9 +566,9 @@ describe('BBOX constants', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('HARDINESS_ZONE_COLORS', () => {
-  it('covers all zones relevant to Virginia (5a through 8b)', () => {
-    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
-    for (const zone of virginiaZones) {
+  it('covers all zones present in the full corridor (5a through 9a)', () => {
+    const corridorZones = ['5a','5b','6a','6b','7a','7b','8a','8b','9a'];
+    for (const zone of corridorZones) {
       assert.ok(zone in HARDINESS_ZONE_COLORS,
         `HARDINESS_ZONE_COLORS should include zone ${zone}`);
     }
@@ -609,9 +609,9 @@ describe('getZoneColor()', () => {
     assert.equal(color, HARDINESS_ZONE_COLORS['7b']);
   });
 
-  it('returns a valid hex color for all Virginia zones', () => {
-    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
-    for (const zone of virginiaZones) {
+  it('returns a valid hex color for all corridor zones (5a–9a)', () => {
+    const corridorZones = ['5a','5b','6a','6b','7a','7b','8a','8b','9a'];
+    for (const zone of corridorZones) {
       assert.match(getZoneColor(zone), /^#[0-9A-Fa-f]{6}$/,
         `getZoneColor('${zone}') should return a hex color`);
     }
@@ -657,13 +657,23 @@ describe('getZoneInfo()', () => {
     assert.ok(typeof info.description === 'string');
   });
 
-  it('all Virginia zone infos contain a degree symbol in tempRange', () => {
-    const virginiaZones = ['5a','5b','6a','6b','7a','7b','8a','8b'];
-    for (const zone of virginiaZones) {
+  it('all corridor zone infos contain a degree symbol in tempRange (5a–9a)', () => {
+    const corridorZones = ['5a','5b','6a','6b','7a','7b','8a','8b','9a'];
+    for (const zone of corridorZones) {
       const info = getZoneInfo(zone);
       assert.ok(info.tempRange.includes('°'),
         `Zone ${zone} tempRange should contain a degree symbol`);
     }
+  });
+
+  it('zone 9a description references coastal SC/GA climate', () => {
+    const info = getZoneInfo('9a');
+    assert.ok(
+      info.description.toLowerCase().includes('coastal') ||
+      info.description.toLowerCase().includes('georgia') ||
+      info.description.toLowerCase().includes('subtropical'),
+      'Zone 9a description should reference the coastal/subtropical climate'
+    );
   });
 });
 
