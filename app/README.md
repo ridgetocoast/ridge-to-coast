@@ -13,7 +13,7 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 | Layer / Feature | Description |
 |---|---|
 | **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ (Great Falls of the Passaic), New Brunswick NJ (Raritan River), Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N) |
-| **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea |
+| **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea. **Known limitation:** the eastern boundary is a straight longitude line (~73.8°W) so the shading extends over open water into the Atlantic Ocean rather than stopping at the actual coastline. |
 | **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line |
 | **Hardiness Zones** | USDA Plant Hardiness Zones 5a–9a across 8 fall-line states (PA NJ DE MD VA NC SC GA), lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
 | **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive |
@@ -210,6 +210,8 @@ Frost date estimates in the hardiness zone popups are approximations based on US
 
 Hardiness zone frost dates (first frost, last frost, growing season) are approximate regional averages based on NOAA climate normals for the DC–Raleigh corridor. Actual dates vary by microclimate, elevation, and urban heat island effect.
 
+**Coastal Plain polygon — ocean overshoot:** The Coastal Plain (Tidewater) shading uses a straight longitude line (~73.8°W) as its eastern boundary. This is simpler than a true coastline but means the blue overlay extends over the Atlantic Ocean east of the Outer Banks, Eastern Shore, and New Jersey coast. A future improvement would clip the polygon to the actual US coastline using Natural Earth or Census TIGER coastline data.
+
 ---
 
 ## Roadmap
@@ -223,6 +225,7 @@ Hardiness zone frost dates (first frost, last frost, growing season) are approxi
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
 - [x] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson` to all 8 fall-line states: PA NJ DE MD VA NC SC GA, zones 5a–9a)
 - [x] City markers for major fall line metros with click context (history, soil type, zone)
+- [ ] Clip Coastal Plain polygon to the actual US coastline — replace the straight ~73.8°W eastern boundary with Natural Earth or Census TIGER coastline data so the blue overlay no longer extends over the Atlantic Ocean
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
 - [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
 - [ ] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2))
