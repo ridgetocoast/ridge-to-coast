@@ -79,6 +79,45 @@ piedmontLayer.addTo(map);
 fallLineLayer.addTo(map);
 
 
+/* ─── City marker layer ─────────────────────────────────────────
+   One circleMarker per fall line metro.
+   Uses FeatureGroup (not LayerGroup) so bringToFront() is available —
+   needed to keep markers above the hardiness zone polygons when that
+   layer is enabled.
+   ────────────────────────────────────────────────────────────── */
+
+var CITY_MARKER_STYLE = {
+  radius:      7,
+  fillColor:   '#ffffff',
+  color:       '#e84393',
+  weight:      2.5,
+  opacity:     1,
+  fillOpacity: 0.9,
+};
+
+var cityMarkersLayer = L.featureGroup();
+
+gd.FALL_LINE_CITIES.forEach(function (city) {
+  var marker = L.circleMarker([city.lat, city.lon], CITY_MARKER_STYLE);
+  marker.bindPopup(gd.makeMarkerPopup(city),
+    Object.assign({ maxWidth: 300 }, POPUP_OPTS));
+  marker.bindTooltip(city.name + ', ' + city.state, {
+    direction:  'top',
+    offset:     L.point(0, -9),
+    className:  'city-tooltip',
+  });
+  marker.on('mouseover', function () {
+    this.setStyle({ radius: 9, fillColor: '#e84393', fillOpacity: 1 });
+  });
+  marker.on('mouseout', function () {
+    this.setStyle(CITY_MARKER_STYLE);
+  });
+  cityMarkersLayer.addLayer(marker);
+});
+
+cityMarkersLayer.addTo(map);
+
+
 /* ─── Plant Hardiness Zone layer (lazy-loaded) ──────────────────
    The GeoJSON is ~1.3MB raw / ~300KB gzip on the wire.
    Only fetched when the user first enables the toggle.
@@ -164,9 +203,11 @@ function loadAndShowHardinessLayer() {
         : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
       buildHardinessLegend(zones);
 
-      // Add below the fall line so the pink line remains on top
+      // Add below the fall line so the pink line remains on top;
+      // city markers stay above hardiness polygons
       hardinessLayer.addTo(map);
       fallLineLayer.bringToFront();
+      if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
       updateZoneLabels();
 
       setHardinessLoading(false);
@@ -226,6 +267,14 @@ document.getElementById('toggle-hardiness').addEventListener('change', function 
   } else {
     if (hardinessLayer) map.removeLayer(hardinessLayer);
     hardinessLegend.hidden = true;
+  }
+});
+
+document.getElementById('toggle-cities').addEventListener('change', function () {
+  if (this.checked) {
+    map.addLayer(cityMarkersLayer);
+  } else {
+    map.removeLayer(cityMarkersLayer);
   }
 });
 

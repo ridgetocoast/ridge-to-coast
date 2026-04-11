@@ -130,6 +130,14 @@ html, body {
   border-radius: 2px;
 }
 
+.swatch.citymarker {
+  background: #fff;
+  border: 2.5px solid #e84393;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+}
+
 #legend hr {
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -423,6 +431,88 @@ html, body {
 
 .zone-item {
   margin-bottom: 0;
+}
+
+/* ─── City marker popup ─────────────────────────────────────── */
+.city-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.city-popup-header h3 {
+  font-size: 0.95rem;
+}
+
+.city-region-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.city-region-badge.piedmont { background: rgba(200,130,50,0.3);  color: #f5c070; border: 1px solid rgba(200,130,50,0.4); }
+.city-region-badge.coastal  { background: rgba(70,130,220,0.3);  color: #89b8f5; border: 1px solid rgba(70,130,220,0.4); }
+
+.city-river {
+  font-size: 0.78rem;
+  color: #89b8f5;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.city-note {
+  font-size: 0.78rem;
+  color: #bbb;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.city-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 7px;
+}
+
+.city-fact {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 6px;
+  font-size: 0.77rem;
+  line-height: 1.4;
+}
+
+.city-fact-label {
+  color: #888;
+  font-size: 0.72rem;
+}
+
+.city-fact-value {
+  color: #ddd;
+}
+
+/* City hover tooltip — dark panel with pink accent border */
+.city-tooltip.leaflet-tooltip {
+  background: rgba(20, 20, 40, 0.92) !important;
+  border: 1px solid rgba(232, 67, 147, 0.6) !important;
+  border-radius: 5px !important;
+  color: #fff !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+  white-space: nowrap;
+}
+
+.city-tooltip.leaflet-tooltip::before {
+  border-top-color: rgba(232, 67, 147, 0.6) !important;
 }
 
 /* ─── Hardiness error notice ───────────────────────────────── */
