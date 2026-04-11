@@ -468,6 +468,221 @@ function makeZonePopup(zone) {
 }
 
 
+/* ─── Fall Line city markers ─────────────────────────────────────
+   Key metros founded at the head of navigation on each river
+   crossing the fall line, listed north to south.
+
+   Fields:
+     name    — city name
+     state   — 2-letter state code
+     lat/lon — city centre coordinates (decimal degrees)
+     river   — river at the fall line crossing
+     region  — 'piedmont' | 'coastal'  (which side of the fall line)
+     soil    — general soil description for that city
+     zone    — USDA hardiness zone for the city centre
+     note    — one-line founding / geographic context
+   ────────────────────────────────────────────────────────────── */
+const FALL_LINE_CITIES = [
+  {
+    name:   'Peekskill',
+    state:  'NY',
+    lat:     41.290,
+    lon:    -73.920,
+    river:  'Hudson River',
+    region: 'piedmont',
+    soil:   'Piedmont gneiss & granite soils',
+    zone:   '6b',
+    note:   'The Hudson Highlands mark the geological boundary between the Manhattan Prong and the Coastal Plain lowlands — the fall line\'s northern terminus.',
+  },
+  {
+    name:   'Paterson',
+    state:  'NJ',
+    lat:     40.917,
+    lon:    -74.174,
+    river:  'Passaic River',
+    region: 'piedmont',
+    soil:   'Piedmont clay loam (Passaic series)',
+    zone:   '6b',
+    note:   'Founded 1792 by Alexander Hamilton as America\'s first planned industrial city, harnessing the 77-foot Great Falls of the Passaic.',
+  },
+  {
+    name:   'New Brunswick',
+    state:  'NJ',
+    lat:     40.490,
+    lon:    -74.445,
+    river:  'Raritan River',
+    region: 'coastal',
+    soil:   'Coastal Plain sandy loam',
+    zone:   '7a',
+    note:   'Head of navigation on the Raritan; colonial trading port linking the Piedmont interior to New York Harbor.',
+  },
+  {
+    name:   'Trenton',
+    state:  'NJ',
+    lat:     40.220,
+    lon:    -74.770,
+    river:  'Delaware River',
+    region: 'coastal',
+    soil:   'Coastal Plain sandy loam (Sassafras series)',
+    zone:   '7a',
+    note:   'Delaware River falls — New Jersey\'s capital; Washington crossed the Delaware here on Christmas night 1776.',
+  },
+  {
+    name:   'Philadelphia',
+    state:  'PA',
+    lat:     40.000,
+    lon:    -75.100,
+    river:  'Schuylkill & Delaware Rivers',
+    region: 'coastal',
+    soil:   'Coastal Plain sandy loam',
+    zone:   '7a',
+    note:   'Penn\'s 1682 "Green Country Towne" sits where the Schuylkill drops from the Piedmont — the busiest colonial port in North America.',
+  },
+  {
+    name:   'Wilmington',
+    state:  'DE',
+    lat:     39.740,
+    lon:    -75.540,
+    river:  'Brandywine Creek',
+    region: 'coastal',
+    soil:   'Coastal Plain sandy loam (Matapeake series)',
+    zone:   '7a',
+    note:   'Brandywine Creek falls powered colonial flour and paper mills; the DuPont gunpowder mill (1802) launched America\'s chemical industry here.',
+  },
+  {
+    name:   'Baltimore',
+    state:  'MD',
+    lat:     39.270,
+    lon:    -76.730,
+    river:  'Patapsco River',
+    region: 'piedmont',
+    soil:   'Piedmont clay loam (Glenelg series)',
+    zone:   '7b',
+    note:   'Jones Falls and Patapsco River falls drove colonial flour mills; the Baltimore & Ohio Railroad (1827) followed the fall line corridor southwest.',
+  },
+  {
+    name:   'Washington',
+    state:  'DC',
+    lat:     38.905,
+    lon:    -77.030,
+    river:  'Potomac River',
+    region: 'coastal',
+    soil:   'Coastal Plain sandy silt (Urban land)',
+    zone:   '7b',
+    note:   'Little Falls of the Potomac marked the head of tidal navigation; Georgetown grew as the fall line trading post before DC was founded in 1790.',
+  },
+  {
+    name:   'Fredericksburg',
+    state:  'VA',
+    lat:     38.302,
+    lon:    -77.468,
+    river:  'Rappahannock River',
+    region: 'piedmont',
+    soil:   'Piedmont clay loam (Appling series)',
+    zone:   '7b',
+    note:   'Rappahannock River falls — platted 1728 as a tobacco inspection and ferry port; George Washington grew up across the river in King George County.',
+  },
+  {
+    name:   'Richmond',
+    state:  'VA',
+    lat:     37.527,
+    lon:    -77.464,
+    river:  'James River',
+    region: 'piedmont',
+    soil:   'Piedmont clay (Cecil series)',
+    zone:   '7b',
+    note:   'Belle Isle rapids — chartered 1742 at the furthest inland point ships could reach from Hampton Roads; Confederate capital 1861–1865.',
+  },
+  {
+    name:   'Raleigh',
+    state:  'NC',
+    lat:     35.897,
+    lon:    -78.648,
+    river:  'Neuse River',
+    region: 'piedmont',
+    soil:   'Piedmont clay loam (Cecil-Appling complex)',
+    zone:   '7b',
+    note:   'Falls of the Neuse mark the fall line; purpose-built as the state capital in 1792, mid-way between the Piedmont and coastal towns.',
+  },
+  {
+    name:   'Columbia',
+    state:  'SC',
+    lat:     34.000,
+    lon:    -81.030,
+    river:  'Congaree & Saluda Rivers',
+    region: 'piedmont',
+    soil:   'Piedmont clay loam (Cecil series)',
+    zone:   '8a',
+    note:   '"The Falls" of the Congaree and Saluda — South Carolina\'s purpose-built capital (1786) at the geographic centre of the state.',
+  },
+  {
+    name:   'Augusta',
+    state:  'GA',
+    lat:     33.470,
+    lon:    -82.020,
+    river:  'Savannah River',
+    region: 'piedmont',
+    soil:   'Piedmont sandy clay loam (Madison series)',
+    zone:   '8b',
+    note:   'Savannah River falls — Georgia\'s oldest city (1736), founded by James Oglethorpe as the inland trading terminus for the Savannah colony.',
+  },
+  {
+    name:   'Macon',
+    state:  'GA',
+    lat:     32.840,
+    lon:    -83.630,
+    river:  'Ocmulgee River',
+    region: 'piedmont',
+    soil:   'Piedmont sandy clay loam (Appling series)',
+    zone:   '8b',
+    note:   'Ocmulgee River falls — site of 10,000 years of continuous Native American habitation; Fort Hawkins (1806) guarded the fall line crossing.',
+  },
+  {
+    name:   'Columbus',
+    state:  'GA',
+    lat:     32.460,
+    lon:    -84.990,
+    river:  'Chattahoochee River',
+    region: 'piedmont',
+    soil:   'Piedmont sandy clay loam (Appling-Madison complex)',
+    zone:   '8b',
+    note:   'Chattahoochee River falls — Georgia\'s second-largest city; the falls powered antebellum textile mills and today drive hydroelectric turbines.',
+  },
+];
+
+/**
+ * Returns an HTML string for a fall line city marker popup.
+ * @param {{ name: string, state: string, river: string, note: string, soil: string, region: string, zone: string }} city
+ * @returns {string}
+ */
+function makeMarkerPopup(city) {
+  var regionLabel = city.region === 'coastal' ? 'Coastal Plain' : 'Piedmont';
+  var zoneColor   = getZoneColor(city.zone);
+  var row = function (label, value) {
+    return (
+      '<div class="city-fact">' +
+        '<span class="city-fact-label">' + label + '</span>' +
+        '<span class="city-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+  return (
+    '<div class="popup-content city-popup">' +
+      '<div class="city-popup-header">' +
+        '<h3>' + city.name + ', ' + city.state + '</h3>' +
+        '<span class="city-region-badge ' + city.region + '">' + regionLabel + '</span>' +
+      '</div>' +
+      '<p class="city-river">' + city.river + '</p>' +
+      '<p class="city-note">' + city.note + '</p>' +
+      '<div class="city-facts">' +
+        row('Soil', city.soil) +
+        row('Zone', '<span class="zone-badge" style="background:' + zoneColor + ';color:#1a1a2e">Zone ' + city.zone + '</span>') +
+      '</div>' +
+    '</div>'
+  );
+}
+
+
 /* ─── Location search helpers ────────────────────────────────────
    Pure functions used by map.js for the location search feature.
    All are dependency-free so they can be unit-tested in Node.js.
@@ -529,6 +744,8 @@ const GeoData = {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
+  FALL_LINE_CITIES,
+  makeMarkerPopup,
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
