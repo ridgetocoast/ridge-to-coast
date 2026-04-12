@@ -1,5 +1,5 @@
 """
-test_map.py — Playwright E2E tests for Fall Line to Coast.
+test_map.py — Playwright E2E tests for Ridge to Coast.
 
 Tests run against a local http.server (or the live GitHub Pages URL).
 Each test gets a fresh page; uncaught JS errors cause automatic failure
@@ -38,9 +38,9 @@ def wait_for_map(page):
 # ---------------------------------------------------------------------------
 
 def test_page_title(page):
-    """App title is 'Fall Line to Coast'."""
+    """App title is 'Ridge to Coast'."""
     page.goto("/")
-    expect(page).to_have_title("Fall Line to Coast")
+    expect(page).to_have_title("Ridge to Coast")
 
 
 def test_map_container_visible(page):

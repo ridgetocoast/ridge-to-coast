@@ -1,5 +1,5 @@
 """
-conftest.py — pytest-playwright fixtures for Fall Line to Coast E2E tests.
+conftest.py — pytest-playwright fixtures for Ridge to Coast E2E tests.
 
 Run locally:
     pip install -r tests/e2e/requirements.txt

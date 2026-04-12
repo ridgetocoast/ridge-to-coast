@@ -1,8 +1,8 @@
-# Fall Line to Coast
+# Ridge to Coast
 
-An interactive web map of the **Atlantic Seaboard Fall Line** — the geological boundary dividing the Piedmont (crystalline bedrock, rolling hills) from the Coastal Plain (Tidewater, sedimentary, flat) along the eastern United States.
+An interactive web map of the **Appalachian watershed corridor** — from the mountain ridge through the Piedmont and the Atlantic Seaboard Fall Line to the Tidewater and the Atlantic Coast. Covers the geological, ecological, and horticultural character of the eastern United States for gardeners, farmers, arborists, and ecological conservation groups.
 
-The map covers the full fall line corridor from **Philadelphia PA / Trenton NJ** south through Washington DC, Richmond VA, and Raleigh NC to **Augusta GA**, including the Piedmont and Coastal Plain regions of VA, NC, MD, PA, and SC.
+The map currently covers the fall line corridor from **Peekskill NY / Hudson Highlands** south through Washington DC, Richmond VA, and Raleigh NC to **Columbus GA**, including Piedmont, Coastal Plain, hardiness zones, native plants, and soil profiles for PA, NJ, DE, MD, VA, NC, SC, and GA. Future phases will extend coverage to all states east of the Mississippi River.
 
 Live at **[loobo07.github.io](https://loobo07.github.io)**
 
@@ -255,5 +255,9 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Native plant recommendations by ecoregion — 6 plants per region (Piedmont / Coastal Plain / fall line ecotone) shown in region and fall line click popups
 - [x] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2)) — 19 tests verifying SVG fill/stroke colors, opacities, hover transitions, and layer toggle visual effect
 - [x] Soil type detail in region popups — USDA soil series, texture class, pH range, drainage class, and amendment recommendations for each ecoregion (Cecil–Appling Piedmont clay; Norfolk–Goldsboro Coastal sandy loam; Appling–Norfolk ecotone transition)
+- [x] Rename app to **Ridge to Coast** — expanded scope to full Appalachian watershed corridor (mountain ridge → Piedmont → Fall Line → Tidewater → Atlantic Coast)
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
-- [ ] Extend corridor to all states east of the Mississippi River — expand fall line path, hardiness zone data, city markers, and BBOX to cover all Atlantic Seaboard and Gulf Coast fall line states (NY, NJ, PA, DE, MD, VA, NC, SC, GA, AL, MS are already partially covered; add remaining eastern states and update region polygons, corridor detection, and pipeline)
+- [ ] Phase 1: Extend corridor to all states east of the Mississippi — expand fall line path, hardiness zone data, city markers, and BBOX; add Blue Ridge region polygon; add SSURGO soil layer, NHD river layer, and EPA ecoregion overlay
+- [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, seasonal planting calendar, printable location reports
+- [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants`, `/api/v1/soil` endpoints via Cloudflare Workers or Vercel Edge Functions (free tier)
+- [ ] Phase 4: Mobile PWA, education curriculum, institutional partnerships, sustainable funding (USDA/EPA grants + institutional API subscriptions)
