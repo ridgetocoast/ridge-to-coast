@@ -35,6 +35,8 @@ const {
   makeMarkerPopup,
   NATIVE_PLANTS,
   makeNativePlantsSection,
+  SOIL_TYPES,
+  makeSoilSection,
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
@@ -1167,5 +1169,122 @@ describe('NATIVE_PLANTS and makeNativePlantsSection()', () => {
       'Piedmont popup should contain Post Oak');
     assert.ok(!coastalHtml.includes(postOak.name),
       'Coastal Plain popup should NOT contain Post Oak');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 20 — SOIL_TYPES and makeSoilSection()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('SOIL_TYPES and makeSoilSection()', () => {
+  it('SOIL_TYPES has keys: piedmont, coastal, ecotone', () => {
+    for (const key of ['piedmont', 'coastal', 'ecotone']) {
+      assert.ok(key in SOIL_TYPES, `SOIL_TYPES missing key: ${key}`);
+    }
+  });
+
+  it('every soil entry has required string fields: series, texture, pH, drainage, amendments', () => {
+    for (const [region, soil] of Object.entries(SOIL_TYPES)) {
+      for (const field of ['series', 'texture', 'pH', 'drainage', 'amendments']) {
+        assert.ok(
+          typeof soil[field] === 'string' && soil[field].length > 0,
+          `${region} soil entry missing field: ${field}`
+        );
+      }
+    }
+  });
+
+  it('pH fields contain a range separator (dash or en-dash)', () => {
+    for (const [region, soil] of Object.entries(SOIL_TYPES)) {
+      assert.ok(
+        soil.pH.includes('–') || soil.pH.includes('-'),
+        `${region} pH should express a range, got: ${soil.pH}`
+      );
+    }
+  });
+
+  it('piedmont soil is clay-based (series mentions Cecil or Appling)', () => {
+    const series = SOIL_TYPES.piedmont.series.toLowerCase();
+    assert.ok(
+      series.includes('cecil') || series.includes('appling'),
+      `Piedmont series should mention Cecil or Appling, got: ${SOIL_TYPES.piedmont.series}`
+    );
+  });
+
+  it('coastal soil is sandy-based (series mentions Norfolk or Goldsboro)', () => {
+    const series = SOIL_TYPES.coastal.series.toLowerCase();
+    assert.ok(
+      series.includes('norfolk') || series.includes('goldsboro'),
+      `Coastal series should mention Norfolk or Goldsboro, got: ${SOIL_TYPES.coastal.series}`
+    );
+  });
+
+  it('makeSoilSection() returns non-empty string for all three regions', () => {
+    for (const region of ['piedmont', 'coastal', 'ecotone']) {
+      const html = makeSoilSection(region);
+      assert.ok(typeof html === 'string' && html.length > 0,
+        `makeSoilSection("${region}") should return non-empty string`);
+    }
+  });
+
+  it('makeSoilSection() returns empty string for unknown region', () => {
+    assert.equal(makeSoilSection('unknown'), '');
+    assert.equal(makeSoilSection(''), '');
+  });
+
+  it('makeSoilSection() wraps output in soil-section with soil-facts', () => {
+    const html = makeSoilSection('piedmont');
+    assert.ok(html.includes('class="soil-section"'), 'missing soil-section wrapper');
+    assert.ok(html.includes('class="soil-section-header"'), 'missing soil-section-header');
+    assert.ok(html.includes('class="soil-facts"'), 'missing soil-facts container');
+    assert.ok(html.includes('class="soil-fact"'), 'missing soil-fact rows');
+  });
+
+  it('makeSoilSection() includes all five field labels', () => {
+    const html = makeSoilSection('coastal');
+    for (const label of ['Series', 'Texture', 'pH', 'Drainage', 'Amend with']) {
+      assert.ok(html.includes(label), `soil section missing label: ${label}`);
+    }
+  });
+
+  it('makeSoilSection("piedmont") contains Cecil in series output', () => {
+    const html = makeSoilSection('piedmont');
+    assert.ok(html.includes('Cecil'), 'Piedmont soil section should mention Cecil');
+  });
+
+  it('makeSoilSection("coastal") contains Norfolk in series output', () => {
+    const html = makeSoilSection('coastal');
+    assert.ok(html.includes('Norfolk'), 'Coastal soil section should mention Norfolk');
+  });
+
+  it('makeRegionPopup() includes soil-section for both regions', () => {
+    const coastalHtml  = makeRegionPopup(COASTAL_PLAIN_GEOJSON.properties);
+    const piedmontHtml = makeRegionPopup(PIEDMONT_GEOJSON.properties);
+    assert.ok(coastalHtml.includes('class="soil-section"'),
+      'Coastal Plain popup should include soil section');
+    assert.ok(piedmontHtml.includes('class="soil-section"'),
+      'Piedmont popup should include soil section');
+  });
+
+  it('makeFallLinePopup() includes ecotone soil section', () => {
+    const html = makeFallLinePopup();
+    assert.ok(html.includes('class="soil-section"'),
+      'Fall line popup should include ecotone soil section');
+    assert.ok(html.includes(SOIL_TYPES.ecotone.series),
+      'Fall line popup should include ecotone series name');
+  });
+
+  it('region soil sections contain correct series (not cross-contaminated)', () => {
+    const coastalHtml  = makeRegionPopup(COASTAL_PLAIN_GEOJSON.properties);
+    const piedmontHtml = makeRegionPopup(PIEDMONT_GEOJSON.properties);
+    assert.ok(coastalHtml.includes('Norfolk'),
+      'Coastal Plain popup should contain Norfolk soil series');
+    assert.ok(!piedmontHtml.includes('Norfolk'),
+      'Piedmont popup should NOT contain Norfolk soil series');
+    assert.ok(piedmontHtml.includes('Cecil'),
+      'Piedmont popup should contain Cecil soil series');
+    assert.ok(!coastalHtml.includes('Cecil'),
+      'Coastal Plain popup should NOT contain Cecil soil series');
   });
 });

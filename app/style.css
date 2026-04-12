@@ -286,6 +286,51 @@ html, body {
   margin-top: 1px;
 }
 
+/* ─── Soil type profile ────────────────────────────────────── */
+
+.soil-section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.soil-section-header {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #777;
+  margin: 0 0 6px;
+}
+
+.soil-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.soil-fact {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.soil-label {
+  font-size: 0.69rem;
+  font-weight: 700;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.soil-value {
+  font-size: 0.75rem;
+  color: #ccc;
+  line-height: 1.35;
+}
+
 /* ─── Search Bar ───────────────────────────────────────────── */
 #search-bar {
   position: fixed;

@@ -459,6 +459,74 @@ function makeNativePlantsSection(region) {
 }
 
 
+/* ─── Soil type profiles by ecoregion ───────────────────────────
+   Key soil characteristics for the Piedmont, Coastal Plain, and
+   fall line ecotone. Used in region and fall line click popups.
+   Data derived from USDA NRCS soil survey publications (MLRA 148,
+   136, 133A, 153A) and the National Cooperative Soil Survey.
+
+   Fields:
+     series     — dominant soil series / association name
+     texture    — textural class (USDA texture triangle)
+     pH         — typical surface horizon pH range
+     drainage   — USDA drainage class descriptor
+     amendments — top gardening amendment recommendations
+   ────────────────────────────────────────────────────────────── */
+const SOIL_TYPES = {
+  piedmont: {
+    series:     'Cecil–Appling–Madison (Ultisols)',
+    texture:    'Clay loam to clay',
+    pH:         '5.0–6.0 (strongly acidic)',
+    drainage:   'Well-drained but compaction-prone',
+    amendments: 'Lime to raise pH; generous compost to loosen dense clay structure',
+  },
+  coastal: {
+    series:     'Norfolk–Goldsboro–Lynchburg (Ultisols)',
+    texture:    'Sandy loam to loamy sand',
+    pH:         '4.5–5.5 (very acidic)',
+    drainage:   'Well to excessively drained; dries out quickly',
+    amendments: 'Heavy compost and mulch to retain moisture; slow-release fertilizers',
+  },
+  ecotone: {
+    series:     'Appling–Norfolk transition (Ultisols)',
+    texture:    'Loam to clay loam (highly variable within metres)',
+    pH:         '5.0–6.5 (variable)',
+    drainage:   'Variable — can shift dramatically within 100 ft of the fall line',
+    amendments: 'Soil test strongly recommended; organic matter benefits both textures',
+  },
+};
+
+/**
+ * Returns an HTML string showing the soil profile for a given ecoregion.
+ * @param {'piedmont'|'coastal'|'ecotone'} region
+ * @returns {string}  HTML fragment — empty string if region not found
+ */
+function makeSoilSection(region) {
+  const soil = SOIL_TYPES[region];
+  if (!soil) return '';
+  const row = function (label, value) {
+    return (
+      '<div class="soil-fact">' +
+        '<span class="soil-label">' + label + '</span>' +
+        '<span class="soil-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+  return (
+    '<div class="soil-section">' +
+      '<h4 class="soil-section-header">Soil profile</h4>' +
+      '<div class="soil-facts">' +
+        row('Series',    soil.series) +
+        row('Texture',   soil.texture) +
+        row('pH',        soil.pH) +
+        row('Drainage',  soil.drainage) +
+        row('Amend with', soil.amendments) +
+      '</div>' +
+    '</div>'
+  );
+}
+
+
 /* ─── Popup content generators ──────────────────────────────── */
 
 /**
@@ -474,6 +542,7 @@ function makeRegionPopup(props) {
       '<p>' + props.description + '</p>' +
       '<span class="region-tag ' + props.region + '">' + props.name + '</span>' +
       makeNativePlantsSection(props.region) +
+      makeSoilSection(props.region) +
     '</div>'
   );
 }
@@ -493,6 +562,7 @@ function makeFallLinePopup() {
         'all grew up at or near this boundary.' +
       '</p>' +
       makeNativePlantsSection('ecotone') +
+      makeSoilSection('ecotone') +
       '<p style="margin-top:8px; color:#888; font-size:0.75rem;">' +
         'This path is approximate. The true boundary is gradational over several miles.' +
       '</p>' +
@@ -955,6 +1025,8 @@ const GeoData = {
   BBOX: { NORTH: BBOX_NORTH, SOUTH: BBOX_SOUTH, EAST: BBOX_EAST, WEST: BBOX_WEST },
   NATIVE_PLANTS,
   makeNativePlantsSection,
+  SOIL_TYPES,
+  makeSoilSection,
   makeRegionPopup,
   makeFallLinePopup,
   haversineKm,
