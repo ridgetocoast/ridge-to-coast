@@ -2,14 +2,14 @@
 test_markers.py — E2E tests for the fall line city marker layer.
 
 Tests that markers appear on load, can be toggled via the legend,
-and display correct popup content when triggered.
+and navigate to the detail page when clicked.
 """
 
 import pytest
 from playwright.sync_api import expect
 
-LAYER_TIMEOUT = 10_000
-POPUP_TIMEOUT = 5_000
+LAYER_TIMEOUT  = 10_000
+DETAIL_TIMEOUT = 5_000
 
 
 # ── Suite 1: Marker presence ──────────────────────────────────────────────────
@@ -70,85 +70,75 @@ def test_city_markers_toggle_rechecks(page):
     expect(toggle).to_be_checked()
 
 
-# ── Suite 3: Popup content ────────────────────────────────────────────────────
+# ── Suite 3: Detail page navigation ──────────────────────────────────────────
 
-def test_city_popup_opens_for_richmond(page):
-    """Richmond's popup can be opened via JavaScript and contains the city name."""
+def _navigate_to_city_detail(page, city_slug):
+    """Helper: set location hash to a city detail page and wait for render."""
+    page.evaluate(f"location.hash = '#detail/city/{city_slug}'")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+
+
+def test_city_detail_page_shows_for_richmond(page):
+    """Navigating to Richmond's detail hash shows the detail view."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-
-    page.evaluate("""
-        cityMarkersLayer.eachLayer(function(layer) {
-            var ll = layer.getLatLng();
-            if (Math.abs(ll.lat - 37.527) < 0.01 && Math.abs(ll.lng - (-77.464)) < 0.01) {
-                layer.openPopup();
-            }
-        });
-    """)
-
-    popup = page.locator(".leaflet-popup-content-wrapper")
-    expect(popup).to_be_visible(timeout=POPUP_TIMEOUT)
-    expect(popup).to_contain_text("Richmond")
+    _navigate_to_city_detail(page, "richmond-va")
+    detail = page.locator("#detail-content")
+    expect(detail).to_contain_text("Richmond")
 
 
-def test_city_popup_contains_river(page):
-    """Richmond's popup contains the James River."""
+def test_city_detail_contains_river(page):
+    """Richmond detail page contains the James River."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-
-    page.evaluate("""
-        cityMarkersLayer.eachLayer(function(layer) {
-            var ll = layer.getLatLng();
-            if (Math.abs(ll.lat - 37.527) < 0.01 && Math.abs(ll.lng - (-77.464)) < 0.01) {
-                layer.openPopup();
-            }
-        });
-    """)
-
-    popup = page.locator(".leaflet-popup-content-wrapper")
-    expect(popup).to_be_visible(timeout=POPUP_TIMEOUT)
-    expect(popup).to_contain_text("James River")
+    _navigate_to_city_detail(page, "richmond-va")
+    expect(page.locator("#detail-content")).to_contain_text("James River")
 
 
-def test_city_popup_contains_zone(page):
-    """Richmond's popup contains the hardiness zone badge."""
+def test_city_detail_contains_zone(page):
+    """Richmond detail page contains the hardiness zone."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-
-    page.evaluate("""
-        cityMarkersLayer.eachLayer(function(layer) {
-            var ll = layer.getLatLng();
-            if (Math.abs(ll.lat - 37.527) < 0.01 && Math.abs(ll.lng - (-77.464)) < 0.01) {
-                layer.openPopup();
-            }
-        });
-    """)
-
-    popup = page.locator(".leaflet-popup-content-wrapper")
-    expect(popup).to_be_visible(timeout=POPUP_TIMEOUT)
-    expect(popup).to_contain_text("7b")
+    _navigate_to_city_detail(page, "richmond-va")
+    expect(page.locator("#detail-content")).to_contain_text("7b")
 
 
-def test_city_popup_contains_region_badge(page):
-    """Richmond's popup contains the Piedmont region badge."""
+def test_city_detail_contains_region(page):
+    """Richmond detail page contains the Piedmont region label."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-
-    page.evaluate("""
-        cityMarkersLayer.eachLayer(function(layer) {
-            var ll = layer.getLatLng();
-            if (Math.abs(ll.lat - 37.527) < 0.01 && Math.abs(ll.lng - (-77.464)) < 0.01) {
-                layer.openPopup();
-            }
-        });
-    """)
-
-    popup = page.locator(".leaflet-popup-content-wrapper")
-    expect(popup).to_be_visible(timeout=POPUP_TIMEOUT)
-    expect(popup).to_contain_text("Piedmont")
+    _navigate_to_city_detail(page, "richmond-va")
+    expect(page.locator("#detail-content")).to_contain_text("Piedmont")
 
 
-# ── Suite 4: Mobile viewport ──────────────────────────────────────────────────
+def test_back_button_returns_to_map(page):
+    """Back button on detail page returns to the map view."""
+    page.goto("/")
+    page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
+    _navigate_to_city_detail(page, "richmond-va")
+    # Map view should be hidden
+    assert page.locator("#map-view").get_attribute("hidden") is not None, \
+        "map-view should be hidden while detail view is shown"
+    # Click back
+    page.locator("#back-btn").click()
+    page.wait_for_selector("#map-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    expect(page.locator("#map")).to_be_visible()
+
+
+# ── Suite 4: Blue Ridge city detail ──────────────────────────────────────────
+
+def test_asheville_detail_page(page):
+    """Asheville NC detail page shows Blue Ridge region and French Broad River."""
+    page.goto("/")
+    page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
+    _navigate_to_city_detail(page, "asheville-nc")
+    detail = page.locator("#detail-content")
+    expect(detail).to_contain_text("Asheville")
+    expect(detail).to_contain_text("French Broad")
+    expect(detail).to_contain_text("Blue Ridge")
+
+
+# ── Suite 5: Mobile viewport ──────────────────────────────────────────────────
 
 def test_city_toggle_accessible_on_mobile(page):
     """City markers toggle is in the DOM on a mobile viewport (390×844)."""
@@ -159,21 +149,13 @@ def test_city_toggle_accessible_on_mobile(page):
     assert toggle.count() > 0, "City markers toggle not found in DOM on mobile"
 
 
-def test_city_popup_opens_on_mobile(page):
-    """City popup can be opened via JavaScript on a mobile viewport."""
+def test_city_detail_accessible_on_mobile(page):
+    """City detail page renders correctly on a mobile viewport."""
     page.set_viewport_size({"width": 390, "height": 844})
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-
-    page.evaluate("""
-        cityMarkersLayer.eachLayer(function(layer) {
-            var ll = layer.getLatLng();
-            if (Math.abs(ll.lat - 37.527) < 0.01 && Math.abs(ll.lng - (-77.464)) < 0.01) {
-                layer.openPopup();
-            }
-        });
-    """)
-
-    popup = page.locator(".leaflet-popup-content-wrapper")
-    expect(popup).to_be_visible(timeout=POPUP_TIMEOUT)
-    expect(popup).to_contain_text("Richmond")
+    _navigate_to_city_detail(page, "richmond-va")
+    detail = page.locator("#detail-content")
+    expect(detail).to_contain_text("Richmond")
+    # Back button should be visible
+    expect(page.locator("#back-btn")).to_be_visible()

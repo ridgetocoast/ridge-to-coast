@@ -122,8 +122,9 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.swatch.coastal  { background: rgba(70, 130, 220, 0.55); }
-.swatch.piedmont { background: rgba(200, 130, 50, 0.55); }
+.swatch.blueridge { background: rgba(74, 124, 89, 0.55); }
+.swatch.coastal   { background: rgba(70, 130, 220, 0.55); }
+.swatch.piedmont  { background: rgba(200, 130, 50, 0.55); }
 .swatch.fallline {
   background: transparent;
   border: 3px solid #e84393;
@@ -647,4 +648,171 @@ html, body {
 
 .leaflet-control-attribution {
   display: none; /* attribution shown in our custom panel */
+}
+
+
+/* ─── Detail page / hash routing ──────────────────────────────── */
+
+/* Map view wrapper — transparent pass-through in normal layout */
+#map-view {
+  display: contents;
+}
+
+/* Detail view — full-screen scrollable overlay, hidden by default */
+#detail-view {
+  position: fixed;
+  inset: 0;
+  background: #1a1a2e;
+  overflow-y: auto;
+  z-index: 2000;
+  padding: 0 0 2rem;
+}
+
+/* When detail-view is visible, body scroll is allowed */
+#detail-view:not([hidden]) ~ * {
+  /* nothing — detail-view is before map-view in DOM */
+}
+
+/* Header bar inside detail view */
+.detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(20, 20, 40, 0.95);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Back button */
+.back-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #ddd;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Detail content container */
+#detail-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 1rem;
+}
+
+/* Article wrapper */
+article.detail-page {
+  color: #ddd;
+}
+
+.detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  line-height: 1.25;
+}
+
+.detail-zone-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 12px;
+  margin-bottom: 0.75rem;
+}
+.detail-zone-header .detail-title {
+  margin-bottom: 0;
+}
+
+.detail-zone-badge {
+  font-size: 0.85rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-coords {
+  font-size: 0.85rem;
+  color: #999;
+  margin-bottom: 0.5rem;
+  font-family: monospace;
+}
+
+.detail-river {
+  font-size: 0.95rem;
+  color: #4a9eff;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.detail-region-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.detail-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #bbb;
+  margin-bottom: 1.25rem;
+}
+
+/* Key-value facts grid */
+.detail-facts {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-fact {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.detail-fact:last-child { border-bottom: none; }
+
+.detail-fact-label {
+  color: #888;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.detail-fact-value {
+  color: #ddd;
+}
+
+.detail-note {
+  font-size: 0.82rem;
+  color: #777;
+  border-left: 3px solid rgba(255, 255, 255, 0.15);
+  padding-left: 10px;
+  margin-top: 1.5rem;
+}
+
+/* Region tag used in detail facts */
+.region-tag.blueRidge {
+  background: rgba(74, 124, 89, 0.3);
+  color: #6bc884;
+  border: 1px solid rgba(74, 124, 89, 0.5);
+}
+
+/* Override overflow for detail view — body needs to scroll */
+body:has(#detail-view:not([hidden])) {
+  overflow: auto;
 }

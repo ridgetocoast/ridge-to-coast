@@ -36,6 +36,17 @@
 </head>
 <body>
 
+  <!-- Detail view — shown when user navigates to /#detail/... — hidden by default -->
+  <div id="detail-view" hidden aria-label="Location detail">
+    <div class="detail-header">
+      <button id="back-btn" class="back-btn" aria-label="Back to map">&#x2190; Back to map</button>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- Map view — the default view -->
+  <div id="map-view">
+
   <header class="app-header">
     <h1>Ridge to Coast</h1>
     <p class="subtitle">Appalachian Ridge &middot; Fall Line &middot; Piedmont &middot; Tidewater &middot; Atlantic Coast</p>
@@ -49,6 +60,10 @@
       <button id="legend-toggle" aria-label="Toggle legend" aria-expanded="true">&#x25BE;</button>
     </div>
     <div id="legend-body">
+      <div class="legend-item">
+        <span class="swatch blueridge"></span>
+        <span>Blue Ridge / Appalachians</span>
+      </div>
       <div class="legend-item">
         <span class="swatch coastal"></span>
         <span>Coastal Plain (Tidewater)</span>
@@ -112,6 +127,8 @@
     </form>
     <p id="search-status" class="search-status" hidden aria-live="polite"></p>
   </div>
+
+  </div><!-- end #map-view -->
 
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <script src="lib/leaflet.js"></script>

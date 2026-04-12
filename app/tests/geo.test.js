@@ -20,10 +20,17 @@ const {
   FALL_LINE_GEOJSON,
   COASTAL_PLAIN_GEOJSON,
   PIEDMONT_GEOJSON,
+  BLUE_RIDGE_GEOJSON,
   STYLES,
   BBOX,
   makeRegionPopup,
   makeFallLinePopup,
+  makeRegionDetailHTML,
+  makeFallLineDetailHTML,
+  makeZoneDetailHTML,
+  makeCityDetailHTML,
+  classifyLocation,
+  makeLocationReport,
   haversineKm,
   minDistanceToFallLine,
   HARDINESS_ZONE_COLORS,
@@ -947,10 +954,11 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
     }
   });
 
-  it('all city regions are piedmont or coastal', () => {
+  it('all city regions are valid ecoregion keys', () => {
+    const valid = new Set(['piedmont', 'coastal', 'blueRidge']);
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
-        city.region === 'piedmont' || city.region === 'coastal',
+        valid.has(city.region),
         `${city.name} has invalid region: ${city.region}`
       );
     }
@@ -1286,5 +1294,274 @@ describe('SOIL_TYPES and makeSoilSection()', () => {
       'Piedmont popup should contain Cecil soil series');
     assert.ok(!coastalHtml.includes('Cecil'),
       'Coastal Plain popup should NOT contain Cecil soil series');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 21 — BLUE_RIDGE_GEOJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('BLUE_RIDGE_GEOJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(BLUE_RIDGE_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(BLUE_RIDGE_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('ring has at least 10 coordinate pairs', () => {
+    const ring = BLUE_RIDGE_GEOJSON.geometry.coordinates[0];
+    assert.ok(ring.length >= 10, `expected ≥10 points, got ${ring.length}`);
+  });
+
+  it('ring is closed (first point equals last point)', () => {
+    const ring = BLUE_RIDGE_GEOJSON.geometry.coordinates[0];
+    const first = ring[0];
+    const last  = ring[ring.length - 1];
+    assert.deepEqual(first, last, 'first and last ring points must be identical');
+  });
+
+  it('all ring coordinates are valid [lon, lat] pairs in Appalachian bounds', () => {
+    const ring = BLUE_RIDGE_GEOJSON.geometry.coordinates[0];
+    for (const coord of ring) {
+      assert.equal(coord.length, 2, 'each coordinate must have 2 values');
+      assert.ok(coord[0] < -77 && coord[0] > -86, `lon ${coord[0]} out of Appalachian range`);
+      assert.ok(coord[1] > 34 && coord[1] < 40,   `lat ${coord[1]} out of Appalachian range`);
+    }
+  });
+
+  it('properties.region is "blueRidge"', () => {
+    assert.equal(BLUE_RIDGE_GEOJSON.properties.region, 'blueRidge');
+  });
+
+  it('properties.name contains "Blue Ridge"', () => {
+    assert.ok(BLUE_RIDGE_GEOJSON.properties.name.includes('Blue Ridge'),
+      'name should contain "Blue Ridge"');
+  });
+
+  it('properties.description is at least 80 characters', () => {
+    assert.ok(BLUE_RIDGE_GEOJSON.properties.description.length >= 80,
+      'description too short');
+  });
+
+  it('STYLES.blueRidge has fillColor, fillOpacity, weight, interactive', () => {
+    const s = STYLES.blueRidge;
+    assert.ok(s, 'STYLES.blueRidge must exist');
+    assert.ok(typeof s.fillColor === 'string', 'fillColor should be a string');
+    assert.equal(s.fillOpacity, 0.18);
+    assert.equal(s.weight, 0);
+    assert.equal(s.interactive, true);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 22 — Blue Ridge ecological data
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Blue Ridge ecological data', () => {
+  it('NATIVE_PLANTS.blueRidge is an array with at least 4 entries', () => {
+    assert.ok(Array.isArray(NATIVE_PLANTS.blueRidge), 'blueRidge plants should be an array');
+    assert.ok(NATIVE_PLANTS.blueRidge.length >= 4,
+      `expected ≥4 plants, got ${NATIVE_PLANTS.blueRidge.length}`);
+  });
+
+  it('each Blue Ridge plant has name, latin, type, note fields', () => {
+    for (const p of NATIVE_PLANTS.blueRidge) {
+      assert.ok(typeof p.name  === 'string' && p.name.length  > 0, 'plant must have name');
+      assert.ok(typeof p.latin === 'string' && p.latin.length > 0, 'plant must have latin');
+      assert.ok(typeof p.type  === 'string' && p.type.length  > 0, 'plant must have type');
+      assert.ok(typeof p.note  === 'string' && p.note.length  > 0, 'plant must have note');
+    }
+  });
+
+  it('Fraser Fir is in the Blue Ridge plant list', () => {
+    const fir = NATIVE_PLANTS.blueRidge.find(p => p.name === 'Fraser Fir');
+    assert.ok(fir, 'Fraser Fir not found in blueRidge plants');
+    assert.ok(fir.latin.includes('Abies'), 'Fraser Fir latin should start with Abies');
+  });
+
+  it('SOIL_TYPES.blueRidge has all 5 required fields', () => {
+    const s = SOIL_TYPES.blueRidge;
+    assert.ok(s, 'SOIL_TYPES.blueRidge must exist');
+    for (const field of ['series', 'texture', 'pH', 'drainage', 'amendments']) {
+      assert.ok(typeof s[field] === 'string' && s[field].length > 0,
+        `blueRidge soil must have '${field}'`);
+    }
+  });
+
+  it('SOIL_TYPES.blueRidge.series contains "Ramsey"', () => {
+    assert.ok(SOIL_TYPES.blueRidge.series.includes('Ramsey'),
+      'Blue Ridge soil series should include Ramsey');
+  });
+
+  it('makeNativePlantsSection("blueRidge") returns non-empty HTML', () => {
+    const html = makeNativePlantsSection('blueRidge');
+    assert.ok(html.length > 50, 'blueRidge plant section should be non-trivial HTML');
+    assert.ok(html.includes('Fraser Fir'), 'should include Fraser Fir');
+  });
+
+  it('makeSoilSection("blueRidge") returns non-empty HTML', () => {
+    const html = makeSoilSection('blueRidge');
+    assert.ok(html.length > 50, 'blueRidge soil section should be non-trivial HTML');
+    assert.ok(html.includes('Ramsey'), 'should include Ramsey series');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 23 — Appalachian city markers
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Appalachian city markers', () => {
+  it('total city count is at least 20 (original 15 + 6 Appalachian)', () => {
+    assert.ok(FALL_LINE_CITIES.length >= 20,
+      `expected ≥20 cities, got ${FALL_LINE_CITIES.length}`);
+  });
+
+  it('Asheville NC is present with correct data', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Asheville');
+    assert.ok(city, 'Asheville not found');
+    assert.equal(city.state, 'NC');
+    assert.equal(city.region, 'blueRidge');
+    assert.ok(city.river.includes('French Broad'), 'river should be French Broad');
+  });
+
+  it('Chattanooga TN is present with correct data', () => {
+    const city = FALL_LINE_CITIES.find(c => c.name === 'Chattanooga');
+    assert.ok(city, 'Chattanooga not found');
+    assert.equal(city.state, 'TN');
+    assert.equal(city.region, 'blueRidge');
+    assert.ok(city.river.includes('Tennessee'), 'river should be Tennessee');
+  });
+
+  it('all new Appalachian cities are within the expanded BBOX', () => {
+    const appalachian = ['Charlottesville', 'Staunton', 'Roanoke', 'Asheville', 'Greenville', 'Chattanooga'];
+    for (const name of appalachian) {
+      const city = FALL_LINE_CITIES.find(c => c.name === name);
+      assert.ok(city, `${name} not found in FALL_LINE_CITIES`);
+      assert.ok(isInCorridor(city.lat, city.lon),
+        `${name} (${city.lat}, ${city.lon}) is outside the corridor BBOX`);
+    }
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 24 — Detail page HTML generators
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Detail page HTML generators', () => {
+  it('makeRegionDetailHTML("piedmont") returns article with title and plants', () => {
+    const html = makeRegionDetailHTML('piedmont');
+    assert.ok(html.includes('<article'), 'should return an article element');
+    assert.ok(html.includes('Piedmont'), 'should include region name');
+    assert.ok(html.includes('plant-section'), 'should include plant section');
+    assert.ok(html.includes('soil-section'), 'should include soil section');
+  });
+
+  it('makeRegionDetailHTML("coastal") includes Coastal Plain content', () => {
+    const html = makeRegionDetailHTML('coastal');
+    assert.ok(html.includes('Coastal Plain'), 'should include Coastal Plain');
+    assert.ok(html.includes('Loblolly'), 'should include Loblolly Pine');
+  });
+
+  it('makeRegionDetailHTML("blueRidge") includes Blue Ridge content', () => {
+    const html = makeRegionDetailHTML('blueRidge');
+    assert.ok(html.includes('Blue Ridge'), 'should include Blue Ridge');
+    assert.ok(html.includes('Fraser Fir'), 'should include Fraser Fir');
+    assert.ok(html.includes('Ramsey'), 'should include Ramsey soil series');
+  });
+
+  it('makeRegionDetailHTML() returns empty string for unknown region', () => {
+    const html = makeRegionDetailHTML('unknown-region');
+    assert.equal(html, '', 'unknown region should return empty string');
+  });
+
+  it('makeFallLineDetailHTML() returns article with fall line content', () => {
+    const html = makeFallLineDetailHTML();
+    assert.ok(html.includes('<article'), 'should return an article element');
+    assert.ok(html.includes('Fall Line'), 'should include Fall Line title');
+    assert.ok(html.includes('ecotone') || html.includes('Witch-Hazel'),
+      'should include ecotone plant data');
+  });
+
+  it('makeZoneDetailHTML("7b") returns article with zone data', () => {
+    const html = makeZoneDetailHTML('7b');
+    assert.ok(html.includes('<article'), 'should return an article element');
+    assert.ok(html.includes('Zone 7b'), 'should include zone identifier');
+    assert.ok(html.includes('frost'), 'should include frost information');
+  });
+
+  it('makeZoneDetailHTML uses correct zone color in inline style', () => {
+    const html = makeZoneDetailHTML('7b');
+    const color = getZoneColor('7b');
+    assert.ok(html.includes(color), 'should include the zone color');
+  });
+
+  it('makeCityDetailHTML("richmond-va") returns Richmond article', () => {
+    const html = makeCityDetailHTML('richmond-va');
+    assert.ok(html.includes('<article'), 'should return an article element');
+    assert.ok(html.includes('Richmond'), 'should include city name');
+    assert.ok(html.includes('James River'), 'should include James River');
+    assert.ok(html.includes('Zone 7b'), 'should include hardiness zone');
+  });
+
+  it('makeCityDetailHTML("asheville-nc") returns Asheville article', () => {
+    const html = makeCityDetailHTML('asheville-nc');
+    assert.ok(html.includes('Asheville'), 'should include city name');
+    assert.ok(html.includes('French Broad'), 'should include river name');
+    assert.ok(html.includes('Blue Ridge'), 'should include Blue Ridge region label');
+  });
+
+  it('makeCityDetailHTML() returns empty string for unknown slug', () => {
+    const html = makeCityDetailHTML('nowhere-xx');
+    assert.equal(html, '', 'unknown slug should return empty string');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 25 — classifyLocation and makeLocationReport
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('classifyLocation and makeLocationReport', () => {
+  it('classifies Virginia Beach as coastal (east of fall line)', () => {
+    // Virginia Beach: 36.85°N, -75.98°W — well east of fall line (~-77.8°W at this lat)
+    assert.equal(classifyLocation(36.85, -75.98), 'coastal');
+  });
+
+  it('classifies Charlottesville VA as piedmont (clearly west of fall line)', () => {
+    // Charlottesville: 38.03°N, -78.48°W — fall line near 38°N is ~-77.5°W
+    assert.equal(classifyLocation(38.03, -78.48), 'piedmont');
+  });
+
+  it('classifies Asheville NC as blueRidge (far west of fall line)', () => {
+    // Asheville: 35.58°N, -82.55°W — far west of fall line (~-79.3°W at this lat)
+    assert.equal(classifyLocation(35.58, -82.55), 'blueRidge');
+  });
+
+  it('makeLocationReport returns an article element', () => {
+    const html = makeLocationReport(38.03, -78.48);
+    assert.ok(html.includes('<article'), 'should return an article element');
+    assert.ok(html.includes('Location Report'), 'should include report header');
+  });
+
+  it('makeLocationReport includes soil and plant sections', () => {
+    const html = makeLocationReport(38.03, -78.48);
+    assert.ok(html.includes('plant-section'), 'should include plant section');
+    assert.ok(html.includes('soil-section'), 'should include soil section');
+  });
+
+  it('makeLocationReport for coastal location includes Norfolk soil', () => {
+    const html = makeLocationReport(36.85, -75.98);
+    assert.ok(html.includes('Norfolk'), 'coastal report should include Norfolk soil series');
+  });
+
+  it('makeLocationReport for Blue Ridge location includes Ramsey soil', () => {
+    const html = makeLocationReport(35.58, -82.55);
+    assert.ok(html.includes('Ramsey'), 'Blue Ridge report should include Ramsey soil series');
   });
 });
