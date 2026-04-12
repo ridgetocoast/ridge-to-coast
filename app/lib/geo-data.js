@@ -312,6 +312,153 @@ const STYLES = {
 };
 
 
+/* ─── Native plant recommendations by ecoregion ─────────────────
+   Curated lists of representative native plants for the Piedmont,
+   Coastal Plain, and fall line ecotone. Used in region and fall line
+   popups. Each entry has:
+     name   — common name
+     latin  — binomial (genus species)
+     type   — 'tree' | 'shrub' | 'perennial' | 'grass' | 'fern'
+     note   — one-line habitat / soil context
+   ────────────────────────────────────────────────────────────── */
+const NATIVE_PLANTS = {
+  piedmont: [
+    {
+      name:  'Post Oak',
+      latin: 'Quercus stellata',
+      type:  'tree',
+      note:  'Dryland oak of dry Piedmont ridges and clay flats',
+    },
+    {
+      name:  'Winged Elm',
+      latin: 'Ulmus alata',
+      type:  'tree',
+      note:  'Common Piedmont canopy tree; corky wings on branches',
+    },
+    {
+      name:  'Carolina Silverbell',
+      latin: 'Halesia carolina',
+      type:  'tree',
+      note:  'Spring-flowering understory; Piedmont ravines and stream banks',
+    },
+    {
+      name:  'Wild Blue Indigo',
+      latin: 'Baptisia australis',
+      type:  'perennial',
+      note:  'Deep taproot breaks Piedmont clay; blue spring flowers',
+    },
+    {
+      name:  'Little Bluestem',
+      latin: 'Schizachyrium scoparium',
+      type:  'grass',
+      note:  'Native bunch grass; thrives in heavy Piedmont clay soils',
+    },
+    {
+      name:  'Pawpaw',
+      latin: 'Asimina triloba',
+      type:  'shrub',
+      note:  'Largest native fruit; riparian corridors and bottomlands',
+    },
+  ],
+  coastal: [
+    {
+      name:  'Loblolly Pine',
+      latin: 'Pinus taeda',
+      type:  'tree',
+      note:  'Dominant Coastal Plain canopy; thrives in sandy, well-drained soils',
+    },
+    {
+      name:  'Sweetbay Magnolia',
+      latin: 'Magnolia virginiana',
+      type:  'tree',
+      note:  'Tidewater wetland indicator; semi-evergreen, fragrant flowers',
+    },
+    {
+      name:  'Bald Cypress',
+      latin: 'Taxodium distichum',
+      type:  'tree',
+      note:  'Iconic tidal swamp tree; knees emerge from saturated soils',
+    },
+    {
+      name:  'Atlantic White Cedar',
+      latin: 'Chamaecyparis thyoides',
+      type:  'tree',
+      note:  'Coastal Plain bogs and pocosins; important for black bears',
+    },
+    {
+      name:  'Switchgrass',
+      latin: 'Panicum virgatum',
+      type:  'grass',
+      note:  'Salt marsh edges and sandy Coastal Plain soils; erosion control',
+    },
+    {
+      name:  'Venus Flytrap',
+      latin: 'Dionaea muscipula',
+      type:  'perennial',
+      note:  'Endemic to NC Coastal Plain longleaf pine savannas; globally rare',
+    },
+  ],
+  ecotone: [
+    {
+      name:  'Witch-Hazel',
+      latin: 'Hamamelis virginiana',
+      type:  'shrub',
+      note:  'Blooms in autumn at fall line stream crossings; last native flower of the year',
+    },
+    {
+      name:  'Wild Columbine',
+      latin: 'Aquilegia canadensis',
+      type:  'perennial',
+      note:  'Rocky fall line slopes and outcrops; red-yellow spring flowers',
+    },
+    {
+      name:  'Christmas Fern',
+      latin: 'Polystichum acrostichoides',
+      type:  'fern',
+      note:  'Evergreen fern of fall line ravines; stays green through winter',
+    },
+    {
+      name:  'Spicebush',
+      latin: 'Lindera benzoin',
+      type:  'shrub',
+      note:  'Aromatic understory at fall line creek bottoms; early spring bloomer',
+    },
+    {
+      name:  'Bloodroot',
+      latin: 'Sanguinaria canadensis',
+      type:  'perennial',
+      note:  'Spring ephemeral on rich fall line slopes; fleeting white flowers',
+    },
+  ],
+};
+
+/**
+ * Returns an HTML string listing native plants for a given ecoregion.
+ * @param {'piedmont'|'coastal'|'ecotone'} region
+ * @returns {string}  HTML fragment — empty string if region not found
+ */
+function makeNativePlantsSection(region) {
+  const plants = NATIVE_PLANTS[region];
+  if (!plants || plants.length === 0) return '';
+  return (
+    '<div class="plant-section">' +
+      '<h4 class="plant-section-header">Native plants</h4>' +
+      '<ul class="plant-list">' +
+        plants.map(function (p) {
+          return (
+            '<li>' +
+              '<span class="plant-name">' + p.name + '</span>' +
+              ' <em class="plant-latin">' + p.latin + '</em>' +
+              '<span class="plant-note">' + p.note + '</span>' +
+            '</li>'
+          );
+        }).join('') +
+      '</ul>' +
+    '</div>'
+  );
+}
+
+
 /* ─── Popup content generators ──────────────────────────────── */
 
 /**
@@ -326,6 +473,7 @@ function makeRegionPopup(props) {
       '<h3>' + props.name + '</h3>' +
       '<p>' + props.description + '</p>' +
       '<span class="region-tag ' + props.region + '">' + props.name + '</span>' +
+      makeNativePlantsSection(props.region) +
     '</div>'
   );
 }
@@ -344,7 +492,8 @@ function makeFallLinePopup() {
         'navigable point from the sea. Washington DC, Richmond VA, and Raleigh NC ' +
         'all grew up at or near this boundary.' +
       '</p>' +
-      '<p style="margin-top:6px; color:#888; font-size:0.75rem;">' +
+      makeNativePlantsSection('ecotone') +
+      '<p style="margin-top:8px; color:#888; font-size:0.75rem;">' +
         'This path is approximate. The true boundary is gradational over several miles.' +
       '</p>' +
     '</div>'
@@ -804,6 +953,8 @@ const GeoData = {
   PIEDMONT_GEOJSON,
   STYLES,
   BBOX: { NORTH: BBOX_NORTH, SOUTH: BBOX_SOUTH, EAST: BBOX_EAST, WEST: BBOX_WEST },
+  NATIVE_PLANTS,
+  makeNativePlantsSection,
   makeRegionPopup,
   makeFallLinePopup,
   haversineKm,

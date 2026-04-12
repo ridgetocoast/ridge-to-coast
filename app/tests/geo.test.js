@@ -33,6 +33,8 @@ const {
   makeZonePopup,
   FALL_LINE_CITIES,
   makeMarkerPopup,
+  NATIVE_PLANTS,
+  makeNativePlantsSection,
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
@@ -1032,5 +1034,138 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
     const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('Belle Isle') || html.includes('James'), 'popup missing founding note');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 19 — NATIVE_PLANTS and makeNativePlantsSection()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('NATIVE_PLANTS and makeNativePlantsSection()', () => {
+  it('NATIVE_PLANTS has keys: piedmont, coastal, ecotone', () => {
+    for (const key of ['piedmont', 'coastal', 'ecotone']) {
+      assert.ok(key in NATIVE_PLANTS, `NATIVE_PLANTS missing key: ${key}`);
+    }
+  });
+
+  it('each ecoregion list is a non-empty array', () => {
+    for (const key of ['piedmont', 'coastal', 'ecotone']) {
+      assert.ok(Array.isArray(NATIVE_PLANTS[key]), `${key} should be an array`);
+      assert.ok(NATIVE_PLANTS[key].length > 0, `${key} plants list should not be empty`);
+    }
+  });
+
+  it('every plant entry has required string fields: name, latin, type, note', () => {
+    for (const [region, plants] of Object.entries(NATIVE_PLANTS)) {
+      for (const plant of plants) {
+        for (const field of ['name', 'latin', 'type', 'note']) {
+          assert.ok(
+            typeof plant[field] === 'string' && plant[field].length > 0,
+            `${region} plant "${plant.name || '?'}" missing field: ${field}`
+          );
+        }
+      }
+    }
+  });
+
+  it('all latin names contain a space (genus + species format)', () => {
+    for (const [region, plants] of Object.entries(NATIVE_PLANTS)) {
+      for (const plant of plants) {
+        assert.ok(
+          plant.latin.includes(' '),
+          `${region} plant "${plant.name}" latin name "${plant.latin}" should be genus species`
+        );
+      }
+    }
+  });
+
+  it('type field is one of the expected values', () => {
+    const valid = new Set(['tree', 'shrub', 'perennial', 'grass', 'fern']);
+    for (const [region, plants] of Object.entries(NATIVE_PLANTS)) {
+      for (const plant of plants) {
+        assert.ok(
+          valid.has(plant.type),
+          `${region} plant "${plant.name}" has unexpected type "${plant.type}"`
+        );
+      }
+    }
+  });
+
+  it('piedmont list includes a tree (expected dominant canopy species)', () => {
+    const trees = NATIVE_PLANTS.piedmont.filter(p => p.type === 'tree');
+    assert.ok(trees.length > 0, 'Piedmont should have at least one tree entry');
+  });
+
+  it('coastal list includes Loblolly Pine (dominant Coastal Plain tree)', () => {
+    const loblolly = NATIVE_PLANTS.coastal.find(p => p.latin === 'Pinus taeda');
+    assert.ok(loblolly, 'Coastal Plain list should include Loblolly Pine (Pinus taeda)');
+  });
+
+  it('coastal list includes Bald Cypress (iconic tidal swamp tree)', () => {
+    const cypress = NATIVE_PLANTS.coastal.find(p => p.latin === 'Taxodium distichum');
+    assert.ok(cypress, 'Coastal Plain list should include Bald Cypress (Taxodium distichum)');
+  });
+
+  it('makeNativePlantsSection() returns a non-empty string for each region', () => {
+    for (const region of ['piedmont', 'coastal', 'ecotone']) {
+      const html = makeNativePlantsSection(region);
+      assert.ok(typeof html === 'string' && html.length > 0,
+        `makeNativePlantsSection("${region}") should return a non-empty string`);
+    }
+  });
+
+  it('makeNativePlantsSection() returns empty string for unknown region', () => {
+    assert.equal(makeNativePlantsSection('unknown'), '');
+    assert.equal(makeNativePlantsSection(''), '');
+  });
+
+  it('makeNativePlantsSection("piedmont") contains plant names and latin names', () => {
+    const html = makeNativePlantsSection('piedmont');
+    assert.ok(html.includes('class="plant-name"'), 'missing plant-name class');
+    assert.ok(html.includes('class="plant-latin"'), 'missing plant-latin class');
+    const firstPlant = NATIVE_PLANTS.piedmont[0];
+    assert.ok(html.includes(firstPlant.name), `missing plant name "${firstPlant.name}"`);
+    assert.ok(html.includes(firstPlant.latin), `missing latin name "${firstPlant.latin}"`);
+  });
+
+  it('makeNativePlantsSection() wraps output in plant-section div', () => {
+    const html = makeNativePlantsSection('coastal');
+    assert.ok(html.includes('class="plant-section"'), 'missing plant-section wrapper');
+    assert.ok(html.includes('class="plant-section-header"'), 'missing plant-section-header');
+    assert.ok(html.includes('class="plant-list"'), 'missing plant-list');
+  });
+
+  it('makeRegionPopup() output includes plant-section for both regions', () => {
+    const coastalHtml  = makeRegionPopup(COASTAL_PLAIN_GEOJSON.properties);
+    const piedmontHtml = makeRegionPopup(PIEDMONT_GEOJSON.properties);
+    assert.ok(coastalHtml.includes('class="plant-section"'),
+      'Coastal Plain popup should include native plants section');
+    assert.ok(piedmontHtml.includes('class="plant-section"'),
+      'Piedmont popup should include native plants section');
+  });
+
+  it('makeFallLinePopup() output includes ecotone plants section', () => {
+    const html = makeFallLinePopup();
+    assert.ok(html.includes('class="plant-section"'),
+      'Fall line popup should include ecotone native plants section');
+    const witchHazel = NATIVE_PLANTS.ecotone.find(p => p.latin === 'Hamamelis virginiana');
+    assert.ok(witchHazel && html.includes(witchHazel.name),
+      'Fall line popup should include Witch-Hazel');
+  });
+
+  it('region popups include plants from correct ecoregion (not cross-contaminated)', () => {
+    const coastalHtml  = makeRegionPopup(COASTAL_PLAIN_GEOJSON.properties);
+    const piedmontHtml = makeRegionPopup(PIEDMONT_GEOJSON.properties);
+    const loblolly = NATIVE_PLANTS.coastal.find(p => p.latin === 'Pinus taeda');
+    const postOak  = NATIVE_PLANTS.piedmont.find(p => p.name === 'Post Oak');
+    assert.ok(coastalHtml.includes(loblolly.name),
+      'Coastal Plain popup should contain Loblolly Pine');
+    assert.ok(!piedmontHtml.includes(loblolly.name),
+      'Piedmont popup should NOT contain Loblolly Pine');
+    assert.ok(piedmontHtml.includes(postOak.name),
+      'Piedmont popup should contain Post Oak');
+    assert.ok(!coastalHtml.includes(postOak.name),
+      'Coastal Plain popup should NOT contain Post Oak');
   });
 });

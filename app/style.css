@@ -238,6 +238,54 @@ html, body {
 .region-tag.coastal  { background: rgba(70, 130, 220, 0.3); color: #89b8f5; border: 1px solid rgba(70,130,220,0.4); }
 .region-tag.piedmont { background: rgba(200, 130, 50, 0.3);  color: #f5c070; border: 1px solid rgba(200,130,50,0.4); }
 
+/* ─── Native plant recommendations ────────────────────────── */
+
+.plant-section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plant-section-header {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #777;
+  margin: 0 0 6px;
+}
+
+.plant-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plant-list li {
+  padding: 3px 0;
+  line-height: 1.35;
+}
+
+.plant-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.plant-latin {
+  font-size: 0.73rem;
+  font-style: italic;
+  color: #888;
+  margin-left: 2px;
+}
+
+.plant-note {
+  display: block;
+  font-size: 0.72rem;
+  color: #999;
+  margin-top: 1px;
+}
+
 /* ─── Search Bar ───────────────────────────────────────────── */
 #search-bar {
   position: fixed;

@@ -13,8 +13,9 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 | Layer / Feature | Description |
 |---|---|
 | **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ (Great Falls of the Passaic), New Brunswick NJ (Raritan River), Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N) |
-| **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea. The eastern boundary follows the actual US Atlantic coastline (Natural Earth 50m data) from New Jersey south through the Virginia Tidewater, NC Outer Banks, and South Carolina coast. |
-| **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line |
+| **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea. The eastern boundary follows the actual US Atlantic coastline (Natural Earth 50m data) from New Jersey south through the Virginia Tidewater, NC Outer Banks, and South Carolina coast. Click for a popup with native plant recommendations. |
+| **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line. Click for a popup with native plant recommendations. |
+| **Fall Line (ecotone)** | Click the pink fall line for a popup listing native plants of the fall line ecotone — the transition zone where Piedmont and Coastal Plain species co-occur. |
 | **Hardiness Zones** | USDA Plant Hardiness Zones 5a–9a across 8 fall-line states (PA NJ DE MD VA NC SC GA), lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
 | **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive |
 | **City markers** | 15 fall line metros (Peekskill NY → Columbus GA) shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
@@ -94,7 +95,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**143 tests across 18 suites:**
+**158 tests across 19 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -116,6 +117,7 @@ node --test tests/geo.test.js
 | 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Philadelphia, New Brunswick NJ, Paterson NJ, Peekskill NY, Columbia SC, Macon GA, Columbus GA; false for Boston MA, Montauk NY, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
 | 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
 | 18 | `FALL_LINE_CITIES` array + `makeMarkerPopup()` (data structure, required fields, corridor BBOX check, popup HTML — city name, river, soil, zone badge, region badge) |
+| 19 | `NATIVE_PLANTS` + `makeNativePlantsSection()` (data structure, latin name format, type validation, Loblolly Pine/Bald Cypress spot checks, HTML output, cross-region isolation, region/fall-line popup integration) |
 
 ### E2E tests (Python Playwright)
 
@@ -249,6 +251,6 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] City markers for major fall line metros with click context (history, soil type, zone)
 - [x] Clip Coastal Plain polygon to the actual US coastline — replaced the straight ~73.8°W eastern boundary with Natural Earth 50m coastline data; blue overlay no longer extends over the Atlantic Ocean
 - [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
-- [ ] Native plant recommendations by ecoregion (Piedmont / Coastal Plain / fall line ecotone)
+- [x] Native plant recommendations by ecoregion — 6 plants per region (Piedmont / Coastal Plain / fall line ecotone) shown in region and fall line click popups
 - [x] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2)) — 19 tests verifying SVG fill/stroke colors, opacities, hover transitions, and layer toggle visual effect
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
