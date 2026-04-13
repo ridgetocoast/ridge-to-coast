@@ -21,6 +21,11 @@ const {
   COASTAL_PLAIN_GEOJSON,
   PIEDMONT_GEOJSON,
   BLUE_RIDGE_GEOJSON,
+  VALLEY_RIDGE_GEOJSON,
+  NE_UPLAND_GEOJSON,
+  NE_COASTAL_GEOJSON,
+  BLUE_RIDGE_EAST_ESCARPMENT,
+  BLUE_RIDGE_WEST_ESCARPMENT,
   STYLES,
   BBOX,
   makeRegionPopup,
@@ -1786,5 +1791,242 @@ describe('makeRiverDetailHTML()', () => {
   it('includes the note/description text', () => {
     const html = makeRiverDetailHTML('james');
     assert.ok(html.length > 200, 'detail page should have substantial content');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 29 — VALLEY_RIDGE_GEOJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('VALLEY_RIDGE_GEOJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(VALLEY_RIDGE_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(VALLEY_RIDGE_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('ring has at least 6 coordinate pairs', () => {
+    const ring = VALLEY_RIDGE_GEOJSON.geometry.coordinates[0];
+    assert.ok(ring.length >= 6, `expected ≥6 points, got ${ring.length}`);
+  });
+
+  it('ring is closed (first === last point)', () => {
+    const ring = VALLEY_RIDGE_GEOJSON.geometry.coordinates[0];
+    const first = ring[0], last = ring[ring.length - 1];
+    assert.equal(first[0], last[0], 'first and last longitude must match');
+    assert.equal(first[1], last[1], 'first and last latitude must match');
+  });
+
+  it('all coordinates are valid [lon, lat] numbers in Appalachian bounds', () => {
+    const ring = VALLEY_RIDGE_GEOJSON.geometry.coordinates[0];
+    for (const pt of ring) {
+      assert.equal(pt.length, 2, 'each point must have 2 values');
+      assert.ok(typeof pt[0] === 'number' && typeof pt[1] === 'number', 'values must be numbers');
+      assert.ok(pt[0] < -75 && pt[0] > -87, `longitude ${pt[0]} out of Appalachian range`);
+      assert.ok(pt[1] >= 34 && pt[1] <= 40, `latitude ${pt[1]} out of Appalachian range`);
+    }
+  });
+
+  it('properties.region is "valleyRidge"', () => {
+    assert.equal(VALLEY_RIDGE_GEOJSON.properties.region, 'valleyRidge');
+  });
+
+  it('properties.name mentions Valley and Ridge', () => {
+    assert.ok(
+      VALLEY_RIDGE_GEOJSON.properties.name.includes('Valley') &&
+      VALLEY_RIDGE_GEOJSON.properties.name.includes('Ridge'),
+      'name should contain "Valley" and "Ridge"'
+    );
+  });
+
+  it('properties.description is at least 80 characters', () => {
+    assert.ok(VALLEY_RIDGE_GEOJSON.properties.description.length >= 80);
+  });
+
+  it('STYLES.valleyRidge has fillColor, fillOpacity, weight, interactive', () => {
+    const s = STYLES.valleyRidge;
+    assert.ok(s, 'STYLES.valleyRidge must exist');
+    assert.ok('fillColor'   in s, 'valleyRidge style must have fillColor');
+    assert.ok('fillOpacity' in s, 'valleyRidge style must have fillOpacity');
+    assert.ok('weight'      in s, 'valleyRidge style must have weight');
+    assert.ok('interactive' in s, 'valleyRidge style must have interactive');
+  });
+
+  it('STYLES.valleyRidgeOutline has fillOpacity: 0', () => {
+    const s = STYLES.valleyRidgeOutline;
+    assert.ok(s, 'STYLES.valleyRidgeOutline must exist');
+    assert.equal(s.fillOpacity, 0, 'outline style must have fillOpacity: 0');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 30 — Valley and Ridge ecological data
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Valley and Ridge ecological data', () => {
+  it('NATIVE_PLANTS.valleyRidge is an array with at least 4 entries', () => {
+    assert.ok(Array.isArray(NATIVE_PLANTS.valleyRidge), 'valleyRidge plants should be an array');
+    assert.ok(NATIVE_PLANTS.valleyRidge.length >= 4,
+      `expected ≥4 plants, got ${NATIVE_PLANTS.valleyRidge.length}`);
+  });
+
+  it('every plant has name, latin, type, and note fields', () => {
+    for (const p of NATIVE_PLANTS.valleyRidge) {
+      assert.ok(p.name,  `plant missing name: ${JSON.stringify(p)}`);
+      assert.ok(p.latin, `plant missing latin: ${JSON.stringify(p)}`);
+      assert.ok(p.type,  `plant missing type: ${JSON.stringify(p)}`);
+      assert.ok(p.note,  `plant missing note: ${JSON.stringify(p)}`);
+    }
+  });
+
+  it('SOIL_TYPES.valleyRidge has all 5 required fields', () => {
+    const s = SOIL_TYPES.valleyRidge;
+    assert.ok(s, 'SOIL_TYPES.valleyRidge must exist');
+    for (const field of ['series', 'texture', 'pH', 'drainage', 'amendments']) {
+      assert.ok(field in s, `valleyRidge soil must have '${field}'`);
+    }
+  });
+
+  it('SOIL_TYPES.valleyRidge.series contains "Frederick"', () => {
+    assert.ok(SOIL_TYPES.valleyRidge.series.includes('Frederick'),
+      'Valley and Ridge soil series should mention Frederick');
+  });
+
+  it('makeNativePlantsSection("valleyRidge") returns non-empty HTML', () => {
+    const html = makeNativePlantsSection('valleyRidge');
+    assert.ok(html.length > 50, 'valleyRidge plant section should be non-trivial HTML');
+  });
+
+  it('makeSoilSection("valleyRidge") contains Frederick series', () => {
+    const html = makeSoilSection('valleyRidge');
+    assert.ok(html.includes('Frederick'), 'valleyRidge soil section should include Frederick series');
+  });
+
+  it('makeRegionDetailHTML("valleyRidge") returns valid HTML', () => {
+    const html = makeRegionDetailHTML('valleyRidge');
+    assert.ok(html.includes('<article'), 'should contain article element');
+    assert.ok(html.includes('Valley'), 'should include Valley in content');
+  });
+
+  it('makeRegionDetailHTML("valleyRidge") uses purple accent color', () => {
+    const html = makeRegionDetailHTML('valleyRidge');
+    assert.ok(html.includes('#9b7aad'), 'Valley and Ridge detail should have purple accent');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 31 — NE_UPLAND_GEOJSON and NE_COASTAL_GEOJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('NE_UPLAND_GEOJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(NE_UPLAND_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(NE_UPLAND_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('ring has at least 8 coordinate pairs', () => {
+    const ring = NE_UPLAND_GEOJSON.geometry.coordinates[0];
+    assert.ok(ring.length >= 8, `expected ≥8 points, got ${ring.length}`);
+  });
+
+  it('ring is closed', () => {
+    const ring = NE_UPLAND_GEOJSON.geometry.coordinates[0];
+    assert.equal(ring[0][0], ring[ring.length - 1][0], 'first/last lon must match');
+    assert.equal(ring[0][1], ring[ring.length - 1][1], 'first/last lat must match');
+  });
+
+  it('covers New England latitudes (at least one point above 42°N)', () => {
+    const ring = NE_UPLAND_GEOJSON.geometry.coordinates[0];
+    const maxLat = Math.max(...ring.map(p => p[1]));
+    assert.ok(maxLat >= 42, `expected max lat ≥42°N for New England, got ${maxLat}`);
+  });
+
+  it('properties.region is "piedmont"', () => {
+    assert.equal(NE_UPLAND_GEOJSON.properties.region, 'piedmont');
+  });
+});
+
+describe('NE_COASTAL_GEOJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(NE_COASTAL_GEOJSON.type, 'Feature');
+  });
+
+  it('has a Polygon geometry', () => {
+    assert.equal(NE_COASTAL_GEOJSON.geometry.type, 'Polygon');
+  });
+
+  it('ring has at least 8 coordinate pairs', () => {
+    const ring = NE_COASTAL_GEOJSON.geometry.coordinates[0];
+    assert.ok(ring.length >= 8, `expected ≥8 points, got ${ring.length}`);
+  });
+
+  it('ring is closed', () => {
+    const ring = NE_COASTAL_GEOJSON.geometry.coordinates[0];
+    assert.equal(ring[0][0], ring[ring.length - 1][0], 'first/last lon must match');
+    assert.equal(ring[0][1], ring[ring.length - 1][1], 'first/last lat must match');
+  });
+
+  it('properties.region is "coastal"', () => {
+    assert.equal(NE_COASTAL_GEOJSON.properties.region, 'coastal');
+  });
+
+  it('covers New England latitudes (at least one point above 41°N)', () => {
+    const ring = NE_COASTAL_GEOJSON.geometry.coordinates[0];
+    const maxLat = Math.max(...ring.map(p => p[1]));
+    assert.ok(maxLat >= 41, `expected max lat ≥41°N for NE coastal, got ${maxLat}`);
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 32 — Blue Ridge escarpment shared boundaries
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('Blue Ridge escarpment shared boundaries', () => {
+  it('BLUE_RIDGE_EAST_ESCARPMENT is exported and is an array', () => {
+    assert.ok(Array.isArray(BLUE_RIDGE_EAST_ESCARPMENT), 'east escarpment should be an array');
+    assert.ok(BLUE_RIDGE_EAST_ESCARPMENT.length >= 6, 'east escarpment should have ≥6 points');
+  });
+
+  it('BLUE_RIDGE_WEST_ESCARPMENT is exported and is an array', () => {
+    assert.ok(Array.isArray(BLUE_RIDGE_WEST_ESCARPMENT), 'west escarpment should be an array');
+    assert.ok(BLUE_RIDGE_WEST_ESCARPMENT.length >= 6, 'west escarpment should have ≥6 points');
+  });
+
+  it('west escarpment is always west of east escarpment at matching latitudes', () => {
+    // For each point on the west escarpment, find the closest-latitude point on the
+    // east escarpment and verify it is further east (higher/less-negative longitude).
+    for (const wPt of BLUE_RIDGE_WEST_ESCARPMENT) {
+      const wLat = wPt[1], wLon = wPt[0];
+      let minDiff = Infinity, eLon = null;
+      for (const ePt of BLUE_RIDGE_EAST_ESCARPMENT) {
+        const diff = Math.abs(ePt[1] - wLat);
+        if (diff < minDiff) { minDiff = diff; eLon = ePt[0]; }
+      }
+      assert.ok(wLon < eLon,
+        `west escarpment lon ${wLon} at lat ${wLat} should be west (more negative) than east escarpment lon ${eLon}`);
+    }
+  });
+
+  it('classifyLocation returns valleyRidge for Harrisonburg VA area', () => {
+    // Harrisonburg VA: 38.45°N, -78.87°W — Shenandoah Valley / Great Appalachian Valley
+    assert.equal(classifyLocation(38.45, -78.87), 'valleyRidge');
+  });
+
+  it('classifyLocation returns valleyRidge for Chattanooga TN area', () => {
+    // Chattanooga: 35.045°N, -85.309°W — well west of Blue Ridge
+    assert.equal(classifyLocation(35.05, -85.31), 'valleyRidge');
+  });
+
+  it('classifyLocation returns blueRidge for Asheville NC', () => {
+    assert.equal(classifyLocation(35.58, -82.55), 'blueRidge');
   });
 });

@@ -39,13 +39,13 @@
 const fs   = require('fs');
 const path = require('path');
 
-// Full fall line corridor bounding box — matches BBOX in geo-data.js
-// Peekskill NY (north) → Columbus GA (south); NJ coast (east) → Appalachians (west)
+// Full corridor bounding box — matches BBOX in geo-data.js
+// Augusta ME (north) → Columbus GA (south); Maine coast (east) → Appalachians (west)
 const BBOX = {
   west:  -85.20,
-  east:  -73.80,
+  east:  -69.50,
   south:  32.20,
-  north:  41.50,
+  north:  44.50,
 };
 
 // Expand slightly so zone polygons crossing the edge aren't clipped mid-feature

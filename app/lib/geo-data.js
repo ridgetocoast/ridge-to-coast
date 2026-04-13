@@ -187,6 +187,23 @@ const BLUE_RIDGE_EAST_ESCARPMENT = [
   [-84.500, 34.600],  // Pickens County GA — southernmost Blue Ridge foothills
 ];
 
+/* ─── Blue Ridge western escarpment — shared boundary ───────────────────────
+   The back (valley-facing) edge of the Blue Ridge: shared between the
+   BLUE_RIDGE_GEOJSON western boundary and the VALLEY_RIDGE_GEOJSON
+   eastern boundary. Defined north → south.
+   ────────────────────────────────────────────────────────────── */
+const BLUE_RIDGE_WEST_ESCARPMENT = [
+  [-77.900, 39.500],  // Washington County MD / South Mountain PA — valley edge
+  [-78.800, 38.800],  // WV panhandle / Cacapon River — Shenandoah's back ridge
+  [-79.800, 38.000],  // Highland County VA — Allegheny Highlands
+  [-80.100, 37.300],  // Craig County VA — North Mountain escarpment
+  [-80.700, 36.800],  // Carroll County VA — New River Gorge approach
+  [-81.900, 36.300],  // Watauga County NC — Grandfather Mountain back slope
+  [-83.500, 35.600],  // Swain County NC — Great Smokies western boundary
+  [-84.800, 35.000],  // Murray County GA / Polk County TN
+  [-85.000, 34.700],  // NW Georgia — Cohutta Wilderness
+];
+
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
 /* ─── Atlantic coastline (eastern boundary of Coastal Plain) ────────────────
@@ -330,24 +347,141 @@ const BLUE_RIDGE_GEOJSON = {
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      // Valley and Ridge boundary — north to south (western edge)
-      [-77.900, 39.500],  // Washington County MD / Franklin County PA
-      [-78.800, 38.800],  // WV panhandle / Cacapon River area
-      [-79.800, 38.000],  // Highland County VA
-      [-80.100, 37.300],  // Craig County VA
-      [-80.700, 36.800],  // Carroll County VA
-      [-81.900, 36.300],  // Watauga County NC
-      [-83.500, 35.600],  // Swain County NC / Great Smokies western boundary
-      [-84.800, 35.000],  // Murray County GA / Polk County TN area
-      [-85.000, 34.700],  // NW Georgia — Cohutta Wilderness area
-      // East boundary — shared with Piedmont western boundary (south→north)
+      // Western boundary — shared with Valley and Ridge eastern boundary
+      ...BLUE_RIDGE_WEST_ESCARPMENT,                      // north → south
+      // East boundary — shared with Piedmont western boundary (south → north)
       ...[...BLUE_RIDGE_EAST_ESCARPMENT].reverse(),
-      // Close ring back to valley NW corner
+      // Close ring back to NW corner
       [-77.900, 39.500],
     ]],
   },
 };
 
+
+/* ─── Valley and Ridge / Great Appalachian Valley ───────────────
+   The province immediately west of the Blue Ridge escarpment.
+   Underlain by folded limestone, dolomite, and shale — the same
+   orogenic belt that creates the Great Appalachian Valley system:
+   Shenandoah Valley (VA/WV), Great Valley/Cumberland Valley (MD/PA),
+   Tennessee Valley (TN), and Coosa Valley (AL/GA).
+   Eastern boundary = Blue Ridge western escarpment (shared constant).
+   Western boundary = REGION_WEST (edge of the map corridor).
+   ────────────────────────────────────────────────────────────── */
+const VALLEY_RIDGE_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region: 'valleyRidge',
+    name: 'Valley and Ridge / Great Appalachian Valley',
+    description:
+      'West of the Blue Ridge, parallel limestone and shale ridges and fertile ' +
+      'valley floors define one of the most productive agricultural landscapes ' +
+      'in the eastern United States. The Great Appalachian Valley — Shenandoah, ' +
+      'Cumberland, and Tennessee segments — has rich calcium-rich Alfisols derived ' +
+      'from limestone and dolomite, supporting world-class apple orchards, grain ' +
+      'farms, and limestone cedar glades. Rivers cut dramatic water gaps through ' +
+      'the ridges: Harpers Ferry, the New River Gorge, and Cumberland Gap.',
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      [REGION_WEST, 39.700],      // NW corner — top of the valley corridor
+      [-77.900, 39.700],          // NE corner — aligns with Blue Ridge NW tip
+      // Eastern boundary: Blue Ridge western escarpment north → south
+      ...BLUE_RIDGE_WEST_ESCARPMENT,
+      // SW corner — bottom of the Piedmont notch / valley corridor
+      [REGION_WEST, 34.600],
+      // Close ring back to NW corner
+      [REGION_WEST, 39.700],
+    ]],
+  },
+};
+
+/* ─── New England Upland ─────────────────────────────────────────
+   Crystalline upland NW of the New England fall zone — the glacially
+   scoured equivalent of the Piedmont. Covers the mill-river valleys
+   of CT, RI, MA, NH, and ME west/inland of the fall line.
+   Shares the 'piedmont' region key to reuse plant and soil data.
+   Eastern boundary = NE_FALL_ZONE_COORDS.
+   ────────────────────────────────────────────────────────────── */
+const NE_UPLAND_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region: 'piedmont',
+    name: 'New England Upland',
+    section: 'new-england',
+    description:
+      'Glacially scoured crystalline bedrock — the New England equivalent of the ' +
+      'Piedmont. Ancient gneiss, schist, and granite, heavily reworked by Pleistocene ' +
+      'ice sheets, underlie a rugged landscape of thin, acidic soils and fast-moving ' +
+      'rivers. The same fall line dynamic that powered Richmond and Philadelphia drove ' +
+      'the Industrial Revolution in Lowell, Manchester, and Pawtucket.',
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      // South: connect to existing Piedmont region at Peekskill NY
+      [-73.920, 41.290],
+      // West boundary: Hudson Valley / CT-NY border / VT-NH / Maine interior
+      [-74.200, 41.500],   // lower Hudson Valley NY
+      [-74.500, 42.000],   // mid-Hudson Valley / Catskills NY
+      [-73.800, 42.700],   // Albany NY / Rensselaer County
+      [-73.400, 43.500],   // Lake George NY / VT border
+      [-72.600, 43.900],   // Vermont / NH border area
+      [-71.500, 44.500],   // NH / Quebec border
+      // North boundary across to Maine
+      [-69.781, 44.500],
+      // East boundary: NE fall zone north → south (reversed = south→north here going back)
+      // Actually we go NORTH from Peekskill to Augusta along fall zone as EAST boundary
+      // then close south. Let me trace: east boundary is the fall zone going south:
+      [-69.781, 44.311],   // Augusta ME (fall zone NE terminus)
+      [-71.455, 43.004],   // Manchester NH
+      [-71.312, 42.643],   // Lowell MA
+      [-71.383, 41.878],   // Pawtucket RI
+      [-73.050, 41.550],   // Waterbury CT
+      [-73.920, 41.290],   // Peekskill NY — close ring
+    ]],
+  },
+};
+
+/* ─── New England Coastal ────────────────────────────────────────
+   Narrow coastal lowland SE of the New England fall zone — the
+   glacial outwash plains and drumlins of coastal CT, RI, and MA.
+   Shares the 'coastal' region key to reuse plant and soil data.
+   Western boundary = NE_FALL_ZONE_COORDS.
+   ────────────────────────────────────────────────────────────── */
+const NE_COASTAL_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region: 'coastal',
+    name: 'New England Coastal Lowland',
+    section: 'new-england',
+    description:
+      'South of the fall zone, glacial outwash and marine sediments create a ' +
+      'level coastal plain strikingly similar to the Tidewater region further ' +
+      'south. Sandy, acidic soils support pitch pine barrens, cranberry bogs, ' +
+      'and salt marshes. The same Atlantic storms that shape the Outer Banks ' +
+      'also define New England\'s coastal ecology.',
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      // West boundary: NE fall zone from Peekskill north to Augusta
+      [-73.920, 41.290],   // Peekskill NY
+      [-73.050, 41.550],   // Waterbury CT
+      [-71.383, 41.878],   // Pawtucket RI
+      [-71.312, 42.643],   // Lowell MA
+      [-71.455, 43.004],   // Manchester NH
+      [-69.781, 44.311],   // Augusta ME
+      // East / coastal boundary — simplified Atlantic coast of New England
+      [-67.500, 44.500],   // Maine coast (Eastport area / Passamaquoddy Bay)
+      [-70.200, 43.700],   // New Hampshire seacoast / Portsmouth area
+      [-70.900, 42.600],   // Massachusetts coast / Plymouth area
+      [-71.000, 41.500],   // Rhode Island coast / Newport area
+      [-72.300, 41.200],   // Connecticut coast / New Haven area
+      [-73.920, 41.290],   // Close ring at Peekskill
+    ]],
+  },
+};
 
 /* ─── Map styles ────────────────────────────────────────────── */
 const STYLES = {
@@ -372,6 +506,13 @@ const STYLES = {
     weight:      0,
     interactive: true,
   },
+  valleyRidge: {
+    fillColor:   '#9b7aad',   // Dusty violet — limestone valley character
+    fillOpacity: 0.18,
+    color:       '#9b7aad',
+    weight:      0,
+    interactive: true,
+  },
   fallLine: {
     color:       '#e84393',
     weight:      3,
@@ -381,6 +522,40 @@ const STYLES = {
   },
   regionHover: {
     fillOpacity: 0.32,
+  },
+  // Outline-only variants — used when hardiness zone layer is active so
+  // zone fill colors are not obscured by region fill colors.
+  coastalOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4682DC',
+    color:       '#4682DC',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  piedmontOutline: {
+    fillOpacity: 0,
+    fillColor:   '#C88232',
+    color:       '#C88232',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  blueRidgeOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4a7c59',
+    color:       '#4a7c59',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  valleyRidgeOutline: {
+    fillOpacity: 0,
+    fillColor:   '#9b7aad',
+    color:       '#9b7aad',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
   },
   rivers: {
     color:       '#4a9eff',
@@ -551,6 +726,44 @@ const NATIVE_PLANTS = {
       note:  'Streamside ericaceous shrub; arching branches and white flowers in late spring',
     },
   ],
+  valleyRidge: [
+    {
+      name:  'Pawpaw',
+      latin: 'Asimina triloba',
+      type:  'tree',
+      note:  'Largest native fruit tree in North America; thrives in limestone-rich bottomlands and river terraces of the Great Valley',
+    },
+    {
+      name:  'Virginia Bluebells',
+      latin: 'Mertensia virginica',
+      type:  'perennial',
+      note:  'Stunning spring ephemeral carpeting floodplains and streambanks; a signature species of the Shenandoah Valley bottomlands',
+    },
+    {
+      name:  'Wild Blue Indigo',
+      latin: 'Baptisia australis',
+      type:  'perennial',
+      note:  'Long-lived prairie/savanna perennial of calcareous soils; indigo-blue flower spikes in late spring; excellent pollinator plant',
+    },
+    {
+      name:  'Eastern Red Cedar',
+      latin: 'Juniperus virginiana',
+      type:  'tree',
+      note:  'Pioneer on limestone outcrops and abandoned farm fields; provides winter wildlife habitat and defines the classic cedar glade community',
+    },
+    {
+      name:  'Black Walnut',
+      latin: 'Juglans nigra',
+      type:  'tree',
+      note:  'Dominant tree of rich limestone bottomlands; produces allelopathic chemicals that limit competitors; prized for timber and wildlife value',
+    },
+    {
+      name:  'Chinkapin Oak',
+      latin: 'Quercus muehlenbergii',
+      type:  'tree',
+      note:  'Specialist of limestone cliffs and outcrops; sharply toothed leaves resemble chestnut; an anchor species of cedar-oak calcareous woodlands',
+    },
+  ],
 };
 
 /**
@@ -621,6 +834,13 @@ const SOIL_TYPES = {
     pH:         '4.5–5.5 (strongly acidic)',
     drainage:   'Excessively drained on slopes; perched water tables in coves and hollows',
     amendments: 'Ericaceous compost for acid-loving plants; avoid alkaline lime; deep mulch retains moisture on steep slopes; test for calcium and magnesium deficiency',
+  },
+  valleyRidge: {
+    series:     'Frederick–Hagerstown–Edom (Alfisols / Inceptisols from limestone & dolomite)',
+    texture:    'Silt loam to silty clay loam (deep, well-developed profiles)',
+    pH:         '6.2–7.5 (near-neutral to mildly alkaline)',
+    drainage:   'Well drained on valley floors and gentle slopes; seasonally wet in low-lying limestone karst depressions',
+    amendments: 'Generally fertile with minimal amendment needed; phosphorus and potassium often abundant; watch for iron and manganese deficiency at high pH; lime rarely needed — test before applying',
   },
 };
 
@@ -706,10 +926,11 @@ function makeFallLinePopup() {
    ────────────────────────────────────────────────────────────── */
 
 var REGION_LABELS = {
-  coastal:   'Coastal Plain (Tidewater)',
-  piedmont:  'Piedmont',
-  blueRidge: 'Blue Ridge / Appalachian Mountains',
-  ecotone:   'Fall Line Ecotone',
+  coastal:    'Coastal Plain (Tidewater)',
+  piedmont:   'Piedmont',
+  blueRidge:  'Blue Ridge / Appalachian Mountains',
+  valleyRidge:'Valley and Ridge / Great Appalachian Valley',
+  ecotone:    'Fall Line Ecotone',
 };
 
 /**
@@ -718,11 +939,11 @@ var REGION_LABELS = {
  * @returns {string}
  */
 function makeRegionDetailHTML(region) {
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON };
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON };
   var geojson = geojsonMap[region];
   if (!geojson) return '';
   var props = geojson.properties;
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var color = REGION_COLORS[region] || '#888888';
   return (
     '<article class="detail-page">' +
@@ -822,7 +1043,7 @@ function makeCityDetailHTML(slug) {
       '</div>'
     );
   };
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var accentColor = REGION_COLORS[city.region] || '#888888';
   return (
     '<article class="detail-page">' +
@@ -862,9 +1083,29 @@ function classifyLocation(lat, lon) {
   }
   // East of fall line → Coastal Plain
   if (lon > closest[0]) return 'coastal';
-  // Far west of fall line (roughly > 1.5° west) → Blue Ridge / Appalachians
-  if (lon < closest[0] - 1.5) return 'blueRidge';
-  // Otherwise → Piedmont
+
+  // For latitudes covered by the Blue Ridge / Valley and Ridge (roughly 34.5–39.8°N),
+  // use the escarpment arrays to distinguish Blue Ridge from Valley and Ridge from Piedmont.
+  if (lat >= 34.5 && lat <= 39.8) {
+    // Find the Blue Ridge east escarpment longitude nearest to this latitude
+    var eastLon = BLUE_RIDGE_EAST_ESCARPMENT[0][0];
+    var minEastDiff = Math.abs(BLUE_RIDGE_EAST_ESCARPMENT[0][1] - lat);
+    for (var j = 1; j < BLUE_RIDGE_EAST_ESCARPMENT.length; j++) {
+      var ed = Math.abs(BLUE_RIDGE_EAST_ESCARPMENT[j][1] - lat);
+      if (ed < minEastDiff) { minEastDiff = ed; eastLon = BLUE_RIDGE_EAST_ESCARPMENT[j][0]; }
+    }
+    // Find the Blue Ridge west escarpment longitude nearest to this latitude
+    var westLon = BLUE_RIDGE_WEST_ESCARPMENT[0][0];
+    var minWestDiff = Math.abs(BLUE_RIDGE_WEST_ESCARPMENT[0][1] - lat);
+    for (var k = 1; k < BLUE_RIDGE_WEST_ESCARPMENT.length; k++) {
+      var wd = Math.abs(BLUE_RIDGE_WEST_ESCARPMENT[k][1] - lat);
+      if (wd < minWestDiff) { minWestDiff = wd; westLon = BLUE_RIDGE_WEST_ESCARPMENT[k][0]; }
+    }
+    if (lon < westLon) return 'valleyRidge';   // west of Blue Ridge western face
+    if (lon < eastLon) return 'blueRidge';     // between east and west escarpments
+  }
+
+  // Otherwise → Piedmont (covers both mid-Atlantic and New England uplands)
   return 'piedmont';
 }
 
@@ -877,7 +1118,7 @@ function classifyLocation(lat, lon) {
  */
 function makeLocationReport(lat, lon) {
   var region = classifyLocation(lat, lon);
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON };
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON };
   var geojson = geojsonMap[region];
   var props   = geojson.properties;
 
@@ -891,7 +1132,7 @@ function makeLocationReport(lat, lon) {
   }
   var nearestText = nearest.name + ', ' + nearest.state + ' (' + Math.round(minDistKm) + '\u00a0km)';
 
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var accentColor = REGION_COLORS[region] || '#888888';
 
   return (
@@ -1743,6 +1984,11 @@ const GeoData = {
   COASTAL_PLAIN_GEOJSON,
   PIEDMONT_GEOJSON,
   BLUE_RIDGE_GEOJSON,
+  VALLEY_RIDGE_GEOJSON,
+  NE_UPLAND_GEOJSON,
+  NE_COASTAL_GEOJSON,
+  BLUE_RIDGE_EAST_ESCARPMENT,
+  BLUE_RIDGE_WEST_ESCARPMENT,
   STYLES,
   BBOX: { NORTH: BBOX_NORTH, SOUTH: BBOX_SOUTH, EAST: BBOX_EAST, WEST: BBOX_WEST },
   NATIVE_PLANTS,
