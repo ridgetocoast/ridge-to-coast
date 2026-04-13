@@ -382,6 +382,32 @@ const STYLES = {
   regionHover: {
     fillOpacity: 0.32,
   },
+  // Outline-only variants — used when hardiness zone layer is active so
+  // zone fill colors are not obscured by region fill colors.
+  coastalOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4682DC',
+    color:       '#4682DC',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  piedmontOutline: {
+    fillOpacity: 0,
+    fillColor:   '#C88232',
+    color:       '#C88232',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  blueRidgeOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4a7c59',
+    color:       '#4a7c59',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
   rivers: {
     color:       '#4a9eff',
     weight:      2,
@@ -890,6 +916,10 @@ function makeLocationReport(lat, lon) {
     if (d < minDistKm) { minDistKm = d; nearest = c; }
   }
   var nearestText = nearest.name + ', ' + nearest.state + ' (' + Math.round(minDistKm) + '\u00a0km)';
+  var nearestZone = nearest.zone || 'unknown';
+  var zoneInfo    = getZoneInfo(nearestZone);
+  var zoneLabel   = zoneInfo ? zoneInfo.label : ('Zone\u00a0' + nearestZone);
+  var zoneSummary = zoneInfo ? zoneInfo.avgLowF + '\u00b0F\u00a0avg\u00a0min\u00b7' + zoneInfo.frostFree + '\u00a0frost-free\u00a0days' : '';
 
   var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
   var accentColor = REGION_COLORS[region] || '#888888';
@@ -909,10 +939,17 @@ function makeLocationReport(lat, lon) {
           '<span class="detail-fact-label">Nearest city</span>' +
           '<span class="detail-fact-value">' + nearestText + '</span>' +
         '</div>' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Hardiness zone</span>' +
+          '<span class="detail-fact-value">' +
+            '<strong>Zone\u00a0' + nearestZone + '</strong>' +
+            (zoneSummary ? '\u2002<small class="detail-fact-meta">' + zoneSummary + '</small>' : '') +
+            '<br><small class="detail-fact-meta">Approximate \u2014 based on nearest city. Enable the zone layer for map-wide precision.</small>' +
+          '</span>' +
+        '</div>' +
       '</div>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
-      '<p class="detail-note">Enable the Hardiness Zone layer on the map for precise zone information at this location.</p>' +
     '</article>'
   );
 }

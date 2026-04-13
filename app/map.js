@@ -240,9 +240,27 @@ cityMarkersLayer.addTo(map);
 
 var hardinessCache  = null;   // parsed GeoJSON, set on first successful fetch
 var hardinessLayer  = null;   // Leaflet layer, built once from cache
+var hardinessActive = false;  // true while the zone layer is visible
+
+/**
+ * Toggle region layers between fill mode (default) and outline-only mode.
+ * Outline mode is used when hardiness zones are active so zone fill colors
+ * are not visually obscured by the region fill.
+ * @param {boolean} outlineOnly
+ */
+function setRegionMode(outlineOnly) {
+  var styles = gd.STYLES;
+  if (map.hasLayer(coastalLayer))
+    coastalLayer.setStyle(outlineOnly ? styles.coastalOutline   : styles.coastal);
+  if (map.hasLayer(piedmontLayer))
+    piedmontLayer.setStyle(outlineOnly ? styles.piedmontOutline  : styles.piedmont);
+  if (map.hasLayer(blueRidgeLayer))
+    blueRidgeLayer.setStyle(outlineOnly ? styles.blueRidgeOutline : styles.blueRidge);
+}
 
 var hardinessSpinner = document.getElementById('hardiness-spinner');
 var hardinessLegend  = document.getElementById('hardiness-legend');
+var hardinessHint    = document.getElementById('hardiness-hint');
 
 function setHardinessLoading(loading) {
   hardinessSpinner.hidden = !loading;
@@ -365,6 +383,8 @@ document.getElementById('toggle-regions').addEventListener('change', function ()
     map.addLayer(coastalLayer);
     map.addLayer(piedmontLayer);
     map.addLayer(blueRidgeLayer);
+    // Apply current display mode (fill vs outline) based on zone layer state
+    setRegionMode(hardinessActive);
     // Keep rivers and fall line above regions
     if (map.hasLayer(riversLayer))   riversLayer.bringToFront();
     if (map.hasLayer(fallLineLayer)) fallLineLayer.bringToFront();
@@ -385,6 +405,11 @@ document.getElementById('toggle-fallline').addEventListener('change', function (
 });
 
 document.getElementById('toggle-hardiness').addEventListener('change', function () {
+  hardinessActive = this.checked;
+  // Switch region shading: outlines when zones are active, fills when not.
+  // Zone colors read clearly over outline-only regions; fills would clash.
+  setRegionMode(hardinessActive);
+  hardinessHint.hidden = !hardinessActive;
   if (this.checked) {
     loadAndShowHardinessLayer();
   } else {
