@@ -75,11 +75,11 @@ def test_no_js_errors_on_load(page):
 # ---------------------------------------------------------------------------
 
 def test_vector_layers_render(page):
-    """Fall line and region shading SVG paths are present after load."""
+    """Fall line and region shading SVG paths are present after load (3 regions + fall line)."""
     wait_for_map(page)
     paths = page.locator(".leaflet-overlay-pane path")
-    assert paths.count() >= 3, (
-        f"Expected at least 3 SVG paths (fall line + 2 regions), got {paths.count()}"
+    assert paths.count() >= 4, (
+        f"Expected at least 4 SVG paths (fall line + 3 regions), got {paths.count()}"
     )
 
 
@@ -231,3 +231,67 @@ def test_mobile_subtitle_hidden(page):
     subtitle = page.locator(".app-header .subtitle")
     # CSS sets display:none at <480px — element exists but is not visible
     assert not subtitle.is_visible(), "Subtitle should be hidden on narrow mobile viewport"
+
+
+# ---------------------------------------------------------------------------
+# Suite 5 — Blue Ridge region
+# ---------------------------------------------------------------------------
+
+def test_blue_ridge_swatch_in_legend(page):
+    """Blue Ridge / Appalachians swatch appears in the legend."""
+    page.goto("/")
+    swatch = page.locator(".swatch.blueridge")
+    expect(swatch).to_be_attached(timeout=LAYER_TIMEOUT)
+
+
+# ---------------------------------------------------------------------------
+# Suite 6 — Detail page hash routing
+# ---------------------------------------------------------------------------
+
+DETAIL_TIMEOUT = 5_000
+
+
+def test_detail_view_hidden_on_load(page):
+    """Detail view is hidden when the page loads normally."""
+    page.goto("/")
+    detail = page.locator("#detail-view")
+    assert detail.get_attribute("hidden") is not None, \
+        "detail-view should be hidden on initial load"
+
+
+def test_region_detail_page_loads(page):
+    """Navigating to /#detail/region/piedmont shows the detail view."""
+    page.goto("/#detail/region/piedmont")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Piedmont")
+
+
+def test_region_detail_page_back_button(page):
+    """Back button on detail page returns to map view."""
+    # Load map first, then navigate to detail — creates back-history entry
+    page.goto("/")
+    page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
+    page.evaluate("location.hash = '#detail/region/piedmont'")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    page.locator("#back-btn").click()
+    page.wait_for_selector("#map-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    expect(page.locator("#map")).to_be_visible()
+
+
+def test_blue_ridge_detail_page(page):
+    """Blue Ridge detail page shows correct region content."""
+    page.goto("/#detail/region/blueRidge")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Blue Ridge")
+    expect(content).to_contain_text("Fraser Fir")
+
+
+def test_zone_detail_page_loads(page):
+    """Navigating to /#detail/zone/7b shows zone detail content."""
+    page.goto("/#detail/zone/7b")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Zone 7b")
+    expect(content).to_contain_text("frost")

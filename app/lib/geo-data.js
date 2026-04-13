@@ -159,13 +159,13 @@ const FALL_LINE_GEOJSON = {
 const BBOX_NORTH =  41.400;   // above Peekskill NY / Hudson Highlands
 const BBOX_SOUTH =  32.300;   // below Columbus GA / Chattahoochee River falls
 const BBOX_EAST  = -73.800;   // east of Peekskill NY
-const BBOX_WEST  = -85.100;   // west of Columbus GA
+const BBOX_WEST  = -85.500;   // west of Chattanooga TN / NW Georgia
 
 // REGION: full corridor extent — used for Coastal Plain & Piedmont polygon bounds
 const REGION_NORTH =  41.400;  // Peekskill NY / Hudson Highlands
 const REGION_SOUTH =  32.300;  // Columbus GA / Chattahoochee River falls
 const REGION_EAST  = -73.800;  // east of Peekskill NY
-const REGION_WEST  = -85.100;  // west of Columbus GA
+const REGION_WEST  = -85.500;  // west of Chattanooga TN / NW Georgia
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
@@ -282,6 +282,57 @@ const PIEDMONT_GEOJSON = {
   },
 };
 
+/* ─── Blue Ridge / Appalachian Mountains region ──────────────────
+   Simplified polygon covering the Blue Ridge and Valley-and-Ridge
+   physiographic provinces west of the Piedmont escarpment.
+   Eastern boundary follows the Blue Ridge front (escarpment facing
+   the Piedmont); western boundary follows the Valley and Ridge edge.
+   Runs from South Mountain MD/PA south through the Shenandoah Valley
+   and Black Mountains NC to NW Georgia.
+   Coordinates: [longitude, latitude] (GeoJSON standard).
+   ────────────────────────────────────────────────────────────── */
+const BLUE_RIDGE_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region: 'blueRidge',
+    name: 'Blue Ridge / Appalachian Mountains',
+    description:
+      'Ancient crystalline highlands west of the Piedmont — granite, gneiss, ' +
+      'and schist uplifted more than 1 billion years ago. Elevations range from ' +
+      '1,500 to over 6,600 feet. Rocky, nutrient-poor, strongly acidic soils ' +
+      'support ericaceous shrubs, spruce-fir forests, and globally rare Southern ' +
+      'Appalachian endemics. The French Broad, New, and Shenandoah rivers all ' +
+      'drain this ancient range toward the Atlantic.',
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      // Valley and Ridge boundary — north to south (western edge)
+      [-77.900, 39.500],  // Washington County MD / Franklin County PA
+      [-78.800, 38.800],  // WV panhandle / Cacapon River area
+      [-79.800, 38.000],  // Highland County VA
+      [-80.100, 37.300],  // Craig County VA
+      [-80.700, 36.800],  // Carroll County VA
+      [-81.900, 36.300],  // Watauga County NC
+      [-83.500, 35.600],  // Swain County NC / Great Smokies western boundary
+      [-84.800, 35.000],  // Murray County GA / Polk County TN area
+      [-85.000, 34.700],  // NW Georgia — Cohutta Wilderness area
+      // East boundary (Blue Ridge escarpment) — south to north
+      [-84.500, 34.600],  // Pickens County GA — eastern foothills
+      [-83.800, 34.900],  // Towns County GA / Union County GA
+      [-82.200, 35.500],  // Buncombe County NC — Asheville area
+      [-80.500, 36.500],  // Alleghany County NC / Blue Ridge Parkway south
+      [-79.400, 37.500],  // Bedford County VA
+      [-78.500, 38.000],  // Waynesboro VA — Blue Ridge eastern escarpment
+      [-78.300, 38.600],  // Front Royal VA — start of Shenandoah NP
+      [-77.800, 39.200],  // Harpers Ferry WV — Blue Ridge at the Potomac Gap
+      [-77.400, 39.700],  // South Mountain MD — facing Hagerstown Valley
+      // Close ring
+      [-77.900, 39.500],
+    ]],
+  },
+};
+
 
 /* ─── Map styles ────────────────────────────────────────────── */
 const STYLES = {
@@ -296,6 +347,13 @@ const STYLES = {
     fillColor:   '#C88232',
     fillOpacity: 0.18,
     color:       '#C88232',
+    weight:      0,
+    interactive: true,
+  },
+  blueRidge: {
+    fillColor:   '#4a7c59',   // Forest green
+    fillOpacity: 0.18,
+    color:       '#4a7c59',
     weight:      0,
     interactive: true,
   },
@@ -430,6 +488,44 @@ const NATIVE_PLANTS = {
       note:  'Spring ephemeral on rich fall line slopes; fleeting white flowers',
     },
   ],
+  blueRidge: [
+    {
+      name:  'Fraser Fir',
+      latin: 'Abies fraseri',
+      type:  'tree',
+      note:  'High-elevation fir endemic to Southern Appalachians; grows above 5,500 ft on the highest peaks',
+    },
+    {
+      name:  'Red Spruce',
+      latin: 'Picea rubens',
+      type:  'tree',
+      note:  'Signature spruce of the spruce-fir zone; declining due to acid deposition and climate warming',
+    },
+    {
+      name:  'Rosebay Rhododendron',
+      latin: 'Rhododendron maximum',
+      type:  'shrub',
+      note:  'Dominant understory shrub; forms nearly impenetrable thickets along streams called "rhododendron hells"',
+    },
+    {
+      name:  'Large-flowered Trillium',
+      latin: 'Trillium grandiflorum',
+      type:  'perennial',
+      note:  'Iconic spring ephemeral of cove forests; indicator of undisturbed old-growth soil',
+    },
+    {
+      name:  'Fire Pink',
+      latin: 'Silene virginica',
+      type:  'perennial',
+      note:  'Vivid red tubular flowers attract hummingbirds; thrives on rocky outcrops and woodland edges',
+    },
+    {
+      name:  'Mountain Doghobble',
+      latin: 'Leucothoe fontanesiana',
+      type:  'shrub',
+      note:  'Streamside ericaceous shrub; arching branches and white flowers in late spring',
+    },
+  ],
 };
 
 /**
@@ -493,6 +589,13 @@ const SOIL_TYPES = {
     pH:         '5.0–6.5 (variable)',
     drainage:   'Variable — can shift dramatically within 100 ft of the fall line',
     amendments: 'Soil test strongly recommended; organic matter benefits both textures',
+  },
+  blueRidge: {
+    series:     'Ramsey–Porters–Ashe (Inceptisols / Entisols)',
+    texture:    'Stony loam to sandy loam (thin, rocky profiles)',
+    pH:         '4.5–5.5 (strongly acidic)',
+    drainage:   'Excessively drained on slopes; perched water tables in coves and hollows',
+    amendments: 'Ericaceous compost for acid-loving plants; avoid alkaline lime; deep mulch retains moisture on steep slopes; test for calcium and magnesium deficiency',
   },
 };
 
@@ -567,6 +670,225 @@ function makeFallLinePopup() {
         'This path is approximate. The true boundary is gradational over several miles.' +
       '</p>' +
     '</div>'
+  );
+}
+
+
+/* ─── Detail page HTML generators ────────────────────────────────
+   Used by hash routing in map.js to render full-screen detail pages.
+   Each function returns a complete <article class="detail-page"> fragment.
+   Reuse existing popup data (soil, plants, zone info) in a full-width layout.
+   ────────────────────────────────────────────────────────────── */
+
+var REGION_LABELS = {
+  coastal:   'Coastal Plain (Tidewater)',
+  piedmont:  'Piedmont',
+  blueRidge: 'Blue Ridge / Appalachian Mountains',
+  ecotone:   'Fall Line Ecotone',
+};
+
+/**
+ * Returns full-page HTML for a region detail view.
+ * @param {'piedmont'|'coastal'|'blueRidge'} region
+ * @returns {string}
+ */
+function makeRegionDetailHTML(region) {
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON };
+  var geojson = geojsonMap[region];
+  if (!geojson) return '';
+  var props = geojson.properties;
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var color = REGION_COLORS[region] || '#888888';
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + color + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0">' + props.name + '</h2>' +
+      '</div>' +
+      '<p class="detail-description">' + props.description + '</p>' +
+      makeNativePlantsSection(region) +
+      makeSoilSection(region) +
+    '</article>'
+  );
+}
+
+/**
+ * Returns full-page HTML for the fall line detail view.
+ * @returns {string}
+ */
+function makeFallLineDetailHTML() {
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-region-header" style="border-left:4px solid #e84393;padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0">Atlantic Seaboard Fall Line</h2>' +
+      '</div>' +
+      '<p class="detail-description">' +
+        'The geological boundary where ancient Piedmont crystalline rock meets ' +
+        'soft Coastal Plain sediments. Rivers drop over rapids here — the last ' +
+        'navigable point from the sea. Washington DC, Richmond VA, Raleigh NC, ' +
+        'Columbia SC, and Augusta GA all grew up at or near this boundary.' +
+      '</p>' +
+      '<p class="detail-description">' +
+        'This path is approximate. The true boundary is gradational over several ' +
+        'miles, reflecting millennia of erosion at the Piedmont\'s eroded edge.' +
+      '</p>' +
+      makeNativePlantsSection('ecotone') +
+      makeSoilSection('ecotone') +
+    '</article>'
+  );
+}
+
+/**
+ * Returns full-page HTML for a hardiness zone detail view.
+ * @param {string} zone  e.g. "7b"
+ * @returns {string}
+ */
+function makeZoneDetailHTML(zone) {
+  var info  = getZoneInfo(zone);
+  var color = getZoneColor(zone);
+  var row = function (label, value) {
+    return (
+      '<div class="detail-fact">' +
+        '<span class="detail-fact-label">' + label + '</span>' +
+        '<span class="detail-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-zone-header" style="border-left:4px solid ' + color + '">' +
+        '<h2 class="detail-title">Hardiness Zone ' + zone + '</h2>' +
+        '<span class="zone-badge detail-zone-badge" style="background:' + color + ';color:#1a1a2e">Zone ' + zone + '</span>' +
+      '</div>' +
+      '<p class="detail-description">' + info.description + '</p>' +
+      '<div class="detail-facts">' +
+        row('Min. winter temp', info.tempRange) +
+        row('First frost',      info.firstFrost) +
+        row('Last frost',       info.lastFrost) +
+        row('Growing season',   info.growingSeason) +
+        row('Thrives here',     info.plants) +
+      '</div>' +
+    '</article>'
+  );
+}
+
+/**
+ * Returns full-page HTML for a city detail view.
+ * Looks up city by slug (e.g. "richmond-va", "new-brunswick-nj").
+ * @param {string} slug  lowercase-hyphenated "name-state"
+ * @returns {string}
+ */
+function makeCityDetailHTML(slug) {
+  var city = null;
+  for (var i = 0; i < FALL_LINE_CITIES.length; i++) {
+    var c = FALL_LINE_CITIES[i];
+    if ((c.name + '-' + c.state).toLowerCase().replace(/\s+/g, '-') === slug) {
+      city = c;
+      break;
+    }
+  }
+  if (!city) return '';
+  var regionLabel = REGION_LABELS[city.region] || city.region;
+  var zoneColor   = getZoneColor(city.zone);
+  var row = function (label, value) {
+    return (
+      '<div class="detail-fact">' +
+        '<span class="detail-fact-label">' + label + '</span>' +
+        '<span class="detail-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var accentColor = REGION_COLORS[city.region] || '#888888';
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + accentColor + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0.25rem">' + city.name + ', ' + city.state + '</h2>' +
+        '<p class="detail-river" style="margin:0">' + city.river + '</p>' +
+      '</div>' +
+      '<p class="detail-description">' + city.note + '</p>' +
+      '<div class="detail-facts">' +
+        row('Ecoregion', '<span class="region-tag ' + city.region + '">' + regionLabel + '</span>') +
+        row('Soil',      city.soil) +
+        row('Zone',      '<span class="zone-badge" style="background:' + zoneColor + ';color:#1a1a2e">Zone ' + city.zone + '</span>') +
+      '</div>' +
+      makeNativePlantsSection(city.region) +
+    '</article>'
+  );
+}
+
+/**
+ * Classifies a lat/lon point as 'coastal', 'piedmont', or 'blueRidge'
+ * by comparing its longitude against the nearest fall line point.
+ * Used by the search/location detail page.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {'coastal'|'piedmont'|'blueRidge'}
+ */
+function classifyLocation(lat, lon) {
+  // Find the fall line point with the closest latitude
+  var closest = FALL_LINE_COORDS[0];
+  var minLatDiff = Math.abs(FALL_LINE_COORDS[0][1] - lat);
+  for (var i = 1; i < FALL_LINE_COORDS.length; i++) {
+    var diff = Math.abs(FALL_LINE_COORDS[i][1] - lat);
+    if (diff < minLatDiff) {
+      minLatDiff = diff;
+      closest = FALL_LINE_COORDS[i];
+    }
+  }
+  // East of fall line → Coastal Plain
+  if (lon > closest[0]) return 'coastal';
+  // Far west of fall line (roughly > 1.5° west) → Blue Ridge / Appalachians
+  if (lon < closest[0] - 1.5) return 'blueRidge';
+  // Otherwise → Piedmont
+  return 'piedmont';
+}
+
+/**
+ * Returns full-page HTML for a location report (search / GPS result).
+ * Includes approximate ecoregion, soil, and native plants for the location.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {string}
+ */
+function makeLocationReport(lat, lon) {
+  var region = classifyLocation(lat, lon);
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON };
+  var geojson = geojsonMap[region];
+  var props   = geojson.properties;
+
+  // Find nearest city by haversine distance
+  var nearest  = FALL_LINE_CITIES[0];
+  var minDistKm = haversineKm([lon, lat], [nearest.lon, nearest.lat]);
+  for (var i = 1; i < FALL_LINE_CITIES.length; i++) {
+    var c = FALL_LINE_CITIES[i];
+    var d = haversineKm([lon, lat], [c.lon, c.lat]);
+    if (d < minDistKm) { minDistKm = d; nearest = c; }
+  }
+  var nearestText = nearest.name + ', ' + nearest.state + ' (' + Math.round(minDistKm) + '\u00a0km)';
+
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var accentColor = REGION_COLORS[region] || '#888888';
+
+  return (
+    '<article class="detail-page">' +
+      '<h2 class="detail-title">Location Report</h2>' +
+      '<p class="detail-coords">' +
+        lat.toFixed(4) + '\u00b0N\u2002\u00b7\u2002' + Math.abs(lon).toFixed(4) + '\u00b0W' +
+      '</p>' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + accentColor + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h3 class="detail-region-name" style="margin:0">' + props.name + '</h3>' +
+      '</div>' +
+      '<p class="detail-description">' + props.description + '</p>' +
+      '<div class="detail-facts">' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Nearest city</span>' +
+          '<span class="detail-fact-value">' + nearestText + '</span>' +
+        '</div>' +
+      '</div>' +
+      makeNativePlantsSection(region) +
+      makeSoilSection(region) +
+      '<p class="detail-note">Enable the Hardiness Zone layer on the map for precise zone information at this location.</p>' +
+    '</article>'
   );
 }
 
@@ -935,6 +1257,73 @@ const FALL_LINE_CITIES = [
     zone:   '8b',
     note:   'Chattahoochee River falls — Georgia\'s second-largest city; the falls powered antebellum textile mills and today drive hydroelectric turbines.',
   },
+  // ── Appalachian Valley & Blue Ridge cities ──────────────────────
+  {
+    name:   'Charlottesville',
+    state:  'VA',
+    lat:     38.029,
+    lon:    -78.477,
+    river:  'Rivanna River',
+    region: 'piedmont',
+    soil:   'Cecil clay loam (Piedmont Ultisol)',
+    zone:   '7a',
+    note:   'University of Virginia and Monticello sit at the Piedmont\'s western edge, just below the Blue Ridge escarpment — Thomas Jefferson farmed these crystalline clay soils.',
+  },
+  {
+    name:   'Staunton',
+    state:  'VA',
+    lat:     38.149,
+    lon:    -79.072,
+    river:  'Middle River (South Fork Shenandoah)',
+    region: 'blueRidge',
+    soil:   'Frederick silt loam (Valley limestone-derived)',
+    zone:   '6b',
+    note:   'Heart of the Great Appalachian Valley — the Shenandoah. Rich limestone-derived soils support world-class apple orchards and grain farming along the Valley Pike.',
+  },
+  {
+    name:   'Roanoke',
+    state:  'VA',
+    lat:     37.271,
+    lon:    -79.941,
+    river:  'Roanoke River',
+    region: 'blueRidge',
+    soil:   'Berks channery silt loam (shale-derived)',
+    zone:   '7a',
+    note:   'Star City of the South — the Roanoke River cuts through the Blue Ridge here, creating the Roanoke Narrows, a critical migratory corridor for birds and American shad.',
+  },
+  {
+    name:   'Asheville',
+    state:  'NC',
+    lat:     35.579,
+    lon:    -82.551,
+    river:  'French Broad River',
+    region: 'blueRidge',
+    soil:   'Porters loam (Blue Ridge Inceptisol)',
+    zone:   '6b',
+    note:   'At the confluence of three rivers in the heart of the Black Mountains. The French Broad is one of the oldest rivers in North America, predating the Appalachian uplift itself.',
+  },
+  {
+    name:   'Greenville',
+    state:  'SC',
+    lat:     34.852,
+    lon:    -82.394,
+    river:  'Reedy River',
+    region: 'piedmont',
+    soil:   'Cecil–Pacolet clay loam (Ultisol)',
+    zone:   '7b',
+    note:   'At the foot of the Blue Ridge escarpment — one of the most abrupt topographic transitions in the eastern US, dropping 1,000 ft over just 20 miles from Caesar\'s Head State Park.',
+  },
+  {
+    name:   'Chattanooga',
+    state:  'TN',
+    lat:     35.045,
+    lon:    -85.309,
+    river:  'Tennessee River',
+    region: 'blueRidge',
+    soil:   'Fullerton clay loam (Valley and Ridge)',
+    zone:   '7b',
+    note:   'Where the Tennessee River cuts through Walden Ridge and the Cumberland Plateau — Moccasin Bend National Archaeological District sits within the river\'s dramatic entrenched meander.',
+  },
 ];
 
 /**
@@ -943,8 +1332,8 @@ const FALL_LINE_CITIES = [
  * @returns {string}
  */
 function makeMarkerPopup(city) {
-  var regionLabel = city.region === 'coastal' ? 'Coastal Plain' : 'Piedmont';
-  var zoneColor   = getZoneColor(city.zone);
+  var regionLabel  = REGION_LABELS[city.region] || city.region;
+  var zoneColor    = getZoneColor(city.zone);
   var row = function (label, value) {
     return (
       '<div class="city-fact">' +
@@ -1021,6 +1410,7 @@ const GeoData = {
   FALL_LINE_GEOJSON,
   COASTAL_PLAIN_GEOJSON,
   PIEDMONT_GEOJSON,
+  BLUE_RIDGE_GEOJSON,
   STYLES,
   BBOX: { NORTH: BBOX_NORTH, SOUTH: BBOX_SOUTH, EAST: BBOX_EAST, WEST: BBOX_WEST },
   NATIVE_PLANTS,
@@ -1029,6 +1419,12 @@ const GeoData = {
   makeSoilSection,
   makeRegionPopup,
   makeFallLinePopup,
+  makeRegionDetailHTML,
+  makeFallLineDetailHTML,
+  makeZoneDetailHTML,
+  makeCityDetailHTML,
+  classifyLocation,
+  makeLocationReport,
   haversineKm,
   minDistanceToFallLine,
   HARDINESS_ZONE_COLORS,
