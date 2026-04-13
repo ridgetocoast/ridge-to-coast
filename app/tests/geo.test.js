@@ -1462,6 +1462,22 @@ describe('Detail page HTML generators', () => {
     assert.ok(html.includes('soil-section'), 'should include soil section');
   });
 
+  it('makeRegionDetailHTML("piedmont") includes Piedmont orange color accent', () => {
+    const html = makeRegionDetailHTML('piedmont');
+    assert.ok(html.includes('#c88232'), 'Piedmont detail should have orange accent');
+    assert.ok(html.includes('border-left'), 'should have a left-border accent');
+  });
+
+  it('makeRegionDetailHTML("coastal") includes coastal blue color accent', () => {
+    const html = makeRegionDetailHTML('coastal');
+    assert.ok(html.includes('#4682dc'), 'Coastal detail should have blue accent');
+  });
+
+  it('makeRegionDetailHTML("blueRidge") includes forest green color accent', () => {
+    const html = makeRegionDetailHTML('blueRidge');
+    assert.ok(html.includes('#4a7c59'), 'Blue Ridge detail should have green accent');
+  });
+
   it('makeRegionDetailHTML("coastal") includes Coastal Plain content', () => {
     const html = makeRegionDetailHTML('coastal');
     assert.ok(html.includes('Coastal Plain'), 'should include Coastal Plain');
@@ -1516,6 +1532,22 @@ describe('Detail page HTML generators', () => {
     assert.ok(html.includes('Blue Ridge'), 'should include Blue Ridge region label');
   });
 
+  it('makeCityDetailHTML includes native plants for the city region', () => {
+    // Richmond is piedmont — should show Post Oak or similar piedmont plants
+    const richmond = makeCityDetailHTML('richmond-va');
+    assert.ok(richmond.includes('plant-section'), 'Richmond detail should include plant section');
+    // Asheville is blueRidge — should show Fraser Fir or similar Blue Ridge plants
+    const asheville = makeCityDetailHTML('asheville-nc');
+    assert.ok(asheville.includes('Fraser Fir'), 'Asheville detail should include Fraser Fir (blueRidge plant)');
+  });
+
+  it('makeCityDetailHTML includes region color accent (border-left)', () => {
+    const richmond = makeCityDetailHTML('richmond-va');
+    assert.ok(richmond.includes('#c88232'), 'Piedmont city should have orange accent');
+    const asheville = makeCityDetailHTML('asheville-nc');
+    assert.ok(asheville.includes('#4a7c59'), 'Blue Ridge city should have green accent');
+  });
+
   it('makeCityDetailHTML() returns empty string for unknown slug', () => {
     const html = makeCityDetailHTML('nowhere-xx');
     assert.equal(html, '', 'unknown slug should return empty string');
@@ -1563,5 +1595,25 @@ describe('classifyLocation and makeLocationReport', () => {
   it('makeLocationReport for Blue Ridge location includes Ramsey soil', () => {
     const html = makeLocationReport(35.58, -82.55);
     assert.ok(html.includes('Ramsey'), 'Blue Ridge report should include Ramsey soil series');
+  });
+
+  it('makeLocationReport includes nearest city', () => {
+    // Charlottesville VA — nearest city should be Charlottesville itself
+    const html = makeLocationReport(38.03, -78.48);
+    assert.ok(html.includes('Nearest city'), 'report should include nearest city label');
+    assert.ok(html.includes('km'), 'report should include distance in km');
+  });
+
+  it('makeLocationReport nearest city for Richmond area is Richmond', () => {
+    // Coordinates very close to Richmond VA (37.527, -77.464)
+    const html = makeLocationReport(37.53, -77.46);
+    assert.ok(html.includes('Richmond'), 'nearest city near Richmond should be Richmond');
+  });
+
+  it('makeLocationReport includes region color accent', () => {
+    const piedmontHtml = makeLocationReport(38.03, -78.48);
+    assert.ok(piedmontHtml.includes('#c88232'), 'Piedmont location report should have orange accent');
+    const coastalHtml  = makeLocationReport(36.85, -75.98);
+    assert.ok(coastalHtml.includes('#4682dc'), 'Coastal location report should have blue accent');
   });
 });

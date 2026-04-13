@@ -697,9 +697,13 @@ function makeRegionDetailHTML(region) {
   var geojson = geojsonMap[region];
   if (!geojson) return '';
   var props = geojson.properties;
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var color = REGION_COLORS[region] || '#888888';
   return (
     '<article class="detail-page">' +
-      '<h2 class="detail-title">' + props.name + '</h2>' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + color + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0">' + props.name + '</h2>' +
+      '</div>' +
       '<p class="detail-description">' + props.description + '</p>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
@@ -714,7 +718,9 @@ function makeRegionDetailHTML(region) {
 function makeFallLineDetailHTML() {
   return (
     '<article class="detail-page">' +
-      '<h2 class="detail-title">Atlantic Seaboard Fall Line</h2>' +
+      '<div class="detail-region-header" style="border-left:4px solid #e84393;padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0">Atlantic Seaboard Fall Line</h2>' +
+      '</div>' +
       '<p class="detail-description">' +
         'The geological boundary where ancient Piedmont crystalline rock meets ' +
         'soft Coastal Plain sediments. Rivers drop over rapids here — the last ' +
@@ -791,16 +797,21 @@ function makeCityDetailHTML(slug) {
       '</div>'
     );
   };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var accentColor = REGION_COLORS[city.region] || '#888888';
   return (
     '<article class="detail-page">' +
-      '<h2 class="detail-title">' + city.name + ', ' + city.state + '</h2>' +
-      '<p class="detail-river">' + city.river + '</p>' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + accentColor + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0.25rem">' + city.name + ', ' + city.state + '</h2>' +
+        '<p class="detail-river" style="margin:0">' + city.river + '</p>' +
+      '</div>' +
       '<p class="detail-description">' + city.note + '</p>' +
       '<div class="detail-facts">' +
         row('Ecoregion', '<span class="region-tag ' + city.region + '">' + regionLabel + '</span>') +
         row('Soil',      city.soil) +
         row('Zone',      '<span class="zone-badge" style="background:' + zoneColor + ';color:#1a1a2e">Zone ' + city.zone + '</span>') +
       '</div>' +
+      makeNativePlantsSection(city.region) +
     '</article>'
   );
 }
@@ -844,14 +855,36 @@ function makeLocationReport(lat, lon) {
   var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON };
   var geojson = geojsonMap[region];
   var props   = geojson.properties;
+
+  // Find nearest city by haversine distance
+  var nearest  = FALL_LINE_CITIES[0];
+  var minDistKm = haversineKm([lon, lat], [nearest.lon, nearest.lat]);
+  for (var i = 1; i < FALL_LINE_CITIES.length; i++) {
+    var c = FALL_LINE_CITIES[i];
+    var d = haversineKm([lon, lat], [c.lon, c.lat]);
+    if (d < minDistKm) { minDistKm = d; nearest = c; }
+  }
+  var nearestText = nearest.name + ', ' + nearest.state + ' (' + Math.round(minDistKm) + '\u00a0km)';
+
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59' };
+  var accentColor = REGION_COLORS[region] || '#888888';
+
   return (
     '<article class="detail-page">' +
       '<h2 class="detail-title">Location Report</h2>' +
       '<p class="detail-coords">' +
         lat.toFixed(4) + '\u00b0N\u2002\u00b7\u2002' + Math.abs(lon).toFixed(4) + '\u00b0W' +
       '</p>' +
-      '<h3 class="detail-region-name">' + props.name + '</h3>' +
+      '<div class="detail-region-header" style="border-left:4px solid ' + accentColor + ';padding-left:12px;margin-bottom:0.75rem">' +
+        '<h3 class="detail-region-name" style="margin:0">' + props.name + '</h3>' +
+      '</div>' +
       '<p class="detail-description">' + props.description + '</p>' +
+      '<div class="detail-facts">' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Nearest city</span>' +
+          '<span class="detail-fact-value">' + nearestText + '</span>' +
+        '</div>' +
+      '</div>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
       '<p class="detail-note">Enable the Hardiness Zone layer on the map for precise zone information at this location.</p>' +
@@ -1299,7 +1332,6 @@ const FALL_LINE_CITIES = [
  * @returns {string}
  */
 function makeMarkerPopup(city) {
-  var REGION_LABELS = { coastal: 'Coastal Plain', piedmont: 'Piedmont', blueRidge: 'Blue Ridge / Appalachians' };
   var regionLabel  = REGION_LABELS[city.region] || city.region;
   var zoneColor    = getZoneColor(city.zone);
   var row = function (label, value) {

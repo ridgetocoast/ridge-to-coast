@@ -395,7 +395,7 @@ function showStatus(text) {
 function flyToResult(lat, lon, displayName) {
   map.flyTo([lat, lon], 12, { duration: 1.5 });
   if (!gd.isInCorridor(lat, lon)) {
-    showStatus(displayName + ' is outside the DC\u2013Raleigh corridor.');
+    showStatus(displayName + ' is outside the current map coverage area.');
   } else {
     searchStatus.hidden = true;
     // Navigate to the location report detail page

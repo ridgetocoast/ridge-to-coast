@@ -157,10 +157,10 @@ def test_no_results_shows_not_found(page):
 
 
 def test_outside_corridor_shows_note(page):
-    """Result outside the fall line corridor triggers a corridor note."""
+    """Result outside the map coverage area triggers an out-of-bounds note."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-    # Boston MA — north of the corridor (BBOX_NORTH ~41.4°N, Boston ~42.4°N)
+    # Boston MA — north of the coverage area (BBOX_NORTH ~41.4°N, Boston ~42.4°N)
     page.route(NOMINATIM_PATTERN, lambda r: mock_nominatim(
         r, "42.3601", "-71.0589", "Boston, Massachusetts"
     ))
@@ -169,11 +169,11 @@ def test_outside_corridor_shows_note(page):
     page.locator("#search-form").locator("[type=submit]").click()
 
     status = page.locator("#search-status")
-    expect(status).to_contain_text("corridor", timeout=SEARCH_TIMEOUT)
+    expect(status).to_contain_text("outside", timeout=SEARCH_TIMEOUT)
 
 
-def test_in_corridor_no_corridor_note(page):
-    """Result inside the corridor does not show the corridor warning."""
+def test_in_corridor_no_outside_note(page):
+    """Result inside the map coverage area does not show the out-of-bounds warning."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
     page.route(NOMINATIM_PATTERN, lambda r: mock_nominatim(
@@ -185,6 +185,6 @@ def test_in_corridor_no_corridor_note(page):
     page.wait_for_timeout(1500)
 
     status = page.locator("#search-status")
-    # Either hidden or doesn't mention corridor
+    # Either hidden or doesn't mention outside
     if status.get_attribute("hidden") is None:
-        assert "corridor" not in status.text_content().lower()
+        assert "outside" not in status.text_content().lower()
