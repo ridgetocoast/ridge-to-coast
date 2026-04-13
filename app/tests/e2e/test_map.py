@@ -56,10 +56,12 @@ def test_legend_visible(page):
 
 
 def test_all_toggles_present(page):
-    """All three layer toggle checkboxes exist."""
+    """All layer toggle checkboxes exist."""
     page.goto("/")
     assert page.locator("#toggle-regions").count() == 1
     assert page.locator("#toggle-fallline").count() == 1
+    assert page.locator("#toggle-cities").count() == 1
+    assert page.locator("#toggle-rivers").count() == 1
     assert page.locator("#toggle-hardiness").count() == 1
 
 
@@ -75,11 +77,12 @@ def test_no_js_errors_on_load(page):
 # ---------------------------------------------------------------------------
 
 def test_vector_layers_render(page):
-    """Fall line and region shading SVG paths are present after load (3 regions + fall line)."""
+    """Fall line, region shading, and rivers SVG paths are present after load."""
     wait_for_map(page)
     paths = page.locator(".leaflet-overlay-pane path")
-    assert paths.count() >= 4, (
-        f"Expected at least 4 SVG paths (fall line + 3 regions), got {paths.count()}"
+    # 3 region polygons + 2 fall line segments + 14 rivers = 19+ paths
+    assert paths.count() >= 5, (
+        f"Expected at least 5 SVG paths (regions + fall line + rivers), got {paths.count()}"
     )
 
 
@@ -295,3 +298,60 @@ def test_zone_detail_page_loads(page):
     content = page.locator("#detail-content")
     expect(content).to_contain_text("Zone 7b")
     expect(content).to_contain_text("frost")
+
+
+# ---------------------------------------------------------------------------
+# Suite 7 — Rivers layer
+# ---------------------------------------------------------------------------
+
+def test_rivers_toggle_checked_by_default(page):
+    """Rivers toggle is checked (visible) by default."""
+    page.goto("/")
+    toggle = page.locator("#toggle-rivers")
+    expect(toggle).to_be_checked(timeout=LAYER_TIMEOUT)
+
+
+def test_river_swatch_in_legend(page):
+    """Rivers legend swatch is present in the DOM."""
+    page.goto("/")
+    swatch = page.locator(".swatch.river")
+    expect(swatch).to_be_attached(timeout=LAYER_TIMEOUT)
+
+
+def test_rivers_toggle_removes_paths(page):
+    """Unchecking the rivers toggle reduces the SVG path count."""
+    wait_for_map(page)
+    before = page.locator(".leaflet-overlay-pane path").count()
+    page.locator("#toggle-rivers").uncheck()
+    page.wait_for_timeout(300)
+    after = page.locator(".leaflet-overlay-pane path").count()
+    assert after < before, "Unchecking rivers should reduce the SVG path count"
+
+
+def test_rivers_toggle_roundtrip(page):
+    """Rivers layer can be toggled off and back on."""
+    wait_for_map(page)
+    toggle = page.locator("#toggle-rivers")
+    toggle.uncheck()
+    page.wait_for_timeout(300)
+    toggle.check()
+    page.wait_for_timeout(300)
+    expect(toggle).to_be_checked()
+
+
+def test_river_detail_page_loads(page):
+    """Navigating to /#detail/river/james shows the James River detail page."""
+    page.goto("/#detail/river/james")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("James")
+
+
+def test_blue_ridge_click_navigates_to_detail(page):
+    """Clicking a Blue Ridge-region city detail hash shows Blue Ridge content."""
+    page.goto("/")
+    page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
+    page.evaluate("location.hash = '#detail/region/blueRidge'")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Blue Ridge")

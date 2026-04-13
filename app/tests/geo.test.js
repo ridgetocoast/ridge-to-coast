@@ -47,6 +47,9 @@ const {
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
+  NE_FALL_ZONE_GEOJSON,
+  MAJOR_RIVERS_GEOJSON,
+  makeRiverDetailHTML,
 } = require('../lib/geo-data.js');
 
 
@@ -258,11 +261,11 @@ describe('Coastal Plain polygon', () => {
     assert.ok(COASTAL_PLAIN_GEOJSON.properties.description.length > 0);
   });
 
-  it('eastern boundary reaches the metro east edge', () => {
+  it('eastern boundary reaches at least the mid-Atlantic coast (~-73°W)', () => {
     const maxLon = Math.max(...ring.map(([lon]) => lon));
     assert.ok(
-      maxLon >= BBOX.EAST,
-      `coastal polygon should reach BBOX east (${BBOX.EAST}), max lon was ${maxLon}`
+      maxLon >= -74.0,
+      `coastal polygon eastern boundary should reach at least -74°W, max lon was ${maxLon}`
     );
   });
 
@@ -374,8 +377,8 @@ describe('Region separation', () => {
    ═══════════════════════════════════════════════════════════════ */
 
 describe('STYLES object', () => {
-  it('has keys: coastal, piedmont, fallLine, regionHover', () => {
-    for (const key of ['coastal', 'piedmont', 'fallLine', 'regionHover']) {
+  it('has keys: coastal, piedmont, blueRidge, fallLine, regionHover, rivers, riversHover', () => {
+    for (const key of ['coastal', 'piedmont', 'blueRidge', 'fallLine', 'regionHover', 'rivers', 'riversHover']) {
       assert.ok(key in STYLES, `STYLES missing key: ${key}`);
     }
   });
@@ -823,12 +826,12 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(32.46, -84.99), true);
   });
 
-  it('returns false for Boston, MA (42.36, -71.06) — north of corridor', () => {
-    assert.equal(isInCorridor(42.36, -71.06), false);
+  it('returns true for Boston, MA (42.36, -71.06) — within expanded NE corridor', () => {
+    assert.equal(isInCorridor(42.36, -71.06), true);
   });
 
-  it('returns false for Montauk, NY (41.03, -71.95) — east of corridor', () => {
-    assert.equal(isInCorridor(41.03, -71.95), false);
+  it('returns false for Bar Harbor, ME (44.38, -68.20) — east of corridor (beyond -69.5°W)', () => {
+    assert.equal(isInCorridor(44.38, -68.20), false);
   });
 
   it('returns false for Louisville, KY (38.25, -85.76) — west of corridor', () => {
@@ -936,11 +939,11 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
     }
   });
 
-  it('all city latitudes are within the eastern US', () => {
+  it('all city latitudes are within the eastern US (including New England)', () => {
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
-        city.lat >= 32.0 && city.lat <= 42.0,
-        `${city.name} lat ${city.lat} outside [32, 42]`
+        city.lat >= 32.0 && city.lat <= 45.0,
+        `${city.name} lat ${city.lat} outside [32, 45]`
       );
     }
   });
@@ -948,8 +951,8 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   it('all city longitudes are within the eastern US', () => {
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
-        city.lon >= -86.0 && city.lon <= -73.0,
-        `${city.name} lon ${city.lon} outside [-86, -73]`
+        city.lon >= -86.0 && city.lon <= -69.0,
+        `${city.name} lon ${city.lon} outside [-86, -69]`
       );
     }
   });
@@ -989,12 +992,17 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
     assert.strictEqual(columbus.region, 'piedmont');
   });
 
-  it('Peekskill NY is present as the northernmost city', () => {
+  it('Peekskill NY is present in the city list', () => {
     const peekskill = FALL_LINE_CITIES.find(c => c.name === 'Peekskill');
     assert.ok(peekskill, 'Peekskill not found');
     assert.strictEqual(peekskill.state, 'NY');
+  });
+
+  it('Augusta ME is the northernmost city (New England expansion)', () => {
+    const augusta = FALL_LINE_CITIES.find(c => c.name === 'Augusta' && c.state === 'ME');
+    assert.ok(augusta, 'Augusta ME not found');
     const maxLat = Math.max(...FALL_LINE_CITIES.map(c => c.lat));
-    assert.strictEqual(peekskill.lat, maxLat, 'Peekskill should have the highest latitude');
+    assert.strictEqual(augusta.lat, maxLat, 'Augusta ME should have the highest latitude');
   });
 
   it('makeMarkerPopup() returns a non-empty string', () => {
@@ -1615,5 +1623,168 @@ describe('classifyLocation and makeLocationReport', () => {
     assert.ok(piedmontHtml.includes('#c88232'), 'Piedmont location report should have orange accent');
     const coastalHtml  = makeLocationReport(36.85, -75.98);
     assert.ok(coastalHtml.includes('#4682dc'), 'Coastal location report should have blue accent');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 26 — NE_FALL_ZONE_GEOJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('NE_FALL_ZONE_GEOJSON structure', () => {
+  it('is a GeoJSON Feature', () => {
+    assert.equal(NE_FALL_ZONE_GEOJSON.type, 'Feature');
+  });
+
+  it('has a LineString geometry', () => {
+    assert.equal(NE_FALL_ZONE_GEOJSON.geometry.type, 'LineString');
+  });
+
+  it('has at least 4 coordinate pairs', () => {
+    assert.ok(
+      NE_FALL_ZONE_GEOJSON.geometry.coordinates.length >= 4,
+      `expected ≥4 points, got ${NE_FALL_ZONE_GEOJSON.geometry.coordinates.length}`
+    );
+  });
+
+  it('all coordinates are [lon, lat] pairs with valid ranges', () => {
+    for (const [lon, lat] of NE_FALL_ZONE_GEOJSON.geometry.coordinates) {
+      assert.ok(lon >= -80 && lon <= -68, `lon ${lon} out of NE range`);
+      assert.ok(lat >= 40 && lat <= 46, `lat ${lat} out of NE range`);
+    }
+  });
+
+  it('northern terminus is north of 44°N (Augusta ME area)', () => {
+    const lats = NE_FALL_ZONE_GEOJSON.geometry.coordinates.map(([, lat]) => lat);
+    assert.ok(Math.max(...lats) >= 44.0, 'NE fall zone should extend to at least 44°N');
+  });
+
+  it('southern terminus connects near Peekskill NY (~41.3°N, ~-73.9°W)', () => {
+    const coords = NE_FALL_ZONE_GEOJSON.geometry.coordinates;
+    const last = coords[coords.length - 1];
+    assert.ok(last[1] >= 41.0 && last[1] <= 42.0, `southern end lat ${last[1]} expected ~41.3`);
+    assert.ok(last[0] >= -75 && last[0] <= -72, `southern end lon ${last[0]} expected ~-73.9`);
+  });
+
+  it('has a section property', () => {
+    assert.ok('section' in NE_FALL_ZONE_GEOJSON.properties, 'should have a section property');
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 27 — MAJOR_RIVERS_GEOJSON structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('MAJOR_RIVERS_GEOJSON structure', () => {
+  it('is a GeoJSON FeatureCollection', () => {
+    assert.equal(MAJOR_RIVERS_GEOJSON.type, 'FeatureCollection');
+  });
+
+  it('has at least 10 river features', () => {
+    assert.ok(
+      MAJOR_RIVERS_GEOJSON.features.length >= 10,
+      `expected ≥10 rivers, got ${MAJOR_RIVERS_GEOJSON.features.length}`
+    );
+  });
+
+  it('each feature is a GeoJSON Feature with a LineString geometry', () => {
+    for (const f of MAJOR_RIVERS_GEOJSON.features) {
+      assert.equal(f.type, 'Feature', `river ${f.properties?.name} type should be Feature`);
+      assert.equal(f.geometry.type, 'LineString', `river ${f.properties?.name} geometry should be LineString`);
+    }
+  });
+
+  it('each feature has required properties: name, slug, length_km, states, source, mouth, note', () => {
+    const requiredProps = ['name', 'slug', 'length_km', 'states', 'source', 'mouth', 'note'];
+    for (const f of MAJOR_RIVERS_GEOJSON.features) {
+      for (const prop of requiredProps) {
+        assert.ok(prop in f.properties, `River ${f.properties?.name} missing property: ${prop}`);
+      }
+    }
+  });
+
+  it('each river has at least 4 coordinate pairs', () => {
+    for (const f of MAJOR_RIVERS_GEOJSON.features) {
+      assert.ok(
+        f.geometry.coordinates.length >= 4,
+        `river ${f.properties.name} has only ${f.geometry.coordinates.length} points`
+      );
+    }
+  });
+
+  it('each river slug is lowercase with no spaces', () => {
+    for (const f of MAJOR_RIVERS_GEOJSON.features) {
+      const slug = f.properties.slug;
+      assert.match(slug, /^[a-z0-9-]+$/, `slug "${slug}" should be lowercase kebab-case`);
+    }
+  });
+
+  it('all slugs are unique', () => {
+    const slugs = MAJOR_RIVERS_GEOJSON.features.map(f => f.properties.slug);
+    const unique = new Set(slugs);
+    assert.equal(unique.size, slugs.length, 'all river slugs should be unique');
+  });
+
+  it('includes the James River (Richmond VA)', () => {
+    const names = MAJOR_RIVERS_GEOJSON.features.map(f => f.properties.name);
+    assert.ok(names.some(n => n.includes('James')), 'should include the James River');
+  });
+
+  it('includes the Merrimack River (Lowell MA)', () => {
+    const names = MAJOR_RIVERS_GEOJSON.features.map(f => f.properties.name);
+    assert.ok(names.some(n => n.includes('Merrimack')), 'should include the Merrimack River');
+  });
+
+  it('all coordinates are within eastern US bounds', () => {
+    for (const f of MAJOR_RIVERS_GEOJSON.features) {
+      for (const [lon, lat] of f.geometry.coordinates) {
+        assert.ok(lon >= -90 && lon <= -65, `river ${f.properties.name} lon ${lon} out of bounds`);
+        assert.ok(lat >= 30 && lat <= 48, `river ${f.properties.name} lat ${lat} out of bounds`);
+      }
+    }
+  });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE 28 — makeRiverDetailHTML()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('makeRiverDetailHTML()', () => {
+  it('returns an article HTML string for a known river slug', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(typeof html === 'string' && html.length > 0, 'should return a non-empty string');
+    assert.ok(html.includes('<article'), 'should return an article element');
+  });
+
+  it('includes the river name in the output', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(html.includes('James'), 'should include "James" in the river detail HTML');
+  });
+
+  it('includes the length_km value', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(html.includes('km') || html.includes('Length'), 'should include length info');
+  });
+
+  it('includes the states the river flows through', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(html.includes('Virginia') || html.includes('VA'), 'James River detail should mention Virginia');
+  });
+
+  it('returns a "not found" string for an unknown slug', () => {
+    const html = makeRiverDetailHTML('unknown-river-xyz');
+    assert.ok(html.includes('not found') || html.includes('Unknown') || html === '', 'unknown slug should return fallback');
+  });
+
+  it('works for the Merrimack River', () => {
+    const html = makeRiverDetailHTML('merrimack');
+    assert.ok(html.includes('Merrimack'), 'should include "Merrimack" for that slug');
+  });
+
+  it('includes the note/description text', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(html.length > 200, 'detail page should have substantial content');
   });
 });

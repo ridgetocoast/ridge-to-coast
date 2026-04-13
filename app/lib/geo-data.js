@@ -156,16 +156,36 @@ const FALL_LINE_GEOJSON = {
    ────────────────────────────────────────────────────────────── */
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
-const BBOX_NORTH =  41.400;   // above Peekskill NY / Hudson Highlands
+const BBOX_NORTH =  44.500;   // above Augusta ME / Kennebec River (New England extension)
 const BBOX_SOUTH =  32.300;   // below Columbus GA / Chattahoochee River falls
-const BBOX_EAST  = -73.800;   // east of Peekskill NY
+const BBOX_EAST  = -69.500;   // east of Augusta ME / mouth of Kennebec
 const BBOX_WEST  = -85.500;   // west of Chattanooga TN / NW Georgia
 
-// REGION: full corridor extent — used for Coastal Plain & Piedmont polygon bounds
+// REGION: mid-Atlantic corridor — used for Coastal Plain & Piedmont polygon bounds
+// (These polygons only cover the historic fall line corridor, not New England)
 const REGION_NORTH =  41.400;  // Peekskill NY / Hudson Highlands
 const REGION_SOUTH =  32.300;  // Columbus GA / Chattahoochee River falls
 const REGION_EAST  = -73.800;  // east of Peekskill NY
 const REGION_WEST  = -85.500;  // west of Chattanooga TN / NW Georgia
+
+/* ─── Blue Ridge eastern escarpment — shared boundary ───────────────────────
+   The facing edge of the Blue Ridge / Appalachian front as seen from the
+   Piedmont.  Listed NORTH → SOUTH so it can be used directly in the
+   BLUE_RIDGE_GEOJSON east boundary and reversed for the PIEDMONT_GEOJSON
+   western boundary — guaranteeing the two polygons share an identical edge
+   with no overlap or gap.
+   ────────────────────────────────────────────────────────────── */
+const BLUE_RIDGE_EAST_ESCARPMENT = [
+  [-77.400, 39.700],  // South Mountain MD — Blue Ridge faces the Hagerstown Valley
+  [-77.800, 39.200],  // Harpers Ferry WV — Blue Ridge meets the Potomac gap
+  [-78.300, 38.600],  // Front Royal VA — entrance to Shenandoah National Park
+  [-78.500, 38.000],  // Waynesboro VA — Blue Ridge Parkway begins here
+  [-79.400, 37.500],  // Bedford County VA — Blue Ridge facing the Roanoke Basin
+  [-80.500, 36.500],  // Alleghany County NC / Blue Ridge Parkway south
+  [-82.200, 35.500],  // Buncombe County NC — Asheville / Black Mountains
+  [-83.800, 34.900],  // Towns County GA / Union County GA — NE Georgia mountains
+  [-84.500, 34.600],  // Pickens County GA — southernmost Blue Ridge foothills
+];
 
 const fallLineReversed = [...FALL_LINE_COORDS].reverse();
 
@@ -274,10 +294,13 @@ const PIEDMONT_GEOJSON = {
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [REGION_WEST, REGION_NORTH],  // NW corner (Appalachians / MD-PA border lat)
-      ...FALL_LINE_COORDS,          // north→south along fall line (east boundary)
-      [REGION_WEST, REGION_SOUTH],  // SW corner (Appalachians / NC-SC border lat)
-      [REGION_WEST, REGION_NORTH],  // close polygon
+      [REGION_WEST, REGION_NORTH],                    // NW corner
+      ...FALL_LINE_COORDS,                             // east boundary: fall line north→south
+      [REGION_WEST, REGION_SOUTH],                     // SW corner (south edge)
+      [REGION_WEST, 34.600],                           // west edge: up to Blue Ridge south extent
+      ...[...BLUE_RIDGE_EAST_ESCARPMENT].reverse(),    // west boundary: escarpment south→north
+      [REGION_WEST, 39.700],                           // west edge: up to NW corner latitude
+      [REGION_WEST, REGION_NORTH],                     // close polygon
     ]],
   },
 };
@@ -317,17 +340,9 @@ const BLUE_RIDGE_GEOJSON = {
       [-83.500, 35.600],  // Swain County NC / Great Smokies western boundary
       [-84.800, 35.000],  // Murray County GA / Polk County TN area
       [-85.000, 34.700],  // NW Georgia — Cohutta Wilderness area
-      // East boundary (Blue Ridge escarpment) — south to north
-      [-84.500, 34.600],  // Pickens County GA — eastern foothills
-      [-83.800, 34.900],  // Towns County GA / Union County GA
-      [-82.200, 35.500],  // Buncombe County NC — Asheville area
-      [-80.500, 36.500],  // Alleghany County NC / Blue Ridge Parkway south
-      [-79.400, 37.500],  // Bedford County VA
-      [-78.500, 38.000],  // Waynesboro VA — Blue Ridge eastern escarpment
-      [-78.300, 38.600],  // Front Royal VA — start of Shenandoah NP
-      [-77.800, 39.200],  // Harpers Ferry WV — Blue Ridge at the Potomac Gap
-      [-77.400, 39.700],  // South Mountain MD — facing Hagerstown Valley
-      // Close ring
+      // East boundary — shared with Piedmont western boundary (south→north)
+      ...[...BLUE_RIDGE_EAST_ESCARPMENT].reverse(),
+      // Close ring back to valley NW corner
       [-77.900, 39.500],
     ]],
   },
@@ -366,6 +381,16 @@ const STYLES = {
   },
   regionHover: {
     fillOpacity: 0.32,
+  },
+  rivers: {
+    color:       '#4a9eff',
+    weight:      2,
+    opacity:     0.75,
+    interactive: true,
+  },
+  riversHover: {
+    weight:  3.5,
+    opacity: 1.0,
   },
 };
 
@@ -1324,6 +1349,51 @@ const FALL_LINE_CITIES = [
     zone:   '7b',
     note:   'Where the Tennessee River cuts through Walden Ridge and the Cumberland Plateau — Moccasin Bend National Archaeological District sits within the river\'s dramatic entrenched meander.',
   },
+  // ── New England fall zone cities ─────────────────────────────────────────
+  {
+    name:   'Pawtucket',
+    state:  'RI',
+    lat:     41.878,
+    lon:    -71.383,
+    river:  'Blackstone River',
+    region: 'piedmont',
+    soil:   'Paxton-Montauk stony sandy loam (glacial till)',
+    zone:   '6b',
+    note:   'Slater Mill (1793) — the first successful water-powered cotton mill in North America, launching the American Industrial Revolution where the Blackstone drops off the New England Upland.',
+  },
+  {
+    name:   'Lowell',
+    state:  'MA',
+    lat:     42.643,
+    lon:    -71.312,
+    river:  'Merrimack River',
+    region: 'piedmont',
+    soil:   'Paxton stony loam (glacial till, dense substratum)',
+    zone:   '6a',
+    note:   'America\'s first planned industrial city (1826), engineered around the Pawtucket Falls of the Merrimack. At its peak, Lowell\'s mills produced 50,000 miles of cloth per year.',
+  },
+  {
+    name:   'Manchester',
+    state:  'NH',
+    lat:     43.004,
+    lon:    -71.455,
+    river:  'Merrimack River',
+    region: 'piedmont',
+    soil:   'Hermon-Lyman stony sandy loam (thin glacial till over granite)',
+    zone:   '6a',
+    note:   'Amoskeag Falls powered the Amoskeag Manufacturing Company — once the world\'s largest textile complex, stretching a mile along the Merrimack with 17,000 workers.',
+  },
+  {
+    name:   'Augusta',
+    state:  'ME',
+    lat:     44.311,
+    lon:    -69.781,
+    river:  'Kennebec River',
+    region: 'piedmont',
+    soil:   'Peru-Marlow gravelly loam (glacial till over schist)',
+    zone:   '5b',
+    note:   'The Kennebec River falls mark the head of tidal navigation and the site of Fort Western (1754) — the oldest surviving wooden fort in the US. Maine\'s capital at the geological fall zone.',
+  },
 ];
 
 /**
@@ -1355,6 +1425,268 @@ function makeMarkerPopup(city) {
         row('Zone', '<span class="zone-badge" style="background:' + zoneColor + ';color:#1a1a2e">Zone ' + city.zone + '</span>') +
       '</div>' +
     '</div>'
+  );
+}
+
+
+/* ─── New England Fall Zone ─────────────────────────────────────
+   Separate LineString for the New England mill-city fall zone
+   (Augusta ME → Manchester NH → Lowell MA → Pawtucket RI → Waterbury CT).
+   Kept separate from FALL_LINE_COORDS so the mid-Atlantic Coastal and
+   Piedmont polygons (which close at the current Peekskill terminus) are
+   unaffected.  Both lines share the same toggle and style in map.js.
+   ────────────────────────────────────────────────────────────── */
+const NE_FALL_ZONE_COORDS = [
+  [-69.781, 44.311],   // Augusta ME — Kennebec River falls (northern terminus)
+  [-71.455, 43.004],   // Manchester NH — Amoskeag Falls (Merrimack River)
+  [-71.312, 42.643],   // Lowell MA — Pawtucket Falls (Merrimack River)
+  [-71.383, 41.878],   // Pawtucket RI — Blackstone River falls (Slater Mill)
+  [-73.050, 41.550],   // Waterbury CT — Naugatuck River falls (bridge to Hudson Valley)
+  [-73.920, 41.290],   // Peekskill NY — joins the main fall line
+];
+
+const NE_FALL_ZONE_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    name:    'New England Fall Zone',
+    section: 'new-england',
+  },
+  geometry: {
+    type:        'LineString',
+    coordinates: NE_FALL_ZONE_COORDS,
+  },
+};
+
+
+/* ─── Major Appalachian Watershed Rivers ─────────────────────────
+   GeoJSON FeatureCollection of 14 major rivers draining the Appalachian
+   watershed from the Kennebec (Maine) south to the Savannah (Georgia).
+   Coordinates are simplified (~6–10 waypoints per river) for visual
+   clarity; not for precise navigation.
+   Source: derived from USGS NHD / Natural Earth river data (public domain).
+   ────────────────────────────────────────────────────────────── */
+const MAJOR_RIVERS_GEOJSON = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'kennebec', name: 'Kennebec River',
+        length_km: 257, states: 'ME',
+        source: 'Moosehead Lake, ME', mouth: 'Atlantic Ocean at Popham Beach, ME',
+        note: 'The Kennebec was the lifeline of colonial Maine — fur trade, shipbuilding, and ice harvesting defined its banks. The falls at Augusta mark the head of tidal navigation and the geological fall zone.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-69.870, 45.630], [-69.781, 44.311], [-69.760, 43.980], [-69.810, 43.820],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'merrimack', name: 'Merrimack River',
+        length_km: 180, states: 'NH, MA',
+        source: 'Franklin NH (confluence of Pemigewasset and Winnisquam)', mouth: 'Atlantic Ocean at Newburyport, MA',
+        note: 'The Merrimack powered America\'s first industrial cities. Lowell\'s Pawtucket Falls drop 32 feet — enough to drive 40 mills — while Amoskeag Falls at Manchester once ran the world\'s largest textile complex.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-71.540, 43.430], [-71.455, 43.004], [-71.312, 42.643],
+        [-71.160, 42.710], [-70.873, 42.810],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'connecticut', name: 'Connecticut River',
+        length_km: 655, states: 'NH, VT, MA, CT',
+        source: 'Third Connecticut Lake, NH (US-Canada border)', mouth: 'Long Island Sound at Old Saybrook, CT',
+        note: 'New England\'s longest river cuts through the Connecticut Valley Lowland — a Mesozoic rift basin filled with sandstone and basalt. The river\'s floodplain produced some of the most fertile farmland in colonial New England.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-71.520, 44.720], [-72.400, 44.050], [-72.650, 43.620],
+        [-72.580, 43.050], [-72.530, 42.360], [-72.620, 41.760], [-72.390, 41.280],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'hudson', name: 'Hudson River',
+        length_km: 507, states: 'NY, NJ',
+        source: 'Lake Tear of the Clouds, Adirondack Mountains NY', mouth: 'Upper New York Bay / Atlantic Ocean',
+        note: 'The Hudson was the axis of westward expansion. The Erie Canal (1825) connected it to the Great Lakes, making New York City the commercial capital of North America. The Peekskill Highlands mark the geological fall zone.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-73.780, 44.050], [-73.730, 43.650], [-73.750, 42.650],
+        [-73.960, 41.920], [-73.920, 41.290], [-73.970, 40.700],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'delaware', name: 'Delaware River',
+        length_km: 579, states: 'NY, NJ, PA, DE',
+        source: 'Catskill Mountains NY (East and West Branch confluence at Hancock)', mouth: 'Delaware Bay / Atlantic Ocean',
+        note: 'Washington crossed the Delaware on Christmas 1776. The Delaware Water Gap cuts through Kittatinny Ridge — the river predates the Appalachian ridges it flows through, carving its gorge as the mountains rose around it.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-74.860, 41.900], [-75.040, 41.370], [-75.190, 40.970],
+        [-74.870, 40.570], [-74.770, 40.220], [-75.100, 40.000],
+        [-75.570, 39.620], [-75.490, 39.080],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'susquehanna', name: 'Susquehanna River',
+        length_km: 715, states: 'NY, PA, MD',
+        source: 'Otsego Lake (Cooperstown NY)', mouth: 'Chesapeake Bay at Havre de Grace, MD',
+        note: 'The Susquehanna drains nearly half of the Chesapeake Bay watershed. Its Conowingo Dam (1928) traps millions of tons of sediment that once fed the Bay\'s oyster reefs. The Susquehanna Flats were once the world\'s most productive wild-celery beds.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-75.100, 42.700], [-76.650, 41.600], [-76.010, 40.980],
+        [-76.560, 40.430], [-76.080, 39.540],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'potomac', name: 'Potomac River',
+        length_km: 652, states: 'WV, MD, VA, DC',
+        source: 'Fairfax Stone, WV (Backbone Mountain)', mouth: 'Chesapeake Bay at Point Lookout, MD',
+        note: 'Great Falls of the Potomac drop 76 feet in less than a mile — the most dramatic fall line in the eastern US. George Washington\'s Patowmack Canal (1802) attempted to bypass the falls; today the C&O Canal towpath follows the Maryland shore.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-79.290, 39.200], [-78.800, 39.370], [-77.880, 39.390],
+        [-77.245, 39.000], [-77.040, 38.870], [-76.710, 38.660], [-76.540, 38.340],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'shenandoah', name: 'Shenandoah River',
+        length_km: 286, states: 'VA, WV',
+        source: 'South Fork: Augusta County VA; North Fork: Rockingham County VA', mouth: 'Potomac River at Harpers Ferry, WV',
+        note: 'The Shenandoah Valley — the Great Appalachian Valley — is underlain by limestone that weathers to the rich, well-drained soils that made it the "breadbasket of the Confederacy." At Harpers Ferry it meets the Potomac in a spectacular water gap.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-78.700, 38.140], [-78.430, 38.540], [-78.110, 38.870], [-77.880, 39.390],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'rappahannock', name: 'Rappahannock River',
+        length_km: 273, states: 'VA',
+        source: 'Chester Gap, Blue Ridge Mountains VA', mouth: 'Chesapeake Bay (Rappahannock River mouth)',
+        note: 'The Rappahannock\'s fall at Fredericksburg was the commercial anchor of colonial Virginia. George Washington\'s childhood home was across the river. The Battle of Fredericksburg (1862) was fought along its banks.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-78.850, 38.280], [-78.200, 38.480], [-77.468, 38.302],
+        [-76.900, 38.060], [-76.660, 37.690],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'james', name: 'James River',
+        length_km: 560, states: 'VA',
+        source: 'Iron Gate VA (confluence of Jackson and Cowpasture Rivers)', mouth: 'Hampton Roads / Chesapeake Bay',
+        note: 'The James was the artery of English America — Jamestown (1607) sat at its tidal mouth. Belle Isle rapids at Richmond mark the fall line; the river powered antebellum tobacco mills and today feeds hydroelectric turbines through the same granite gorge.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-79.700, 37.780], [-79.150, 37.290], [-78.650, 37.540],
+        [-77.464, 37.527], [-77.220, 37.300], [-76.590, 37.060],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'new-river', name: 'New River',
+        length_km: 518, states: 'NC, VA, WV',
+        source: 'Watauga County NC (confluence of forks near Boone)', mouth: 'Ohio River at Point Pleasant, WV (as the Kanawha)',
+        note: 'One of the oldest rivers in North America — the New River predates the Appalachian Mountains and flows through them rather than around them. It becomes the Kanawha after merging with the Gauley at Gauley Bridge WV, draining into the Ohio.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-81.700, 36.590], [-80.570, 37.310], [-80.420, 37.800],
+        [-81.180, 38.090], [-81.840, 38.370], [-82.010, 38.520],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'roanoke', name: 'Roanoke River',
+        length_km: 660, states: 'VA, NC',
+        source: 'Near Roanoke VA (confluence of Roanoke and Blackwater Rivers)', mouth: 'Albemarle Sound, NC',
+        note: 'The Roanoke cuts through the Blue Ridge at the Roanoke Narrows — a critical Atlantic flyway corridor for migratory birds and American shad. Roanoke Rapids NC sits at the fall line where the river drops from the Piedmont to the coastal plain.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-80.060, 37.280], [-79.520, 37.080], [-77.655, 36.462],
+        [-77.000, 36.100], [-76.640, 35.900],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'french-broad', name: 'French Broad River',
+        length_km: 298, states: 'NC, TN',
+        source: 'Transylvania County NC (near Brevard)', mouth: 'Tennessee River at Knoxville, TN (via confluence with Holston)',
+        note: 'One of the few rivers that flow northwest through the Blue Ridge — the French Broad predates the mountain uplift. Its unusual name comes from early English settlers who called land beyond the Blue Ridge "French territory." Near Asheville it drains the largest watershed in the Southern Appalachians.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-82.740, 35.200], [-82.551, 35.579], [-82.900, 35.800],
+        [-83.040, 35.960], [-83.120, 36.060], [-83.420, 36.020],
+      ]},
+    },
+    {
+      type: 'Feature',
+      properties: {
+        slug: 'savannah', name: 'Savannah River',
+        length_km: 505, states: 'GA, SC',
+        source: 'NE Georgia (confluence of Tugaloo and Seneca Rivers at Lake Hartwell)', mouth: 'Atlantic Ocean at Savannah, GA',
+        note: 'The Savannah formed the colonial boundary between British Georgia and the Carolinas. Augusta GA was founded in 1736 by James Oglethorpe at the fall line — the furthest inland point accessible by flatboat from the coast. The river still marks the GA-SC state line.',
+      },
+      geometry: { type: 'LineString', coordinates: [
+        [-83.100, 34.870], [-82.490, 34.250], [-82.020, 33.470],
+        [-81.300, 32.720], [-81.020, 32.080],
+      ]},
+    },
+  ],
+};
+
+/**
+ * Returns full-page detail HTML for a river.
+ * @param {string} slug  e.g. "james", "french-broad"
+ * @returns {string}
+ */
+function makeRiverDetailHTML(slug) {
+  var river = null;
+  for (var i = 0; i < MAJOR_RIVERS_GEOJSON.features.length; i++) {
+    if (MAJOR_RIVERS_GEOJSON.features[i].properties.slug === slug) {
+      river = MAJOR_RIVERS_GEOJSON.features[i].properties;
+      break;
+    }
+  }
+  if (!river) return '';
+  var row = function (label, value) {
+    return (
+      '<div class="detail-fact">' +
+        '<span class="detail-fact-label">' + label + '</span>' +
+        '<span class="detail-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-region-header" style="border-left:4px solid #4a9eff;padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0">' + river.name + '</h2>' +
+      '</div>' +
+      '<p class="detail-description">' + river.note + '</p>' +
+      '<div class="detail-facts">' +
+        row('Length',     '~' + river.length_km + ' km') +
+        row('States',     river.states) +
+        row('Source',     river.source) +
+        row('Mouth',      river.mouth) +
+      '</div>' +
+    '</article>'
   );
 }
 
@@ -1437,6 +1769,9 @@ const GeoData = {
   isValidUSZipCode,
   isInCorridor,
   buildSearchQuery,
+  NE_FALL_ZONE_GEOJSON,
+  MAJOR_RIVERS_GEOJSON,
+  makeRiverDetailHTML,
 };
 
 // Browser: attach to window so map.js can access it

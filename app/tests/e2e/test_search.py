@@ -160,12 +160,12 @@ def test_outside_corridor_shows_note(page):
     """Result outside the map coverage area triggers an out-of-bounds note."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-    # Boston MA — north of the coverage area (BBOX_NORTH ~41.4°N, Boston ~42.4°N)
+    # Bangor ME — north of the coverage area (BBOX_NORTH ~44.5°N, Bangor ~44.8°N)
     page.route(NOMINATIM_PATTERN, lambda r: mock_nominatim(
-        r, "42.3601", "-71.0589", "Boston, Massachusetts"
+        r, "44.8012", "-68.7778", "Bangor, Maine"
     ))
 
-    page.locator("#search-input").fill("Boston MA")
+    page.locator("#search-input").fill("Bangor ME")
     page.locator("#search-form").locator("[type=submit]").click()
 
     status = page.locator("#search-status")
