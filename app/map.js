@@ -63,6 +63,8 @@ function navigate(hash) {
     html = gd.makeCityDetailHTML(parts[2]);
   } else if (type === 'fallline') {
     html = gd.makeFallLineDetailHTML();
+  } else if (type === 'river') {
+    html = gd.makeRiverDetailHTML(parts[2]);
   } else if (type === 'location') {
     var lat = parseFloat(parts[2]);
     var lon = parseFloat(parts[3]);
@@ -137,7 +139,12 @@ var blueRidgeLayer = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
 var coastalLayer   = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
 var piedmontLayer  = buildRegionLayer(gd.PIEDMONT_GEOJSON);
 
-var fallLineLayer = L.geoJSON(gd.FALL_LINE_GEOJSON, {
+var fallLineFeatureCollection = {
+  type: 'FeatureCollection',
+  features: [gd.FALL_LINE_GEOJSON, gd.NE_FALL_ZONE_GEOJSON],
+};
+
+var fallLineLayer = L.geoJSON(fallLineFeatureCollection, {
   style: gd.STYLES.fallLine,
   onEachFeature: function (feature, layer) {
     layer.on('click', function () {
@@ -149,10 +156,39 @@ var fallLineLayer = L.geoJSON(gd.FALL_LINE_GEOJSON, {
   },
 });
 
-// Layer order: Blue Ridge first (bottom), then Piedmont, Coastal, Fall Line on top
-blueRidgeLayer.addTo(map);
+/* ─── Rivers layer ──────────────────────────────────────────────
+   Major Appalachian watershed rivers — lazy-built, shown by default.
+   ────────────────────────────────────────────────────────────── */
+
+var riversLayer = L.geoJSON(gd.MAJOR_RIVERS_GEOJSON, {
+  style: gd.STYLES.rivers,
+  onEachFeature: function (feature, layer) {
+    var slug = feature.properties.slug;
+    var name = feature.properties.name;
+    layer.on('click', function () {
+      location.hash = '#detail/river/' + slug;
+    });
+    layer.on('mouseover', function () {
+      this.setStyle(gd.STYLES.riversHover);
+      this.getElement() && (this.getElement().style.cursor = 'pointer');
+    });
+    layer.on('mouseout', function () {
+      this.setStyle(gd.STYLES.rivers);
+    });
+    layer.bindTooltip(name, {
+      direction: 'center',
+      className: 'city-tooltip',
+      sticky:    true,
+    });
+  },
+});
+
+// Layer order: Coastal, Piedmont at bottom; Blue Ridge on top of those;
+// Rivers above region polygons; Fall Line and cities on top.
 coastalLayer.addTo(map);
 piedmontLayer.addTo(map);
+blueRidgeLayer.addTo(map);
+riversLayer.addTo(map);
 fallLineLayer.addTo(map);
 
 
@@ -325,9 +361,14 @@ map.on('zoomend', function () {
 
 document.getElementById('toggle-regions').addEventListener('change', function () {
   if (this.checked) {
-    map.addLayer(blueRidgeLayer);
+    // Re-add in the same order as initial load so Blue Ridge stays on top
     map.addLayer(coastalLayer);
     map.addLayer(piedmontLayer);
+    map.addLayer(blueRidgeLayer);
+    // Keep rivers and fall line above regions
+    if (map.hasLayer(riversLayer))   riversLayer.bringToFront();
+    if (map.hasLayer(fallLineLayer)) fallLineLayer.bringToFront();
+    if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
   } else {
     map.removeLayer(blueRidgeLayer);
     map.removeLayer(coastalLayer);
@@ -357,6 +398,16 @@ document.getElementById('toggle-cities').addEventListener('change', function () 
     map.addLayer(cityMarkersLayer);
   } else {
     map.removeLayer(cityMarkersLayer);
+  }
+});
+
+document.getElementById('toggle-rivers').addEventListener('change', function () {
+  if (this.checked) {
+    map.addLayer(riversLayer);
+    fallLineLayer.bringToFront();
+    cityMarkersLayer.bringToFront();
+  } else {
+    map.removeLayer(riversLayer);
   }
 });
 
@@ -451,7 +502,7 @@ document.getElementById('locate-btn').addEventListener('click', function () {
 /* ─── Initial viewport — fit full fall line corridor ─────────── */
 map.fitBounds([
   [32.30, -85.40],   // SW — NW Georgia / Chattanooga area
-  [41.40, -73.70],   // NE — Peekskill NY / Hudson Highlands
+  [44.40, -69.70],   // NE — Augusta ME (Kennebec River falls)
 ]);
 
 // Run router on initial load (handles direct-load to /#detail/...)

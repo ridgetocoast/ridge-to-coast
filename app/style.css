@@ -131,6 +131,14 @@ html, body {
   border-radius: 2px;
 }
 
+.swatch.river {
+  background: transparent;
+  border-bottom: 3px solid #4a9eff;
+  border-radius: 0;
+  height: 0;
+  margin-top: 8px;
+}
+
 .swatch.citymarker {
   background: #fff;
   border: 2.5px solid #e84393;
