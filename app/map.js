@@ -135,9 +135,12 @@ function buildRegionLayer(geojson) {
   });
 }
 
-var blueRidgeLayer = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
-var coastalLayer   = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
-var piedmontLayer  = buildRegionLayer(gd.PIEDMONT_GEOJSON);
+var blueRidgeLayer   = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
+var coastalLayer     = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
+var piedmontLayer    = buildRegionLayer(gd.PIEDMONT_GEOJSON);
+var valleyRidgeLayer = buildRegionLayer(gd.VALLEY_RIDGE_GEOJSON);
+var neUplandLayer    = buildRegionLayer(gd.NE_UPLAND_GEOJSON);
+var neCoastalLayer   = buildRegionLayer(gd.NE_COASTAL_GEOJSON);
 
 var fallLineFeatureCollection = {
   type: 'FeatureCollection',
@@ -183,10 +186,13 @@ var riversLayer = L.geoJSON(gd.MAJOR_RIVERS_GEOJSON, {
   },
 });
 
-// Layer order: Coastal, Piedmont at bottom; Blue Ridge on top of those;
-// Rivers above region polygons; Fall Line and cities on top.
+// Layer order: bottom to top — coastal, piedmont, Valley&Ridge, NE coastal/upland,
+// Blue Ridge last so it captures clicks over its neighbours; rivers + fall line + cities on top.
 coastalLayer.addTo(map);
+neCoastalLayer.addTo(map);
 piedmontLayer.addTo(map);
+neUplandLayer.addTo(map);
+valleyRidgeLayer.addTo(map);
 blueRidgeLayer.addTo(map);
 riversLayer.addTo(map);
 fallLineLayer.addTo(map);
@@ -251,9 +257,15 @@ var hardinessActive = false;  // true while the zone layer is visible
 function setRegionMode(outlineOnly) {
   var styles = gd.STYLES;
   if (map.hasLayer(coastalLayer))
-    coastalLayer.setStyle(outlineOnly ? styles.coastalOutline   : styles.coastal);
+    coastalLayer.setStyle(outlineOnly ? styles.coastalOutline    : styles.coastal);
+  if (map.hasLayer(neCoastalLayer))
+    neCoastalLayer.setStyle(outlineOnly ? styles.coastalOutline  : styles.coastal);
   if (map.hasLayer(piedmontLayer))
     piedmontLayer.setStyle(outlineOnly ? styles.piedmontOutline  : styles.piedmont);
+  if (map.hasLayer(neUplandLayer))
+    neUplandLayer.setStyle(outlineOnly ? styles.piedmontOutline  : styles.piedmont);
+  if (map.hasLayer(valleyRidgeLayer))
+    valleyRidgeLayer.setStyle(outlineOnly ? styles.valleyRidgeOutline : styles.valleyRidge);
   if (map.hasLayer(blueRidgeLayer))
     blueRidgeLayer.setStyle(outlineOnly ? styles.blueRidgeOutline : styles.blueRidge);
 }
@@ -379,9 +391,12 @@ map.on('zoomend', function () {
 
 document.getElementById('toggle-regions').addEventListener('change', function () {
   if (this.checked) {
-    // Re-add in the same order as initial load so Blue Ridge stays on top
+    // Re-add in the same stacking order as initial load
     map.addLayer(coastalLayer);
+    map.addLayer(neCoastalLayer);
     map.addLayer(piedmontLayer);
+    map.addLayer(neUplandLayer);
+    map.addLayer(valleyRidgeLayer);
     map.addLayer(blueRidgeLayer);
     // Apply current display mode (fill vs outline) based on zone layer state
     setRegionMode(hardinessActive);
@@ -391,6 +406,9 @@ document.getElementById('toggle-regions').addEventListener('change', function ()
     if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
   } else {
     map.removeLayer(blueRidgeLayer);
+    map.removeLayer(valleyRidgeLayer);
+    map.removeLayer(neUplandLayer);
+    map.removeLayer(neCoastalLayer);
     map.removeLayer(coastalLayer);
     map.removeLayer(piedmontLayer);
   }
@@ -407,9 +425,8 @@ document.getElementById('toggle-fallline').addEventListener('change', function (
 document.getElementById('toggle-hardiness').addEventListener('change', function () {
   hardinessActive = this.checked;
   // Switch region shading: outlines when zones are active, fills when not.
-  // Zone colors read clearly over outline-only regions; fills would clash.
   setRegionMode(hardinessActive);
-  hardinessHint.hidden = !hardinessActive;
+  if (hardinessHint) hardinessHint.hidden = !hardinessActive;
   if (this.checked) {
     loadAndShowHardinessLayer();
   } else {

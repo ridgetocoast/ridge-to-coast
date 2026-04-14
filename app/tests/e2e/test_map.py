@@ -355,3 +355,31 @@ def test_blue_ridge_click_navigates_to_detail(page):
     page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
     content = page.locator("#detail-content")
     expect(content).to_contain_text("Blue Ridge")
+
+
+# ---------------------------------------------------------------------------
+# Suite 8 — Valley and Ridge region
+# ---------------------------------------------------------------------------
+
+def test_valley_ridge_swatch_in_legend(page):
+    """Valley and Ridge legend swatch is present in the DOM."""
+    page.goto("/")
+    swatch = page.locator(".swatch.valleyridge")
+    expect(swatch).to_be_attached(timeout=LAYER_TIMEOUT)
+
+
+def test_valley_ridge_detail_page_loads(page):
+    """Navigating to /#detail/region/valleyRidge shows Valley and Ridge content."""
+    page.goto("/#detail/region/valleyRidge")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Valley")
+
+
+def test_valley_ridge_detail_contains_plants(page):
+    """Valley and Ridge detail page includes native plant section."""
+    page.goto("/#detail/region/valleyRidge")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    # Pawpaw is a classic Valley and Ridge species
+    expect(content).to_contain_text("Pawpaw")
