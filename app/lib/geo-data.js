@@ -275,7 +275,11 @@ const EAST_COAST_COORDS = [
   [-79.615, 32.909],  // Georgetown SC
   [-79.805, 32.787],  // SC coast — approaching Charleston
   [-80.123, 32.589],  // Charleston SC / Isle of Palms
-  [-80.486, 32.352],  // SC coast — southern corridor limit
+  [-80.486, 32.352],  // SC coast — southern limit of original corridor
+  [-80.700, 32.100],  // Savannah GA / Tybee Island
+  [-81.200, 31.200],  // Brunswick GA / Golden Isles
+  [-81.400, 30.720],  // Cumberland Island GA / GA–FL state line
+  [-81.500, 30.100],  // Jacksonville FL — joins GULF_COASTAL NE corner
 ];
 
 const COASTAL_PLAIN_GEOJSON = {
@@ -293,7 +297,10 @@ const COASTAL_PLAIN_GEOJSON = {
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      ...EAST_COAST_COORDS,         // north→south along outer Atlantic coast
+      ...EAST_COAST_COORDS,         // north→south along outer Atlantic coast (now ends at Jacksonville FL)
+      [-82.500, 30.600],            // SE Georgia interior / Satilla River drainage
+      [-84.000, 31.500],            // SW Georgia / Alapaha River area
+      [-84.700, 32.200],            // SW Georgia / Albany GA area → joins fall line near Columbus GA
       ...fallLineReversed,          // south→north along fall line (west boundary)
       EAST_COAST_COORDS[0],         // close polygon at Peekskill NY
     ]],
@@ -388,14 +395,23 @@ const VALLEY_RIDGE_GEOJSON = {
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [REGION_WEST, 39.700],      // NW corner — top of the valley corridor
-      [-77.900, 39.700],          // NE corner — aligns with Blue Ridge NW tip
+      // NE corner — must match BLUE_RIDGE_WEST_ESCARPMENT[0] for a seamless Blue Ridge join
+      [-79.200, 41.400],   // Allegheny Front PA (= BLUE_RIDGE_WEST_ESCARPMENT[0])
       // Eastern boundary: Blue Ridge western escarpment north → south
+      // ends at [-85.000, 34.700] (Cohutta Wilderness, NW Georgia)
       ...BLUE_RIDGE_WEST_ESCARPMENT,
-      // SW corner — bottom of the Piedmont notch / valley corridor
-      [REGION_WEST, 34.600],
-      // Close ring back to NW corner
-      [REGION_WEST, 39.700],
+      // Southern boundary: NW Georgia foothills → central TN Highland Rim
+      [-87.500, 35.000],   // Central TN / western Highland Rim edge
+      [-88.000, 35.500],   // Western TN boundary — Gulf Coastal Plain takes over west of here
+      // Western boundary: up through KY and eastern OH to Lake Erie
+      [-88.000, 36.700],   // Western Kentucky / Land Between the Lakes
+      [-87.500, 37.500],   // Central Kentucky / Elizabethtown / Mammoth Cave NP
+      [-84.800, 38.800],   // Northern Kentucky / Cincinnati OH area (Bluegrass region)
+      [-83.000, 39.200],   // SW Ohio / Chillicothe (Appalachian Plateau western edge)
+      [-82.000, 40.000],   // SE Ohio / Athens OH (Appalachian Plateau)
+      [-80.700, 42.300],   // NW PA / Lake Erie shore (Erie PA — Great Lakes coast)
+      // Close ring: Lake Erie back to NE corner at Allegheny Front PA
+      [-79.200, 41.400],
     ]],
   },
 };
@@ -425,15 +441,22 @@ const NE_UPLAND_GEOJSON = {
     coordinates: [[
       // South: connect to existing Piedmont region at Peekskill NY
       [-73.920, 41.290],
-      // West boundary: push far enough west to include full Vermont, NH, upstate NY
+      // West boundary: extended to cover Finger Lakes, Buffalo NY, and Lake Erie
       [-75.600, 41.900],   // Catskill Mountains / upper Delaware River headwaters
-      [-76.000, 42.600],   // Schoharie Valley NY / western NY foothills
-      [-74.800, 43.200],   // Southern Adirondacks / Lake George area
-      [-73.600, 44.000],   // Lake Champlain south — includes Burlington VT
-      [-73.400, 44.800],   // VT / Quebec border — all of Vermont now inside
-      [-72.000, 45.500],   // NH / Quebec border extended
-      [-70.500, 46.500],   // Central Maine / Aroostook County
-      [-67.200, 47.000],   // NE Maine — new north terminus
+      [-76.800, 42.100],   // Southern Tier NY / Elmira area (extended west)
+      [-79.000, 42.400],   // Finger Lakes NY / Corning area
+      [-79.500, 42.800],   // Buffalo NY / Niagara Falls area
+      [-79.800, 42.900],   // Lake Erie shore — NY/PA border
+      [-80.500, 42.200],   // Lake Erie PA shore (SE from Erie PA toward OH border)
+      // Trace north along Lake Ontario watershed back toward the Adirondacks
+      [-80.000, 43.500],   // SW Ontario–NY border / Lake Ontario–Lake Erie divide
+      [-76.500, 43.800],   // Lake Ontario eastern shore / Oswego NY area
+      [-74.800, 43.200],   // Southern Adirondacks / Lake George area (keep)
+      [-73.600, 44.000],   // Lake Champlain south — includes Burlington VT (keep)
+      [-73.400, 44.800],   // VT / Quebec border — all of Vermont inside (keep)
+      [-72.000, 45.500],   // NH / Quebec border extended (keep)
+      [-70.500, 46.500],   // Central Maine / Aroostook County (keep)
+      [-67.200, 47.000],   // NE Maine — north terminus (keep)
       // East boundary: NE fall zone south from Maine to Peekskill
       [-69.781, 44.311],   // Augusta ME (fall zone NE terminus)
       [-71.455, 43.004],   // Manchester NH
@@ -1130,6 +1153,10 @@ function makeCityDetailHTML(slug) {
  * @returns {'coastal'|'piedmont'|'blueRidge'}
  */
 function classifyLocation(lat, lon) {
+  // Mississippi Embayment: western TN and KY — Gulf Coastal Plain sediments
+  // extend north along the Mississippi River valley to ~37°N
+  if (lon < -88.0 && lat < 37.5) return 'gulfCoastal';
+
   // Gulf Coastal Plain: south of the main fall line corridor and within the
   // Gulf/Florida footprint (lat < 32.5°N and lon < -80°W, or deep Florida)
   if (lat < 32.5 && (lon < -80.0 || lat < 28.0)) return 'gulfCoastal';
@@ -1822,10 +1849,19 @@ const GULF_COASTAL_GEOJSON = {
   geometry: {
     type: 'Polygon',
     coordinates: [[
-      [-85.000, 32.500],  // NW Georgia — connects to REGION_SOUTH boundary
-      [-86.500, 32.500],  // Northern Alabama fall line
-      [-88.500, 32.000],  // Mid-Alabama / Columbus MS fall line
-      [-91.000, 31.000],  // Central Mississippi — northern Gulf Coastal Plain edge
+      // Northern boundary: AL/MS fall line → Mississippi Embayment north
+      [-85.000, 32.500],  // NW Georgia — connects to Coastal Plain boundary
+      [-86.500, 32.500],  // Northern Alabama fall line (unchanged)
+      [-88.000, 32.500],  // Eastern Mississippi fall line
+      [-88.500, 33.500],  // North-central Mississippi
+      [-89.500, 34.000],  // NW Mississippi — approaching Memphis
+      [-90.300, 35.200],  // Memphis TN / Mississippi River
+      [-89.500, 37.000],  // Paducah KY — northern Mississippi Embayment extent
+      [-88.100, 37.200],  // Western Kentucky interior
+      [-88.200, 36.500],  // Western Tennessee / Kentucky Lake area
+      [-88.300, 35.000],  // Western Tennessee fall zone / Tennessee River
+      [-89.200, 31.000],  // Western Mississippi / Gulf coast approach
+      // Gulf coast and Florida (unchanged):
       [-89.500, 30.100],  // Pascagoula MS / Gulf coast
       [-88.000, 30.300],  // Mobile Bay AL
       [-84.900, 29.700],  // Tallahassee FL / Apalachicola
