@@ -135,12 +135,13 @@ function buildRegionLayer(geojson) {
   });
 }
 
-var blueRidgeLayer   = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
-var coastalLayer     = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
-var piedmontLayer    = buildRegionLayer(gd.PIEDMONT_GEOJSON);
-var valleyRidgeLayer = buildRegionLayer(gd.VALLEY_RIDGE_GEOJSON);
-var neUplandLayer    = buildRegionLayer(gd.NE_UPLAND_GEOJSON);
-var neCoastalLayer   = buildRegionLayer(gd.NE_COASTAL_GEOJSON);
+var blueRidgeLayer    = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
+var coastalLayer      = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
+var gulfCoastalLayer  = buildRegionLayer(gd.GULF_COASTAL_GEOJSON);
+var piedmontLayer     = buildRegionLayer(gd.PIEDMONT_GEOJSON);
+var valleyRidgeLayer  = buildRegionLayer(gd.VALLEY_RIDGE_GEOJSON);
+var neUplandLayer     = buildRegionLayer(gd.NE_UPLAND_GEOJSON);
+var neCoastalLayer    = buildRegionLayer(gd.NE_COASTAL_GEOJSON);
 
 var fallLineFeatureCollection = {
   type: 'FeatureCollection',
@@ -186,8 +187,10 @@ var riversLayer = L.geoJSON(gd.MAJOR_RIVERS_GEOJSON, {
   },
 });
 
-// Layer order: bottom to top — coastal, piedmont, Valley&Ridge, NE coastal/upland,
-// Blue Ridge last so it captures clicks over its neighbours; rivers + fall line + cities on top.
+// Layer order: bottom to top — Gulf Coastal, Atlantic Coastal, Piedmont,
+// Valley&Ridge, NE coastal/upland, Blue Ridge last so it captures clicks
+// over its neighbours; rivers (invisible hit-area) + fall line + cities on top.
+gulfCoastalLayer.addTo(map);
 coastalLayer.addTo(map);
 neCoastalLayer.addTo(map);
 piedmontLayer.addTo(map);
@@ -256,6 +259,8 @@ var hardinessActive = false;  // true while the zone layer is visible
  */
 function setRegionMode(outlineOnly) {
   var styles = gd.STYLES;
+  if (map.hasLayer(gulfCoastalLayer))
+    gulfCoastalLayer.setStyle(outlineOnly ? styles.coastalOutline  : styles.coastal);
   if (map.hasLayer(coastalLayer))
     coastalLayer.setStyle(outlineOnly ? styles.coastalOutline    : styles.coastal);
   if (map.hasLayer(neCoastalLayer))
@@ -392,14 +397,17 @@ map.on('zoomend', function () {
 document.getElementById('toggle-regions').addEventListener('change', function () {
   if (this.checked) {
     // Re-add in the same stacking order as initial load
+    map.addLayer(gulfCoastalLayer);
     map.addLayer(coastalLayer);
     map.addLayer(neCoastalLayer);
     map.addLayer(piedmontLayer);
     map.addLayer(neUplandLayer);
     map.addLayer(valleyRidgeLayer);
     map.addLayer(blueRidgeLayer);
-    // Keep rivers and fall line above regions
-    if (map.hasLayer(riversLayer))   riversLayer.bringToFront();
+    // Apply current display mode (fill vs outline) based on zone layer state
+    setRegionMode(hardinessActive);
+    // Keep rivers (invisible) and fall line above regions
+    riversLayer.bringToFront();
     if (map.hasLayer(fallLineLayer)) fallLineLayer.bringToFront();
     if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
   } else {
@@ -409,6 +417,7 @@ document.getElementById('toggle-regions').addEventListener('change', function ()
     map.removeLayer(neCoastalLayer);
     map.removeLayer(coastalLayer);
     map.removeLayer(piedmontLayer);
+    map.removeLayer(gulfCoastalLayer);
   }
 });
 
@@ -443,15 +452,6 @@ document.getElementById('toggle-cities').addEventListener('change', function () 
   }
 });
 
-document.getElementById('toggle-rivers').addEventListener('change', function () {
-  if (this.checked) {
-    map.addLayer(riversLayer);
-    fallLineLayer.bringToFront();
-    cityMarkersLayer.bringToFront();
-  } else {
-    map.removeLayer(riversLayer);
-  }
-});
 
 
 /* ─── Legend collapse / expand ──────────────────────────────── */
