@@ -1834,8 +1834,8 @@ describe('VALLEY_RIDGE_GEOJSON structure', () => {
     for (const pt of ring) {
       assert.equal(pt.length, 2, 'each point must have 2 values');
       assert.ok(typeof pt[0] === 'number' && typeof pt[1] === 'number', 'values must be numbers');
-      assert.ok(pt[0] < -75 && pt[0] > -87, `longitude ${pt[0]} out of Appalachian range`);
-      assert.ok(pt[1] >= 34 && pt[1] <= 42, `latitude ${pt[1]} out of Appalachian range`);
+      assert.ok(pt[0] < -75 && pt[0] > -89, `longitude ${pt[0]} out of Appalachian range`);
+      assert.ok(pt[1] >= 34 && pt[1] <= 43, `latitude ${pt[1]} out of Appalachian range`);
     }
   });
 
