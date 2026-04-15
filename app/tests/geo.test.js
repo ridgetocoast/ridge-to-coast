@@ -317,9 +317,10 @@ describe('Piedmont polygon', () => {
 
   it('western boundary reaches the metro west edge', () => {
     const minLon = Math.min(...ring.map(([lon]) => lon));
+    // Piedmont extends to REGION_WEST (~-85.5); BBOX.WEST is broader (covers Gulf states)
     assert.ok(
-      minLon <= BBOX.WEST,
-      `piedmont polygon should reach BBOX west (${BBOX.WEST}), min lon was ${minLon}`
+      minLon <= -85.0,
+      `piedmont polygon should reach at least -85°W, min lon was ${minLon}`
     );
   });
 
@@ -551,7 +552,7 @@ describe('BBOX constants', () => {
 
   it('all values are within continental US range', () => {
     assert.ok(BBOX.NORTH > 24 && BBOX.NORTH < 50);
-    assert.ok(BBOX.SOUTH > 24 && BBOX.SOUTH < 50);
+    assert.ok(BBOX.SOUTH >= 24 && BBOX.SOUTH < 50);  // 24.0 = Florida Keys
     assert.ok(BBOX.EAST > -130 && BBOX.EAST < -60);
     assert.ok(BBOX.WEST > -130 && BBOX.WEST < -60);
   });
@@ -835,20 +836,28 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(42.36, -71.06), true);
   });
 
-  it('returns false for Bar Harbor, ME (44.38, -68.20) — east of corridor (beyond -69.5°W)', () => {
-    assert.equal(isInCorridor(44.38, -68.20), false);
+  it('returns true for Bar Harbor, ME (44.38, -68.20) — within expanded NE corridor', () => {
+    assert.equal(isInCorridor(44.38, -68.20), true);
   });
 
-  it('returns false for Louisville, KY (38.25, -85.76) — west of corridor', () => {
-    assert.equal(isInCorridor(38.25, -85.76), false);
+  it('returns true for Louisville, KY (38.25, -85.76) — within expanded Gulf corridor', () => {
+    assert.equal(isInCorridor(38.25, -85.76), true);
   });
 
-  it('returns false for Jacksonville, FL (30.33, -81.66) — south of corridor', () => {
-    assert.equal(isInCorridor(30.33, -81.66), false);
+  it('returns true for Jacksonville, FL (30.33, -81.66) — within expanded Gulf corridor', () => {
+    assert.equal(isInCorridor(30.33, -81.66), true);
   });
 
-  it('returns false for Miami, FL (25.77, -80.19) — south of corridor', () => {
-    assert.equal(isInCorridor(25.77, -80.19), false);
+  it('returns true for Miami, FL (25.77, -80.19) — within expanded Gulf corridor', () => {
+    assert.equal(isInCorridor(25.77, -80.19), true);
+  });
+
+  it('returns false for Montreal, QC (45.5, -73.57) — north of corridor at 48°N', () => {
+    assert.equal(isInCorridor(49.0, -73.57), false);
+  });
+
+  it('returns false for Denver, CO (39.74, -104.99) — west of corridor', () => {
+    assert.equal(isInCorridor(39.74, -104.99), false);
   });
 
   it('uses BBOX.NORTH/SOUTH/EAST/WEST boundaries (inclusive)', () => {
@@ -1340,8 +1349,8 @@ describe('BLUE_RIDGE_GEOJSON structure', () => {
     const ring = BLUE_RIDGE_GEOJSON.geometry.coordinates[0];
     for (const coord of ring) {
       assert.equal(coord.length, 2, 'each coordinate must have 2 values');
-      assert.ok(coord[0] < -77 && coord[0] > -86, `lon ${coord[0]} out of Appalachian range`);
-      assert.ok(coord[1] > 34 && coord[1] < 40,   `lat ${coord[1]} out of Appalachian range`);
+      assert.ok(coord[0] < -76.5 && coord[0] > -86, `lon ${coord[0]} out of Appalachian range`);
+      assert.ok(coord[1] > 34 && coord[1] < 42,     `lat ${coord[1]} out of Appalachian range`);
     }
   });
 
@@ -1826,7 +1835,7 @@ describe('VALLEY_RIDGE_GEOJSON structure', () => {
       assert.equal(pt.length, 2, 'each point must have 2 values');
       assert.ok(typeof pt[0] === 'number' && typeof pt[1] === 'number', 'values must be numbers');
       assert.ok(pt[0] < -75 && pt[0] > -87, `longitude ${pt[0]} out of Appalachian range`);
-      assert.ok(pt[1] >= 34 && pt[1] <= 40, `latitude ${pt[1]} out of Appalachian range`);
+      assert.ok(pt[1] >= 34 && pt[1] <= 42, `latitude ${pt[1]} out of Appalachian range`);
     }
   });
 

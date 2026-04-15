@@ -156,10 +156,10 @@ const FALL_LINE_GEOJSON = {
    ────────────────────────────────────────────────────────────── */
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
-const BBOX_NORTH =  44.500;   // above Augusta ME / Kennebec River (New England extension)
-const BBOX_SOUTH =  32.300;   // below Columbus GA / Chattahoochee River falls
-const BBOX_EAST  = -69.500;   // east of Augusta ME / mouth of Kennebec
-const BBOX_WEST  = -85.500;   // west of Chattanooga TN / NW Georgia
+const BBOX_NORTH =  47.500;   // northern Maine / Presque Isle
+const BBOX_SOUTH =  24.000;   // Florida Keys
+const BBOX_EAST  = -66.500;   // Quoddy Head ME — easternmost US point
+const BBOX_WEST  = -92.000;   // western Mississippi / New Orleans area
 
 // REGION: mid-Atlantic corridor — used for Coastal Plain & Piedmont polygon bounds
 // (These polygons only cover the historic fall line corridor, not New England)
@@ -176,6 +176,8 @@ const REGION_WEST  = -85.500;  // west of Chattanooga TN / NW Georgia
    with no overlap or gap.
    ────────────────────────────────────────────────────────────── */
 const BLUE_RIDGE_EAST_ESCARPMENT = [
+  [-76.900, 41.500],  // Kittatinny Ridge PA — Blue Ridge front at Delaware Water Gap
+  [-77.100, 40.700],  // South Mountain PA / Cumberland Valley PA
   [-77.400, 39.700],  // South Mountain MD — Blue Ridge faces the Hagerstown Valley
   [-77.800, 39.200],  // Harpers Ferry WV — Blue Ridge meets the Potomac gap
   [-78.300, 38.600],  // Front Royal VA — entrance to Shenandoah National Park
@@ -193,6 +195,8 @@ const BLUE_RIDGE_EAST_ESCARPMENT = [
    eastern boundary. Defined north → south.
    ────────────────────────────────────────────────────────────── */
 const BLUE_RIDGE_WEST_ESCARPMENT = [
+  [-79.200, 41.400],  // Allegheny Front PA / Clearfield County PA
+  [-79.000, 40.600],  // Allegheny Front / Blair County PA
   [-77.900, 39.500],  // Washington County MD / South Mountain PA — valley edge
   [-78.800, 38.800],  // WV panhandle / Cacapon River — Shenandoah's back ridge
   [-79.800, 38.000],  // Highland County VA — Allegheny Highlands
@@ -316,7 +320,7 @@ const PIEDMONT_GEOJSON = {
       [REGION_WEST, REGION_SOUTH],                     // SW corner (south edge)
       [REGION_WEST, 34.600],                           // west edge: up to Blue Ridge south extent
       ...[...BLUE_RIDGE_EAST_ESCARPMENT].reverse(),    // west boundary: escarpment south→north
-      [REGION_WEST, 39.700],                           // west edge: up to NW corner latitude
+      [REGION_WEST, 41.500],                           // west edge: up to escarpment north end
       [REGION_WEST, REGION_NORTH],                     // close polygon
     ]],
   },
@@ -351,8 +355,8 @@ const BLUE_RIDGE_GEOJSON = {
       ...BLUE_RIDGE_WEST_ESCARPMENT,                      // north → south
       // East boundary — shared with Piedmont western boundary (south → north)
       ...[...BLUE_RIDGE_EAST_ESCARPMENT].reverse(),
-      // Close ring back to NW corner
-      [-77.900, 39.500],
+      // Close ring back to NW corner (must match BLUE_RIDGE_WEST_ESCARPMENT[0])
+      BLUE_RIDGE_WEST_ESCARPMENT[0],
     ]],
   },
 };
@@ -421,18 +425,16 @@ const NE_UPLAND_GEOJSON = {
     coordinates: [[
       // South: connect to existing Piedmont region at Peekskill NY
       [-73.920, 41.290],
-      // West boundary: Hudson Valley / CT-NY border / VT-NH / Maine interior
-      [-74.200, 41.500],   // lower Hudson Valley NY
-      [-74.500, 42.000],   // mid-Hudson Valley / Catskills NY
-      [-73.800, 42.700],   // Albany NY / Rensselaer County
-      [-73.400, 43.500],   // Lake George NY / VT border
-      [-72.600, 43.900],   // Vermont / NH border area
-      [-71.500, 44.500],   // NH / Quebec border
-      // North boundary across to Maine
-      [-69.781, 44.500],
-      // East boundary: NE fall zone north → south (reversed = south→north here going back)
-      // Actually we go NORTH from Peekskill to Augusta along fall zone as EAST boundary
-      // then close south. Let me trace: east boundary is the fall zone going south:
+      // West boundary: push far enough west to include full Vermont, NH, upstate NY
+      [-75.600, 41.900],   // Catskill Mountains / upper Delaware River headwaters
+      [-76.000, 42.600],   // Schoharie Valley NY / western NY foothills
+      [-74.800, 43.200],   // Southern Adirondacks / Lake George area
+      [-73.600, 44.000],   // Lake Champlain south — includes Burlington VT
+      [-73.400, 44.800],   // VT / Quebec border — all of Vermont now inside
+      [-72.000, 45.500],   // NH / Quebec border extended
+      [-70.500, 46.500],   // Central Maine / Aroostook County
+      [-67.200, 47.000],   // NE Maine — new north terminus
+      // East boundary: NE fall zone south from Maine to Peekskill
       [-69.781, 44.311],   // Augusta ME (fall zone NE terminus)
       [-71.455, 43.004],   // Manchester NH
       [-71.312, 42.643],   // Lowell MA
@@ -473,7 +475,8 @@ const NE_COASTAL_GEOJSON = {
       [-71.455, 43.004],   // Manchester NH
       [-69.781, 44.311],   // Augusta ME
       // East / coastal boundary — simplified Atlantic coast of New England
-      [-67.500, 44.500],   // Maine coast (Eastport area / Passamaquoddy Bay)
+      [-67.000, 47.000],   // NE Maine / Quoddy Head — northernmost US Atlantic coast
+      [-67.500, 44.800],   // Maine coast / Eastport / Passamaquoddy Bay
       [-70.200, 43.700],   // New Hampshire seacoast / Portsmouth area
       [-70.900, 42.600],   // Massachusetts coast / Plymouth area
       [-71.000, 41.500],   // Rhode Island coast / Newport area
@@ -510,6 +513,13 @@ const STYLES = {
     fillColor:   '#9b7aad',   // Dusty violet — limestone valley character
     fillOpacity: 0.18,
     color:       '#9b7aad',
+    weight:      0,
+    interactive: true,
+  },
+  gulfCoastal: {
+    fillColor:   '#4682DC',   // Same coastal blue — Gulf is a continuation of Atlantic Coastal Plain
+    fillOpacity: 0.18,
+    color:       '#4682DC',
     weight:      0,
     interactive: true,
   },
@@ -557,15 +567,18 @@ const STYLES = {
     opacity:     0.65,
     interactive: true,
   },
+  // Rivers: invisible lines but wide hit area — tooltip + click still work;
+  // the CARTO basemap already renders river lines so the overlay stays hidden.
   rivers: {
-    color:       '#4a9eff',
-    weight:      2,
-    opacity:     0.75,
+    color:       'transparent',
+    opacity:     0,
+    weight:      12,
+    fillOpacity: 0,
     interactive: true,
   },
   riversHover: {
-    weight:  3.5,
-    opacity: 1.0,
+    weight:  12,
+    opacity: 0,
   },
 };
 
@@ -764,6 +777,44 @@ const NATIVE_PLANTS = {
       note:  'Specialist of limestone cliffs and outcrops; sharply toothed leaves resemble chestnut; an anchor species of cedar-oak calcareous woodlands',
     },
   ],
+  gulfCoastal: [
+    {
+      name:  'Live Oak',
+      latin: 'Quercus virginiana',
+      type:  'tree',
+      note:  'Iconic spreading evergreen oak of the Gulf and South Atlantic coasts; salt-tolerant, hurricane-resistant, and extraordinarily long-lived',
+    },
+    {
+      name:  'Longleaf Pine',
+      latin: 'Pinus palustris',
+      type:  'tree',
+      note:  'Keystone of the Gulf Coastal Plain savanna; once covered 90 million acres, now reduced to 3%; fire-dependent ecosystem supports hundreds of rare species',
+    },
+    {
+      name:  'Bald Cypress',
+      latin: 'Taxodium distichum',
+      type:  'tree',
+      note:  'Dominant tree of Gulf Coast swamps and bayous; knees emerge from saturated soils; can live over 1,000 years in undisturbed bottomlands',
+    },
+    {
+      name:  'Saw Palmetto',
+      latin: 'Serenoa repens',
+      type:  'shrub',
+      note:  'Defining ground cover of Florida scrub and coastal pine flatwoods; extremely fire-tolerant with a root crown that survives repeated burns',
+    },
+    {
+      name:  'Southern Magnolia',
+      latin: 'Magnolia grandiflora',
+      type:  'tree',
+      note:  'Signature broadleaf evergreen of the Gulf South; large fragrant white flowers; thrives in the warm, humid subtropical climate',
+    },
+    {
+      name:  'Purple Pitcher Plant',
+      latin: 'Sarracenia purpurea',
+      type:  'perennial',
+      note:  'Carnivorous bog plant of Gulf Coast pitcher plant prairies; traps insects in rain-filled pitchers; indicator of undisturbed acidic wetlands',
+    },
+  ],
 };
 
 /**
@@ -841,6 +892,13 @@ const SOIL_TYPES = {
     pH:         '6.2–7.5 (near-neutral to mildly alkaline)',
     drainage:   'Well drained on valley floors and gentle slopes; seasonally wet in low-lying limestone karst depressions',
     amendments: 'Generally fertile with minimal amendment needed; phosphorus and potassium often abundant; watch for iron and manganese deficiency at high pH; lime rarely needed — test before applying',
+  },
+  gulfCoastal: {
+    series:     'Lakeland–Blanton–Ocilla (Entisols / Ultisols)',
+    texture:    'Fine sand to sandy loam (deep, highly permeable)',
+    pH:         '4.5–6.0 (strongly to moderately acidic)',
+    drainage:   'Excessively drained on uplands; poorly to very poorly drained in flatwoods and swamps; hardpan (spodic) layer common 24–48 in. below surface',
+    amendments: 'Heavy organic matter needed to retain moisture and nutrients in sandy profiles; raised beds recommended for vegetables; avoid waterlogging in flatwoods; sulfur rarely needed — soils already acidic',
   },
 };
 
@@ -926,11 +984,12 @@ function makeFallLinePopup() {
    ────────────────────────────────────────────────────────────── */
 
 var REGION_LABELS = {
-  coastal:    'Coastal Plain (Tidewater)',
-  piedmont:   'Piedmont',
-  blueRidge:  'Blue Ridge / Appalachian Mountains',
-  valleyRidge:'Valley and Ridge / Great Appalachian Valley',
-  ecotone:    'Fall Line Ecotone',
+  coastal:     'Coastal Plain (Tidewater)',
+  gulfCoastal: 'Gulf Coastal Plain',
+  piedmont:    'Piedmont',
+  blueRidge:   'Blue Ridge / Appalachian Mountains',
+  valleyRidge: 'Valley and Ridge / Great Appalachian Valley',
+  ecotone:     'Fall Line Ecotone',
 };
 
 /**
@@ -939,11 +998,11 @@ var REGION_LABELS = {
  * @returns {string}
  */
 function makeRegionDetailHTML(region) {
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON };
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON, gulfCoastal: GULF_COASTAL_GEOJSON };
   var geojson = geojsonMap[region];
   if (!geojson) return '';
   var props = geojson.properties;
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', gulfCoastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var color = REGION_COLORS[region] || '#888888';
   return (
     '<article class="detail-page">' +
@@ -1043,7 +1102,7 @@ function makeCityDetailHTML(slug) {
       '</div>'
     );
   };
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', gulfCoastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var accentColor = REGION_COLORS[city.region] || '#888888';
   return (
     '<article class="detail-page">' +
@@ -1071,6 +1130,10 @@ function makeCityDetailHTML(slug) {
  * @returns {'coastal'|'piedmont'|'blueRidge'}
  */
 function classifyLocation(lat, lon) {
+  // Gulf Coastal Plain: south of the main fall line corridor and within the
+  // Gulf/Florida footprint (lat < 32.5°N and lon < -80°W, or deep Florida)
+  if (lat < 32.5 && (lon < -80.0 || lat < 28.0)) return 'gulfCoastal';
+
   // Find the fall line point with the closest latitude
   var closest = FALL_LINE_COORDS[0];
   var minLatDiff = Math.abs(FALL_LINE_COORDS[0][1] - lat);
@@ -1084,9 +1147,9 @@ function classifyLocation(lat, lon) {
   // East of fall line → Coastal Plain
   if (lon > closest[0]) return 'coastal';
 
-  // For latitudes covered by the Blue Ridge / Valley and Ridge (roughly 34.5–39.8°N),
+  // For latitudes covered by the Blue Ridge / Valley and Ridge (roughly 34.5–41.5°N),
   // use the escarpment arrays to distinguish Blue Ridge from Valley and Ridge from Piedmont.
-  if (lat >= 34.5 && lat <= 39.8) {
+  if (lat >= 34.5 && lat <= 41.5) {
     // Find the Blue Ridge east escarpment longitude nearest to this latitude
     var eastLon = BLUE_RIDGE_EAST_ESCARPMENT[0][0];
     var minEastDiff = Math.abs(BLUE_RIDGE_EAST_ESCARPMENT[0][1] - lat);
@@ -1118,7 +1181,7 @@ function classifyLocation(lat, lon) {
  */
 function makeLocationReport(lat, lon) {
   var region = classifyLocation(lat, lon);
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON };
+  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON, gulfCoastal: GULF_COASTAL_GEOJSON };
   var geojson = geojsonMap[region];
   var props   = geojson.properties;
 
@@ -1136,7 +1199,7 @@ function makeLocationReport(lat, lon) {
   var zoneLabel   = zoneInfo ? zoneInfo.label : ('Zone\u00a0' + nearestZone);
   var zoneSummary = zoneInfo ? zoneInfo.avgLowF + '\u00b0F\u00a0avg\u00a0min\u00b7' + zoneInfo.frostFree + '\u00a0frost-free\u00a0days' : '';
 
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
+  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', gulfCoastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
   var accentColor = REGION_COLORS[region] || '#888888';
 
   return (
@@ -1211,14 +1274,40 @@ function minDistanceToFallLine(target) {
    ────────────────────────────────────────────────────────────── */
 
 const HARDINESS_ZONE_COLORS = {
+  '3b': '#d0eeff', '4a': '#c2e4fa', '4b': '#a8d6f5',
   '5a': '#afd2e8', '5b': '#90bedd',
   '6a': '#72a9d2', '6b': '#5595c8',
   '7a': '#7ec87a', '7b': '#5aaf56',
   '8a': '#f5d63c', '8b': '#f5a800',
   '9a': '#f07800', '9b': '#e05000',
+  '10a': '#c80000', '10b': '#a00000', '11a': '#780000',
 };
 
 const HARDINESS_ZONE_INFO = {
+  '3b': {
+    tempRange:     '-35°F to -30°F (-37°C to -34°C)',
+    description:   'Very cold continental climate. Extreme winters characteristic of northern Maine and interior uplands.',
+    firstFrost:    'mid-September',
+    lastFrost:     'late May',
+    growingSeason: '~100 days',
+    plants:        'white spruce, balsam fir, paper birch, mountain ash, cold-hardy blueberries',
+  },
+  '4a': {
+    tempRange:     '-30°F to -25°F (-34°C to -32°C)',
+    description:   'Cold continental climate. Northern Maine uplands and highest Appalachian ridges.',
+    firstFrost:    'late September',
+    lastFrost:     'mid-May',
+    growingSeason: '~120 days',
+    plants:        'crabapple, lilac, highbush blueberry, native serviceberry, sugar maple',
+  },
+  '4b': {
+    tempRange:     '-25°F to -20°F (-32°C to -29°C)',
+    description:   'Cold continental climate. Northern Maine and upper New England highlands.',
+    firstFrost:    'early October',
+    lastFrost:     'early May',
+    growingSeason: '~140 days',
+    plants:        'crabapple, forsythia, highbush blueberry, serviceberry, yellow birch',
+  },
   '5a': {
     tempRange:     '-20°F to -15°F (-29°C to -26°C)',
     description:   'Cool continental climate. Cold winters limit many broadleaf evergreens.',
@@ -1290,6 +1379,38 @@ const HARDINESS_ZONE_INFO = {
     lastFrost:     'mid-February',
     growingSeason: '~295 days',
     plants:        'live oak, sago palm, sweet olive (osmanthus), camellias, wax myrtle, bougainvillea (marginal)',
+  },
+  '9b': {
+    tempRange:     '25°F to 30°F (-4°C to -1°C)',
+    description:   'Subtropical. Central and northern Florida, Gulf Coast — frost is brief and rare.',
+    firstFrost:    'occasional frost December–January',
+    lastFrost:     'January (rare)',
+    growingSeason: '~330 days',
+    plants:        'citrus (marginal), royal palm, bougainvillea, bird of paradise, fishtail palm',
+  },
+  '10a': {
+    tempRange:     '30°F to 35°F (-1°C to 2°C)',
+    description:   'Tropical-transitional. South Florida — freezing temperatures are very rare; subtropical plants thrive year-round.',
+    firstFrost:    'frost very rare',
+    lastFrost:     'frost very rare',
+    growingSeason: '365 days',
+    plants:        'mango, avocado, queen palm, frangipani, ginger, hibiscus, citrus',
+  },
+  '10b': {
+    tempRange:     '35°F to 40°F (2°C to 4°C)',
+    description:   'Tropical. Coastal south Florida — essentially frost-free; true tropical species thrive.',
+    firstFrost:    'frost essentially absent',
+    lastFrost:     'frost essentially absent',
+    growingSeason: '365 days',
+    plants:        'mango, coconut palm, papaya, carambola, lychee, tropical orchids',
+  },
+  '11a': {
+    tempRange:     '40°F to 45°F (4°C to 7°C)',
+    description:   'Tropical. Florida Keys and extreme south Florida tip — no frost; year-round tropical growing conditions.',
+    firstFrost:    'frost absent',
+    lastFrost:     'frost absent',
+    growingSeason: '365 days',
+    plants:        'coconut palm, sea grape, red mangrove, torch ginger, tropical hardwoods',
   },
 };
 
@@ -1681,6 +1802,45 @@ function makeMarkerPopup(city) {
 }
 
 
+/* ─── Gulf Coastal Plain ─────────────────────────────────────────
+   Southern continuation of the Atlantic Coastal Plain wrapping around
+   the base of the Appalachians and extending through Florida.
+   Reuses region key 'coastal' so existing coastal plant and soil data
+   applies; no new swatch or CSS needed.
+   ────────────────────────────────────────────────────────────── */
+const GULF_COASTAL_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region:      'gulfCoastal',
+    name:        'Gulf Coastal Plain',
+    description: 'The southern continuation of the Atlantic Coastal Plain, wrapping ' +
+      'around the base of the Appalachians and extending through Florida. Flat ' +
+      'Tertiary sands and limestone, subtropical climate, longleaf pine savannas, ' +
+      'cypress swamps, and mangrove coasts define the ecology from the Apalachicola ' +
+      'River to the Florida Keys.',
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      [-85.000, 32.500],  // NW Georgia — connects to REGION_SOUTH boundary
+      [-86.500, 32.500],  // Northern Alabama fall line
+      [-88.500, 32.000],  // Mid-Alabama / Columbus MS fall line
+      [-91.000, 31.000],  // Central Mississippi — northern Gulf Coastal Plain edge
+      [-89.500, 30.100],  // Pascagoula MS / Gulf coast
+      [-88.000, 30.300],  // Mobile Bay AL
+      [-84.900, 29.700],  // Tallahassee FL / Apalachicola
+      [-82.000, 25.000],  // Naples FL / Gulf side
+      [-80.100, 24.550],  // Florida Keys / Key West
+      [-80.050, 25.800],  // Miami FL / Biscayne Bay
+      [-81.500, 30.100],  // Jacksonville FL / St. Johns River
+      [-83.000, 30.400],  // Okefenokee Swamp / Waycross GA
+      [-84.500, 31.000],  // Southern Georgia / Thomasville area
+      [-85.000, 32.500],  // close ring
+    ]],
+  },
+};
+
+
 /* ─── New England Fall Zone ─────────────────────────────────────
    Separate LineString for the New England mill-city fall zone
    (Augusta ME → Manchester NH → Lowell MA → Pawtucket RI → Waterbury CT).
@@ -1998,6 +2158,7 @@ const GeoData = {
   VALLEY_RIDGE_GEOJSON,
   NE_UPLAND_GEOJSON,
   NE_COASTAL_GEOJSON,
+  GULF_COASTAL_GEOJSON,
   BLUE_RIDGE_EAST_ESCARPMENT,
   BLUE_RIDGE_WEST_ESCARPMENT,
   STYLES,

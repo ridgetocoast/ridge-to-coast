@@ -15,7 +15,7 @@ from playwright.sync_api import expect
 # ---------------------------------------------------------------------------
 
 LAYER_TIMEOUT  = 10_000   # ms — Leaflet SVG paths (local data, no network needed)
-FETCH_TIMEOUT  = 20_000   # ms — hardiness.geojson fetch
+FETCH_TIMEOUT  = 45_000   # ms — hardiness.geojson fetch (now 22 states / ~4 MB)
 
 
 def wait_for_map(page):
@@ -61,8 +61,9 @@ def test_all_toggles_present(page):
     assert page.locator("#toggle-regions").count() == 1
     assert page.locator("#toggle-fallline").count() == 1
     assert page.locator("#toggle-cities").count() == 1
-    assert page.locator("#toggle-rivers").count() == 1
     assert page.locator("#toggle-hardiness").count() == 1
+    # Rivers toggle removed — rivers layer is always-on with invisible styling
+    assert page.locator("#toggle-rivers").count() == 0
 
 
 def test_no_js_errors_on_load(page):
@@ -80,9 +81,10 @@ def test_vector_layers_render(page):
     """Fall line, region shading, and rivers SVG paths are present after load."""
     wait_for_map(page)
     paths = page.locator(".leaflet-overlay-pane path")
-    # 3 region polygons + 2 fall line segments + 14 rivers = 19+ paths
-    assert paths.count() >= 5, (
-        f"Expected at least 5 SVG paths (regions + fall line + rivers), got {paths.count()}"
+    # 7 region polygons (coastal, piedmont, neCoastal, neUpland, blueRidge, valleyRidge,
+    # gulfCoastal) + 2 fall line segments + 14 rivers = 23+ paths
+    assert paths.count() >= 7, (
+        f"Expected at least 7 SVG paths (regions + fall line + rivers), got {paths.count()}"
     )
 
 
@@ -303,41 +305,6 @@ def test_zone_detail_page_loads(page):
 # ---------------------------------------------------------------------------
 # Suite 7 — Rivers layer
 # ---------------------------------------------------------------------------
-
-def test_rivers_toggle_checked_by_default(page):
-    """Rivers toggle is checked (visible) by default."""
-    page.goto("/")
-    toggle = page.locator("#toggle-rivers")
-    expect(toggle).to_be_checked(timeout=LAYER_TIMEOUT)
-
-
-def test_river_swatch_in_legend(page):
-    """Rivers legend swatch is present in the DOM."""
-    page.goto("/")
-    swatch = page.locator(".swatch.river")
-    expect(swatch).to_be_attached(timeout=LAYER_TIMEOUT)
-
-
-def test_rivers_toggle_removes_paths(page):
-    """Unchecking the rivers toggle reduces the SVG path count."""
-    wait_for_map(page)
-    before = page.locator(".leaflet-overlay-pane path").count()
-    page.locator("#toggle-rivers").uncheck()
-    page.wait_for_timeout(300)
-    after = page.locator(".leaflet-overlay-pane path").count()
-    assert after < before, "Unchecking rivers should reduce the SVG path count"
-
-
-def test_rivers_toggle_roundtrip(page):
-    """Rivers layer can be toggled off and back on."""
-    wait_for_map(page)
-    toggle = page.locator("#toggle-rivers")
-    toggle.uncheck()
-    page.wait_for_timeout(300)
-    toggle.check()
-    page.wait_for_timeout(300)
-    expect(toggle).to_be_checked()
-
 
 def test_river_detail_page_loads(page):
     """Navigating to /#detail/river/james shows the James River detail page."""

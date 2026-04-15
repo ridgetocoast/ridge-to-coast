@@ -40,12 +40,12 @@ const fs   = require('fs');
 const path = require('path');
 
 // Full corridor bounding box — matches BBOX in geo-data.js
-// Augusta ME (north) → Columbus GA (south); Maine coast (east) → Appalachians (west)
+// Northern Maine → Florida Keys (south); Quoddy Head ME (east) → western Mississippi (west)
 const BBOX = {
-  west:  -85.20,
-  east:  -69.50,
-  south:  32.20,
-  north:  44.50,
+  west:  -92.00,
+  east:  -66.50,
+  south:  24.00,
+  north:  47.50,
 };
 
 // Expand slightly so zone polygons crossing the edge aren't clipped mid-feature
