@@ -590,6 +590,14 @@ const STYLES = {
     opacity:     0.65,
     interactive: true,
   },
+  gulfCoastalOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4682DC',
+    color:       '#4682DC',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
   // Rivers: invisible lines but wide hit area — tooltip + click still work;
   // the CARTO basemap already renders river lines so the overlay stays hidden.
   rivers: {

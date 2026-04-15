@@ -14,12 +14,14 @@ from playwright.sync_api import expect
 # Helpers
 # ---------------------------------------------------------------------------
 
-LAYER_TIMEOUT  = 10_000   # ms — Leaflet SVG paths (local data, no network needed)
-FETCH_TIMEOUT  = 45_000   # ms — hardiness.geojson fetch (now 22 states / ~4 MB)
+LAYER_TIMEOUT   = 10_000   # ms — Leaflet SVG paths (local data, no network needed)
+FETCH_TIMEOUT   = 90_000   # ms — hardiness.geojson fetch (22 states / ~4 MB; slow parse)
+REGIONS_TIMEOUT = 15_000   # ms — data/regions.geojson async fetch
 
 
 def wait_for_map(page):
-    """Navigate to root and wait for Leaflet vector layers to render.
+    """Navigate to root and wait for Leaflet vector layers to render,
+    including the async data/regions.geojson fetch.
 
     We wait for SVG overlay paths, not tile images — tiles load from an
     external CDN (CARTO) that may be unavailable in restricted environments.
@@ -29,8 +31,10 @@ def wait_for_map(page):
     page.goto("/")
     # Leaflet adds .leaflet-container once the map object is created
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-    # Fall line + region polygons render as SVG paths in the overlay pane
+    # Fall line + rivers render synchronously; region polygons load async
     page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    # Wait for data/regions.geojson fetch to complete (sets data-regions-loaded attr)
+    page.wait_for_selector("[data-regions-loaded]", timeout=REGIONS_TIMEOUT)
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +80,17 @@ def test_no_js_errors_on_load(page):
 # ---------------------------------------------------------------------------
 # Suite 2 — Layer rendering
 # ---------------------------------------------------------------------------
+
+def test_regions_fetch_returns_200(page):
+    """data/regions.geojson is fetched on load and returns HTTP 200."""
+    with page.expect_response("**/data/regions.geojson", timeout=REGIONS_TIMEOUT) as resp_info:
+        page.goto("/")
+        page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
+    response = resp_info.value
+    assert response.status == 200, (
+        f"Expected HTTP 200 for regions.geojson, got {response.status}"
+    )
+
 
 def test_vector_layers_render(page):
     """Fall line, region shading, and rivers SVG paths are present after load."""
