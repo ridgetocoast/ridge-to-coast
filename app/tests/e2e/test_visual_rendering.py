@@ -15,6 +15,9 @@ Approach:
     deterministic regardless of tile loading or network state.
   - Hover behaviour is tested by firing Leaflet's 'mouseover' event and
     checking that fill-opacity increases to the hover value.
+  - Region layers are now loaded asynchronously from data/regions.geojson
+    into a single `regionsLayer`.  Tests that inspect region SVG attrs must
+    call wait_for_regions() before evaluate().
 
 STYLES reference (from lib/geo-data.js):
   fallLine:    color '#e84393', weight 3, opacity 0.9, fill none
@@ -28,7 +31,8 @@ City marker style (from map.js CITY_MARKER_STYLE):
 
 import pytest
 
-LAYER_TIMEOUT = 10_000
+LAYER_TIMEOUT   = 10_000
+REGIONS_TIMEOUT = 15_000   # async data/regions.geojson fetch
 
 # ── Expected SVG attribute values ─────────────────────────────────────────────
 # Must match STYLES in lib/geo-data.js and CITY_MARKER_STYLE in map.js exactly.
@@ -49,6 +53,13 @@ HOVER_OPACITY     = 0.32
 CITY_FILL         = '#ffffff'
 CITY_STROKE       = '#e84393'
 CITY_FILL_OPACITY = 0.9
+
+
+def wait_for_regions(page):
+    """Go to root and wait for both the Leaflet overlay and async regions load."""
+    page.goto("/")
+    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    page.wait_for_selector("[data-regions-loaded]", timeout=REGIONS_TIMEOUT)
 
 
 # ── Suite 1: Fall line visual properties ──────────────────────────────────────
@@ -136,63 +147,70 @@ def test_fall_line_has_no_fill(page):
 
 def test_coastal_plain_fill_color(page):
     """Coastal Plain polygon has the correct blue fill color (#4682DC)."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     fill = page.evaluate("""
         () => {
             let color = null;
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) color = el.getAttribute('fill');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) color = el.getAttribute('fill');
+                }
             });
             return color;
         }
     """)
-    assert fill is not None, "Coastal layer produced no rendered SVG element"
+    assert fill is not None, "Coastal region produced no rendered SVG element"
     assert fill.lower() == COASTAL_FILL, \
         f"Expected fill {COASTAL_FILL!r}, got {fill!r}"
 
 
 def test_coastal_plain_fill_opacity(page):
     """Coastal Plain polygon fill-opacity is 0.18 (semi-transparent)."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     opacity = page.evaluate("""
         () => {
             let op = null;
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) op = el.getAttribute('fill-opacity');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) op = el.getAttribute('fill-opacity');
+                }
             });
             return op !== null ? parseFloat(op) : null;
         }
     """)
-    assert opacity is not None, "Coastal layer element has no fill-opacity attribute"
+    assert opacity is not None, "Coastal region element has no fill-opacity attribute"
     assert abs(opacity - COASTAL_OPACITY) < 0.01, \
         f"Expected fill-opacity {COASTAL_OPACITY}, got {opacity}"
 
 
 def test_coastal_hover_increases_opacity(page):
     """Hovering the Coastal Plain polygon raises fill-opacity to 0.32."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     result = page.evaluate("""
         () => {
             let before = null, after = null;
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) before = parseFloat(el.getAttribute('fill-opacity'));
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) before = parseFloat(el.getAttribute('fill-opacity'));
+                }
             });
             // Fire Leaflet's mouseover event to trigger the hover style
-            coastalLayer.eachLayer(function(layer) {
-                layer.fire('mouseover');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    layer.fire('mouseover');
+                }
             });
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) after = parseFloat(el.getAttribute('fill-opacity'));
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) after = parseFloat(el.getAttribute('fill-opacity'));
+                }
             });
             return { before, after };
         }
@@ -207,21 +225,26 @@ def test_coastal_hover_increases_opacity(page):
 
 def test_coastal_mouseout_restores_opacity(page):
     """Mouse-out after hovering restores Coastal Plain fill-opacity to 0.18."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     opacity = page.evaluate("""
         () => {
-            coastalLayer.eachLayer(function(layer) {
-                layer.fire('mouseover');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    layer.fire('mouseover');
+                }
             });
-            coastalLayer.eachLayer(function(layer) {
-                layer.fire('mouseout');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    layer.fire('mouseout');
+                }
             });
             let op = null;
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) op = parseFloat(el.getAttribute('fill-opacity'));
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) op = parseFloat(el.getAttribute('fill-opacity'));
+                }
             });
             return op;
         }
@@ -235,35 +258,37 @@ def test_coastal_mouseout_restores_opacity(page):
 
 def test_piedmont_fill_color(page):
     """Piedmont polygon has the correct orange-brown fill color (#C88232)."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     fill = page.evaluate("""
         () => {
             let color = null;
-            piedmontLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) color = el.getAttribute('fill');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'piedmont') {
+                    const el = layer.getElement();
+                    if (el) color = el.getAttribute('fill');
+                }
             });
             return color;
         }
     """)
-    assert fill is not None, "Piedmont layer produced no rendered SVG element"
+    assert fill is not None, "Piedmont region produced no rendered SVG element"
     assert fill.lower() == PIEDMONT_FILL, \
         f"Expected fill {PIEDMONT_FILL!r}, got {fill!r}"
 
 
 def test_piedmont_fill_opacity(page):
     """Piedmont polygon fill-opacity is 0.18 (semi-transparent)."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     opacity = page.evaluate("""
         () => {
             let op = null;
-            piedmontLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) op = el.getAttribute('fill-opacity');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'piedmont') {
+                    const el = layer.getElement();
+                    if (el) op = el.getAttribute('fill-opacity');
+                }
             });
             return op !== null ? parseFloat(op) : null;
         }
@@ -275,22 +300,27 @@ def test_piedmont_fill_opacity(page):
 
 def test_piedmont_hover_increases_opacity(page):
     """Hovering the Piedmont polygon raises fill-opacity to 0.32."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     result = page.evaluate("""
         () => {
             let before = null, after = null;
-            piedmontLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) before = parseFloat(el.getAttribute('fill-opacity'));
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'piedmont') {
+                    const el = layer.getElement();
+                    if (el) before = parseFloat(el.getAttribute('fill-opacity'));
+                }
             });
-            piedmontLayer.eachLayer(function(layer) {
-                layer.fire('mouseover');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'piedmont') {
+                    layer.fire('mouseover');
+                }
             });
-            piedmontLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) after = parseFloat(el.getAttribute('fill-opacity'));
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'piedmont') {
+                    const el = layer.getElement();
+                    if (el) after = parseFloat(el.getAttribute('fill-opacity'));
+                }
             });
             return { before, after };
         }
@@ -304,19 +334,17 @@ def test_piedmont_hover_increases_opacity(page):
 
 def test_coastal_and_piedmont_have_different_fills(page):
     """Coastal Plain and Piedmont use visually distinct fill colors."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     colors = page.evaluate("""
         () => {
             let coastal = null, piedmont = null;
-            coastalLayer.eachLayer(function(layer) {
+            regionsLayer.eachLayer(function(layer) {
+                const region = layer.feature.properties.region;
                 const el = layer.getElement();
-                if (el) coastal = el.getAttribute('fill');
-            });
-            piedmontLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) piedmont = el.getAttribute('fill');
+                if (!el) return;
+                if (region === 'coastal')  coastal  = el.getAttribute('fill');
+                if (region === 'piedmont') piedmont = el.getAttribute('fill');
             });
             return { coastal, piedmont };
         }
@@ -328,8 +356,7 @@ def test_coastal_and_piedmont_have_different_fills(page):
 
 def test_fall_line_stroke_differs_from_region_fills(page):
     """Fall line stroke color is distinct from both region fill colors."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     colors = page.evaluate("""
         () => {
@@ -338,9 +365,11 @@ def test_fall_line_stroke_differs_from_region_fills(page):
                 const el = layer.getElement();
                 if (el) fallLine = el.getAttribute('stroke');
             });
-            coastalLayer.eachLayer(function(layer) {
-                const el = layer.getElement();
-                if (el) coastal = el.getAttribute('fill');
+            regionsLayer.eachLayer(function(layer) {
+                if (layer.feature.properties.region === 'coastal') {
+                    const el = layer.getElement();
+                    if (el) coastal = el.getAttribute('fill');
+                }
             });
             return { fallLine, coastal };
         }
@@ -436,8 +465,7 @@ def test_city_marker_count_matches_cities_data(page):
 
 def test_regions_toggle_off_removes_filled_paths(page):
     """Unchecking regions toggle removes fill paths from the SVG overlay."""
-    page.goto("/")
-    page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
+    wait_for_regions(page)
 
     count_before = page.evaluate("""
         () => document.querySelectorAll(

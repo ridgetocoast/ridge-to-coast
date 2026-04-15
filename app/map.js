@@ -112,36 +112,69 @@ L.tileLayer(
 /* ─── Fall line and region layers ───────────────────────────── */
 
 /**
- * Build a Leaflet GeoJSON layer for a region polygon.
- * Clicking navigates to the detail page instead of opening a popup.
+ * Return the Leaflet style object for a region feature.
+ * Uses the outline variant when hardiness zones are active so zone fill
+ * colors are not obscured by region shading.
+ * @param {string}  region  - feature.properties.region key
+ * @param {boolean} outline - true when zone overlay is active
  */
-function buildRegionLayer(geojson) {
-  var style  = gd.STYLES[geojson.properties.region];
-  var region = geojson.properties.region;
+function regionStyle(region, outline) {
+  if (outline) {
+    return gd.STYLES[region + 'Outline'] || gd.STYLES.coastalOutline;
+  }
+  return gd.STYLES[region] || gd.STYLES.coastal;
+}
+
+/** Leaflet GeoJSON layer for all region polygons, populated by loadRegions(). */
+var regionsLayer = null;
+
+/**
+ * Build the single combined Leaflet GeoJSON layer from the regions
+ * FeatureCollection.  Each feature's style is driven by its region key.
+ */
+function buildRegionsLayer(geojson) {
   return L.geoJSON(geojson, {
-    style: style,
+    style: function (feature) {
+      return regionStyle(feature.properties.region, hardinessActive);
+    },
     onEachFeature: function (feature, layer) {
+      var region = feature.properties.region;
       layer.on('click', function () {
-        location.hash = '#detail/region/' + feature.properties.region;
+        location.hash = '#detail/region/' + region;
       });
       layer.on('mouseover', function () {
         this.setStyle({ fillOpacity: gd.STYLES.regionHover.fillOpacity });
         this.getElement() && (this.getElement().style.cursor = 'pointer');
       });
       layer.on('mouseout', function () {
-        this.setStyle({ fillOpacity: style.fillOpacity });
+        this.setStyle({ fillOpacity: regionStyle(region, hardinessActive).fillOpacity });
       });
     },
   });
 }
 
-var blueRidgeLayer    = buildRegionLayer(gd.BLUE_RIDGE_GEOJSON);
-var coastalLayer      = buildRegionLayer(gd.COASTAL_PLAIN_GEOJSON);
-var gulfCoastalLayer  = buildRegionLayer(gd.GULF_COASTAL_GEOJSON);
-var piedmontLayer     = buildRegionLayer(gd.PIEDMONT_GEOJSON);
-var valleyRidgeLayer  = buildRegionLayer(gd.VALLEY_RIDGE_GEOJSON);
-var neUplandLayer     = buildRegionLayer(gd.NE_UPLAND_GEOJSON);
-var neCoastalLayer    = buildRegionLayer(gd.NE_COASTAL_GEOJSON);
+/**
+ * Fetch data/regions.geojson and add the region layer to the map.
+ * Sets map.getContainer().dataset.regionsLoaded = 'true' on success
+ * so E2E tests can wait for the async load before interacting.
+ */
+function loadRegions() {
+  fetch('data/regions.geojson')
+    .then(function (r) { return r.json(); })
+    .then(function (geojson) {
+      regionsLayer = buildRegionsLayer(geojson);
+      regionsLayer.addTo(map);
+      riversLayer.bringToFront();
+      if (map.hasLayer(fallLineLayer)) fallLineLayer.bringToFront();
+      if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
+      setRegionMode(hardinessActive);
+      map.getContainer().dataset.regionsLoaded = 'true';
+    })
+    .catch(function (err) {
+      console.warn('regions.geojson load failed:', err);
+      map.getContainer().dataset.regionsLoaded = 'error';
+    });
+}
 
 var fallLineFeatureCollection = {
   type: 'FeatureCollection',
@@ -187,18 +220,13 @@ var riversLayer = L.geoJSON(gd.MAJOR_RIVERS_GEOJSON, {
   },
 });
 
-// Layer order: bottom to top — Gulf Coastal, Atlantic Coastal, Piedmont,
-// Valley&Ridge, NE coastal/upland, Blue Ridge last so it captures clicks
-// over its neighbours; rivers (invisible hit-area) + fall line + cities on top.
-gulfCoastalLayer.addTo(map);
-coastalLayer.addTo(map);
-neCoastalLayer.addTo(map);
-piedmontLayer.addTo(map);
-neUplandLayer.addTo(map);
-valleyRidgeLayer.addTo(map);
-blueRidgeLayer.addTo(map);
+// Add static layers first; loadRegions() inserts region fill below these.
 riversLayer.addTo(map);
 fallLineLayer.addTo(map);
+
+// Async: fetch data/regions.geojson and build region overlay.
+// Rivers + fall line are brought to front inside loadRegions() after regions load.
+loadRegions();
 
 
 /* ─── City marker layer ─────────────────────────────────────────
@@ -258,21 +286,12 @@ var hardinessActive = false;  // true while the zone layer is visible
  * @param {boolean} outlineOnly
  */
 function setRegionMode(outlineOnly) {
-  var styles = gd.STYLES;
-  if (map.hasLayer(gulfCoastalLayer))
-    gulfCoastalLayer.setStyle(outlineOnly ? styles.coastalOutline  : styles.coastal);
-  if (map.hasLayer(coastalLayer))
-    coastalLayer.setStyle(outlineOnly ? styles.coastalOutline    : styles.coastal);
-  if (map.hasLayer(neCoastalLayer))
-    neCoastalLayer.setStyle(outlineOnly ? styles.coastalOutline  : styles.coastal);
-  if (map.hasLayer(piedmontLayer))
-    piedmontLayer.setStyle(outlineOnly ? styles.piedmontOutline  : styles.piedmont);
-  if (map.hasLayer(neUplandLayer))
-    neUplandLayer.setStyle(outlineOnly ? styles.piedmontOutline  : styles.piedmont);
-  if (map.hasLayer(valleyRidgeLayer))
-    valleyRidgeLayer.setStyle(outlineOnly ? styles.valleyRidgeOutline : styles.valleyRidge);
-  if (map.hasLayer(blueRidgeLayer))
-    blueRidgeLayer.setStyle(outlineOnly ? styles.blueRidgeOutline : styles.blueRidge);
+  if (!regionsLayer) return;
+  regionsLayer.eachLayer(function (layer) {
+    var region = layer.feature && layer.feature.properties && layer.feature.properties.region;
+    if (!region) return;
+    layer.setStyle(regionStyle(region, outlineOnly));
+  });
 }
 
 var hardinessSpinner = document.getElementById('hardiness-spinner');
@@ -395,29 +414,15 @@ map.on('zoomend', function () {
 /* ─── Layer toggle controls ─────────────────────────────────── */
 
 document.getElementById('toggle-regions').addEventListener('change', function () {
+  if (!regionsLayer) return;
   if (this.checked) {
-    // Re-add in the same stacking order as initial load
-    map.addLayer(gulfCoastalLayer);
-    map.addLayer(coastalLayer);
-    map.addLayer(neCoastalLayer);
-    map.addLayer(piedmontLayer);
-    map.addLayer(neUplandLayer);
-    map.addLayer(valleyRidgeLayer);
-    map.addLayer(blueRidgeLayer);
-    // Apply current display mode (fill vs outline) based on zone layer state
+    regionsLayer.addTo(map);
     setRegionMode(hardinessActive);
-    // Keep rivers (invisible) and fall line above regions
     riversLayer.bringToFront();
     if (map.hasLayer(fallLineLayer)) fallLineLayer.bringToFront();
     if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
   } else {
-    map.removeLayer(blueRidgeLayer);
-    map.removeLayer(valleyRidgeLayer);
-    map.removeLayer(neUplandLayer);
-    map.removeLayer(neCoastalLayer);
-    map.removeLayer(coastalLayer);
-    map.removeLayer(piedmontLayer);
-    map.removeLayer(gulfCoastalLayer);
+    map.removeLayer(regionsLayer);
   }
 });
 
