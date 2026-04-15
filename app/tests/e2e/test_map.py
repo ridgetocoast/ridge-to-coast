@@ -15,7 +15,7 @@ from playwright.sync_api import expect
 # ---------------------------------------------------------------------------
 
 LAYER_TIMEOUT  = 10_000   # ms — Leaflet SVG paths (local data, no network needed)
-FETCH_TIMEOUT  = 20_000   # ms — hardiness.geojson fetch
+FETCH_TIMEOUT  = 45_000   # ms — hardiness.geojson fetch (now 22 states / ~4 MB)
 
 
 def wait_for_map(page):

@@ -160,12 +160,17 @@ def test_outside_corridor_shows_note(page):
     """Result outside the map coverage area triggers an out-of-bounds note."""
     page.goto("/")
     page.wait_for_selector(".leaflet-container", timeout=LAYER_TIMEOUT)
-    # Bangor ME — north of the coverage area (BBOX_NORTH ~44.5°N, Bangor ~44.8°N)
+    # Montreal, QC — north of BBOX_NORTH (47.5°N); Montreal is at 45.5°N / -73.57°W
+    # Use a clearly out-of-bounds location: Ottawa ON at 45.42°N — north of 47.5°N would
+    # be further north. Use Presque Isle ME at 46.68°N which is just inside...
+    # Use Quebec City at 46.8°N, -71.2°W — clearly north of the corridor? No, BBOX_NORTH=47.5.
+    # Use a point clearly north: Sherbrooke QC at 45.4°N is still inside...
+    # Use Denver, CO at 39.74°N, -104.99°W — west of BBOX_WEST (-92°W)
     page.route(NOMINATIM_PATTERN, lambda r: mock_nominatim(
-        r, "44.8012", "-68.7778", "Bangor, Maine"
+        r, "39.7392", "-104.9903", "Denver, Colorado"
     ))
 
-    page.locator("#search-input").fill("Bangor ME")
+    page.locator("#search-input").fill("Denver CO")
     page.locator("#search-form").locator("[type=submit]").click()
 
     status = page.locator("#search-status")
