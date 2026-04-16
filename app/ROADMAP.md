@@ -84,8 +84,9 @@ Trigger the workflow from the Actions tab:
 
 The workflow (`update-epa-regions.yml`) fetches the EPA data, regenerates
 `data/regions.geojson`, verifies all 9 region keys and file size, runs all 308 unit
-tests, and opens a PR automatically if the data has changed. Runs quarterly
-on a schedule as well.
+tests, and commits directly to master (triggering a GitHub Pages redeploy) if the
+data changed. Runs daily at 05:00 EST; most runs are no-ops since EPA boundary
+data is stable.
 
 **Manual pipeline (requires access to geodata.epa.gov):**
 ```bash

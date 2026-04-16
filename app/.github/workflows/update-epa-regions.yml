@@ -2,30 +2,30 @@ name: Update EPA Level III region data
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
 #
+#  Schedule: Runs daily at 10:00 UTC (05:00 EST / 06:00 EDT).
+#            EPA boundary data is stable; most runs will be no-ops.
+#            When data does change, the commit triggers a GitHub Pages redeploy.
+#
 #  Manual:   Actions → "Update EPA Level III region data" → Run workflow
 #            Optional: set `dry_run: true` to fetch + test without committing.
-#
-#  Schedule: Runs quarterly (1st of Jan, Apr, Jul, Oct at 03:00 UTC) to pick
-#            up any boundary revisions EPA publishes to their ArcGIS service.
 #
 on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry run — fetch and test but do not open a PR'
+        description: 'Dry run — fetch and test but do not commit'
         required: false
         default: 'false'
         type: boolean
   schedule:
-    - cron: '0 3 1 1,4,7,10 *'   # quarterly
+    - cron: '0 10 * * *'   # daily at 10:00 UTC (05:00 EST)
 
 permissions:
-  contents: write        # push the data branch
-  pull-requests: write   # open the PR
+  contents: write   # push directly to master to trigger GitHub Pages redeploy
 
 jobs:
   update-regions:
-    name: Fetch EPA data → regenerate regions.geojson → open PR
+    name: Fetch EPA data → regenerate regions.geojson → deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -106,14 +106,12 @@ jobs:
             echo "data/regions.geojson changed: +${ADDED}/-${REMOVED} lines"
           fi
 
-      # ── 8. Push branch + open PR (skip if no change or dry run) ─────────────
-      - name: Push data branch
+      # ── 8. Commit directly to master → triggers GitHub Pages redeploy ─────────
+      - name: Commit and push to master
         if: steps.diff.outputs.changed == 'true' && inputs.dry_run != 'true'
         run: |
-          BRANCH="data/epa-regions-$(date +%Y-%m-%d)"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
           git add data/regions.geojson
           git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))
 
@@ -122,45 +120,8 @@ jobs:
           Ridge to Coast features: ${{ env.REGION_FEATURES }}
           File size: ${{ env.REGION_SIZE_KB }} KB
 
-          Automated update via .github/workflows/update-epa-regions.yml"
-          git push origin "$BRANCH"
-          echo "BRANCH=${BRANCH}" >> "$GITHUB_ENV"
-
-      - name: Open pull request
-        if: steps.diff.outputs.changed == 'true' && inputs.dry_run != 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.create({
-              owner:   context.repo.owner,
-              repo:    context.repo.repo,
-              title:   `data: update regions.geojson from EPA Level III ecoregions (${new Date().toISOString().slice(0,10)})`,
-              head:    process.env.BRANCH,
-              base:    'master',
-              body:    [
-                '## Automated EPA Level III region data update',
-                '',
-                `Triggered by: ${context.eventName === 'schedule' ? 'quarterly schedule' : 'manual workflow_dispatch'}`,
-                '',
-                '| Metric | Value |',
-                '|---|---|',
-                `| EPA features fetched | ${process.env.EPA_FEATURES} |`,
-                `| Ridge to Coast features | ${process.env.REGION_FEATURES} |`,
-                `| File size | ${process.env.REGION_SIZE_KB} KB |`,
-                `| Changes | ${process.env.CHANGES || 'see diff'} |`,
-                '',
-                '## Verification',
-                '- [x] All 9 region keys present (coastal, piedmont, blueRidge, valleyRidge, gulfCoastal, neUpland, neCoastal, greatLakes, interiorLowlands)',
-                '- [x] File size < 2 MB',
-                '- [x] 308/308 unit tests pass',
-                '',
-                '## Review checklist',
-                '- [ ] Spot-check polygons in the map UI — regions look geographically correct',
-                '- [ ] No unexpected region gaps or overlaps',
-                '- [ ] Merge when satisfied',
-              ].join('\n'),
-            });
-            core.notice(`PR opened: ${pr.html_url}`);
+          Automated daily update via .github/workflows/update-epa-regions.yml"
+          git push origin master
 
       # ── 9. Workflow summary ───────────────────────────────────────────────────
       - name: Write job summary
