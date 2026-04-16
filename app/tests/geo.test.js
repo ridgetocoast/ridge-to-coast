@@ -55,6 +55,10 @@ const {
   NE_FALL_ZONE_GEOJSON,
   MAJOR_RIVERS_GEOJSON,
   makeRiverDetailHTML,
+  INVASIVE_SPECIES,
+  makeInvasivesSection,
+  PLANTING_CALENDAR,
+  makeCalendarSection,
 } = require('../lib/geo-data.js');
 
 
@@ -2037,5 +2041,282 @@ describe('Blue Ridge escarpment shared boundaries', () => {
 
   it('classifyLocation returns blueRidge for Asheville NC', () => {
     assert.equal(classifyLocation(35.58, -82.55), 'blueRidge');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — INVASIVE_SPECIES structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('INVASIVE_SPECIES structure', () => {
+  const VALID_REGIONS = [
+    'coastal', 'piedmont', 'ecotone', 'blueRidge', 'valleyRidge',
+    'gulfCoastal', 'neUpland', 'neCoastal', 'greatLakes', 'interiorLowlands',
+  ];
+  const VALID_TYPES   = new Set(['tree', 'shrub', 'perennial', 'grass', 'vine']);
+  const VALID_THREATS = new Set(['high', 'medium']);
+
+  it('is defined and is a plain object', () => {
+    assert.ok(INVASIVE_SPECIES, 'INVASIVE_SPECIES must be defined');
+    assert.equal(typeof INVASIVE_SPECIES, 'object');
+    assert.ok(!Array.isArray(INVASIVE_SPECIES));
+  });
+
+  it('has entries for all required regions', () => {
+    for (const region of VALID_REGIONS) {
+      assert.ok(
+        Array.isArray(INVASIVE_SPECIES[region]),
+        `INVASIVE_SPECIES should have an array for region "${region}"`
+      );
+    }
+  });
+
+  it('each region has at least 3 entries', () => {
+    for (const region of VALID_REGIONS) {
+      const entries = INVASIVE_SPECIES[region];
+      assert.ok(
+        entries.length >= 3,
+        `Region "${region}" should have ≥3 invasive entries, got ${entries.length}`
+      );
+    }
+  });
+
+  it('every entry has required string fields', () => {
+    for (const [region, entries] of Object.entries(INVASIVE_SPECIES)) {
+      for (const sp of entries) {
+        assert.equal(typeof sp.name,   'string', `${region}: name must be string`);
+        assert.equal(typeof sp.latin,  'string', `${region}: latin must be string`);
+        assert.equal(typeof sp.type,   'string', `${region}: type must be string`);
+        assert.equal(typeof sp.threat, 'string', `${region}: threat must be string`);
+        assert.equal(typeof sp.note,   'string', `${region}: note must be string`);
+        assert.ok(sp.name.length   > 0, `${region}: name must not be empty`);
+        assert.ok(sp.latin.length  > 0, `${region}: latin must not be empty`);
+        assert.ok(sp.note.length   > 0, `${region}: note must not be empty`);
+      }
+    }
+  });
+
+  it('every entry has a valid type value', () => {
+    for (const [region, entries] of Object.entries(INVASIVE_SPECIES)) {
+      for (const sp of entries) {
+        assert.ok(
+          VALID_TYPES.has(sp.type),
+          `${region}: "${sp.name}" has invalid type "${sp.type}"`
+        );
+      }
+    }
+  });
+
+  it('every entry has a valid threat value', () => {
+    for (const [region, entries] of Object.entries(INVASIVE_SPECIES)) {
+      for (const sp of entries) {
+        assert.ok(
+          VALID_THREATS.has(sp.threat),
+          `${region}: "${sp.name}" has invalid threat "${sp.threat}"`
+        );
+      }
+    }
+  });
+
+  it('latin names are two-word binomials', () => {
+    for (const [region, entries] of Object.entries(INVASIVE_SPECIES)) {
+      for (const sp of entries) {
+        const words = sp.latin.trim().split(/\s+/);
+        assert.ok(
+          words.length >= 2,
+          `${region}: "${sp.name}" latin "${sp.latin}" should have ≥2 words`
+        );
+      }
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — makeInvasivesSection()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('makeInvasivesSection()', () => {
+  it('returns a non-empty HTML string for a valid region', () => {
+    const html = makeInvasivesSection('coastal');
+    assert.equal(typeof html, 'string');
+    assert.ok(html.length > 0);
+  });
+
+  it('returns empty string for unknown region', () => {
+    const html = makeInvasivesSection('unknown-region');
+    assert.equal(html, '');
+  });
+
+  it('contains invasive-section wrapper class', () => {
+    const html = makeInvasivesSection('piedmont');
+    assert.ok(html.includes('invasive-section'), 'should contain .invasive-section');
+  });
+
+  it('contains invasive-list class', () => {
+    const html = makeInvasivesSection('blueRidge');
+    assert.ok(html.includes('invasive-list'), 'should contain .invasive-list');
+  });
+
+  it('contains species names for the region', () => {
+    const html = makeInvasivesSection('greatLakes');
+    assert.ok(
+      html.includes('Garlic Mustard') || html.includes('Buckthorn'),
+      'greatLakes HTML should contain at least one known species name'
+    );
+  });
+
+  it('threat badge color differentiates high vs medium threat', () => {
+    const html = makeInvasivesSection('neUpland');
+    // neUpland has both high (#c0392b) and medium (#e67e22) threat entries
+    assert.ok(
+      html.includes('#c0392b') || html.includes('#e67e22'),
+      'should include threat badge colors'
+    );
+  });
+
+  it('produces output for all 10 required regions', () => {
+    const regions = [
+      'coastal', 'piedmont', 'ecotone', 'blueRidge', 'valleyRidge',
+      'gulfCoastal', 'neUpland', 'neCoastal', 'greatLakes', 'interiorLowlands',
+    ];
+    for (const region of regions) {
+      const html = makeInvasivesSection(region);
+      assert.ok(html.length > 0, `makeInvasivesSection should produce HTML for "${region}"`);
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — PLANTING_CALENDAR structure
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('PLANTING_CALENDAR structure', () => {
+  const ZONES = ['3b','4a','4b','5a','5b','6a','6b','7a','7b','8a','8b','9a','9b','10a'];
+  const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+  it('is defined and is a plain object', () => {
+    assert.ok(PLANTING_CALENDAR, 'PLANTING_CALENDAR must be defined');
+    assert.equal(typeof PLANTING_CALENDAR, 'object');
+    assert.ok(!Array.isArray(PLANTING_CALENDAR));
+  });
+
+  it('has entries for all 14 zones', () => {
+    for (const zone of ZONES) {
+      assert.ok(
+        PLANTING_CALENDAR[zone],
+        `PLANTING_CALENDAR should have an entry for zone "${zone}"`
+      );
+    }
+  });
+
+  it('each zone has all 12 months', () => {
+    for (const zone of ZONES) {
+      for (const mon of MONTHS) {
+        assert.ok(
+          PLANTING_CALENDAR[zone][mon],
+          `Zone "${zone}" is missing month "${mon}"`
+        );
+      }
+    }
+  });
+
+  it('every month entry has startIndoors, directSow, and transplant arrays', () => {
+    for (const zone of ZONES) {
+      for (const mon of MONTHS) {
+        const m = PLANTING_CALENDAR[zone][mon];
+        assert.ok(Array.isArray(m.startIndoors), `${zone}/${mon}: startIndoors must be array`);
+        assert.ok(Array.isArray(m.directSow),    `${zone}/${mon}: directSow must be array`);
+        assert.ok(Array.isArray(m.transplant),   `${zone}/${mon}: transplant must be array`);
+      }
+    }
+  });
+
+  it('every month has at least one activity across the three arrays', () => {
+    for (const zone of ZONES) {
+      for (const mon of MONTHS) {
+        const m     = PLANTING_CALENDAR[zone][mon];
+        const total = m.startIndoors.length + m.directSow.length + m.transplant.length;
+        assert.ok(total >= 1, `Zone "${zone}" month "${mon}" has no activities`);
+      }
+    }
+  });
+
+  it('all activity items are non-empty strings', () => {
+    for (const zone of ZONES) {
+      for (const mon of MONTHS) {
+        const m = PLANTING_CALENDAR[zone][mon];
+        for (const item of [...m.startIndoors, ...m.directSow, ...m.transplant]) {
+          assert.equal(typeof item, 'string', `${zone}/${mon}: item must be string`);
+          assert.ok(item.length > 0, `${zone}/${mon}: item must not be empty string`);
+        }
+      }
+    }
+  });
+
+  it('warmer zones (8a+) have outdoor activity in winter months', () => {
+    // Zones 8a+ should have directSow or transplant in jan and dec
+    for (const zone of ['8a','8b','9a','9b','10a']) {
+      const jan = PLANTING_CALENDAR[zone].jan;
+      const dec = PLANTING_CALENDAR[zone].dec;
+      assert.ok(
+        jan.directSow.length + jan.transplant.length > 0,
+        `Zone ${zone} should have outdoor activity in January`
+      );
+      assert.ok(
+        dec.directSow.length + dec.transplant.length > 0,
+        `Zone ${zone} should have outdoor activity in December`
+      );
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — makeCalendarSection()
+   ═══════════════════════════════════════════════════════════════ */
+
+describe('makeCalendarSection()', () => {
+  it('returns a non-empty HTML string for a valid zone', () => {
+    const html = makeCalendarSection('7b');
+    assert.equal(typeof html, 'string');
+    assert.ok(html.length > 0);
+  });
+
+  it('returns empty string for unknown zone', () => {
+    assert.equal(makeCalendarSection('99z'), '');
+    assert.equal(makeCalendarSection(''), '');
+  });
+
+  it('contains calendar-section wrapper class', () => {
+    const html = makeCalendarSection('6a');
+    assert.ok(html.includes('calendar-section'));
+  });
+
+  it('contains 12 month entries', () => {
+    const html = makeCalendarSection('7a');
+    const matches = html.match(/cal-month-name/g);
+    assert.ok(matches, 'should have cal-month-name elements');
+    assert.equal(matches.length, 12, 'should have exactly 12 month labels');
+  });
+
+  it('contains colored label classes for activity types', () => {
+    // Zone 7a January has startIndoors
+    const html = makeCalendarSection('7a');
+    assert.ok(html.includes('cal-label--indoor') || html.includes('cal-label--sow') || html.includes('cal-label--transplant'));
+  });
+
+  it('produces output for all 14 zones', () => {
+    const zones = ['3b','4a','4b','5a','5b','6a','6b','7a','7b','8a','8b','9a','9b','10a'];
+    for (const zone of zones) {
+      const html = makeCalendarSection(zone);
+      assert.ok(html.length > 0, `makeCalendarSection should produce HTML for zone "${zone}"`);
+    }
+  });
+
+  it('makeZoneDetailHTML includes calendar section', () => {
+    const html = makeZoneDetailHTML('7b');
+    assert.ok(
+      html.includes('calendar-section'),
+      'makeZoneDetailHTML should include the calendar-section'
+    );
   });
 });

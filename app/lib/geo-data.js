@@ -1392,6 +1392,109 @@ const SOIL_TYPES = {
   },
 };
 
+/* ─── Invasive species by ecoregion ─────────────────────────────
+   Key invasive plants to watch for — listed for gardener awareness
+   so they can avoid purchasing and help remove them. Each entry:
+     name   — common name
+     latin  — binomial (genus species)
+     type   — 'tree' | 'shrub' | 'perennial' | 'grass' | 'vine'
+     threat — 'high' | 'medium'
+     note   — brief impact description
+   ────────────────────────────────────────────────────────────── */
+const INVASIVE_SPECIES = {
+  coastal: [
+    { name: 'Kudzu',           latin: 'Pueraria montana',       type: 'vine',      threat: 'high',   note: 'Smothers entire forest edges at up to 1 ft/day in summer; kills trees by blocking sunlight and adding ice-load weight.' },
+    { name: 'Japanese Honeysuckle', latin: 'Lonicera japonica', type: 'vine',      threat: 'high',   note: 'Evergreen vine that outcompetes native understory shrubs; sweet fragrance masks aggressive spread through woodland edges and roadsides.' },
+    { name: 'Common Reed',     latin: 'Phragmites australis',   type: 'grass',     threat: 'high',   note: 'Non-native genotype displaces native cordgrass and cattail in tidal marshes; tall dense stands eliminate habitat for marsh birds and diamondback terrapins.' },
+    { name: 'Chinese Privet',  latin: 'Ligustrum sinense',      type: 'shrub',     threat: 'high',   note: 'Dense thickets in riparian corridors; outcompetes native shrubs; berries spread by birds; nearly impossible to eradicate without repeated cutting and herbicide treatment.' },
+  ],
+  piedmont: [
+    { name: 'Tree of Heaven',  latin: 'Ailanthus altissima',    type: 'tree',      threat: 'high',   note: 'Allelopathic — roots release chemicals that kill nearby plants; hosts spotted lanternfly; one tree produces up to 350,000 wind-dispersed seeds per year.' },
+    { name: 'Kudzu',           latin: 'Pueraria montana',       type: 'vine',      threat: 'high',   note: 'Smothers entire forest edges at up to 1 ft/day in summer; kills trees by blocking sunlight and adding ice-load weight.' },
+    { name: 'Japanese Honeysuckle', latin: 'Lonicera japonica', type: 'vine',      threat: 'high',   note: 'Evergreen vine that outcompetes native understory shrubs; sweet fragrance masks aggressive spread through woodland edges and roadsides.' },
+    { name: 'Chinese Wisteria', latin: 'Wisteria sinensis',     type: 'vine',      threat: 'medium', note: 'Woody vine that girdles and kills mature trees; sold widely in nurseries despite invasive status; native American wisteria (W. frutescens) is the correct substitute.' },
+  ],
+  ecotone: [
+    { name: 'Kudzu',           latin: 'Pueraria montana',       type: 'vine',      threat: 'high',   note: 'Smothers entire forest edges at up to 1 ft/day in summer; kills trees by blocking sunlight and adding ice-load weight.' },
+    { name: 'Japanese Honeysuckle', latin: 'Lonicera japonica', type: 'vine',      threat: 'high',   note: 'Evergreen vine that outcompetes native understory shrubs; sweet fragrance masks aggressive spread through woodland edges and roadsides.' },
+    { name: 'Chinese Privet',  latin: 'Ligustrum sinense',      type: 'shrub',     threat: 'high',   note: 'Dense thickets in riparian corridors; outcompetes native shrubs; berries spread by birds; nearly impossible to eradicate without repeated cutting and herbicide treatment.' },
+    { name: 'Tree of Heaven',  latin: 'Ailanthus altissima',    type: 'tree',      threat: 'high',   note: 'Allelopathic — roots release chemicals that kill nearby plants; hosts spotted lanternfly; one tree produces up to 350,000 wind-dispersed seeds per year.' },
+  ],
+  blueRidge: [
+    { name: 'Tree of Heaven',  latin: 'Ailanthus altissima',    type: 'tree',      threat: 'high',   note: 'Advancing upslope along road corridors through the Blue Ridge; allelopathic; primary host of the spotted lanternfly now spreading through Appalachian orchards and vineyards.' },
+    { name: 'Japanese Honeysuckle', latin: 'Lonicera japonica', type: 'vine',      threat: 'high',   note: 'Smothers native wildflowers and shrub layer in forest openings and roadside edges; evergreen growth gives it a head start on native deciduous shrubs each spring.' },
+    { name: 'Autumn Olive',    latin: 'Elaeagnus umbellata',    type: 'shrub',     threat: 'high',   note: 'Nitrogen-fixing shrub that alters soil chemistry, enabling its own spread; over 80 bird species eat the berries, distributing seeds widely across mountain gaps and balds.' },
+    { name: 'Multiflora Rose', latin: 'Rosa multiflora',        type: 'shrub',     threat: 'high',   note: 'Forms impenetrable thickets on mountain meadows and forest edges; each plant produces up to 500,000 seeds per year spread by birds; thorny enough to exclude livestock and humans.' },
+  ],
+  valleyRidge: [
+    { name: 'Autumn Olive',    latin: 'Elaeagnus umbellata',    type: 'shrub',     threat: 'high',   note: 'Nitrogen-fixing shrub that alters soil chemistry, enabling its own spread; over 80 bird species eat the berries, distributing seeds widely across mountain gaps and balds.' },
+    { name: 'Multiflora Rose', latin: 'Rosa multiflora',        type: 'shrub',     threat: 'high',   note: 'Forms impenetrable thickets on mountain meadows and forest edges; each plant produces up to 500,000 seeds per year spread by birds; thorny enough to exclude livestock and humans.' },
+    { name: 'Japanese Honeysuckle', latin: 'Lonicera japonica', type: 'vine',      threat: 'high',   note: 'Smothers native wildflowers and shrub layer in forest openings and roadside edges; evergreen growth gives it a head start on native deciduous shrubs each spring.' },
+    { name: 'Tree of Heaven',  latin: 'Ailanthus altissima',    type: 'tree',      threat: 'high',   note: 'Advancing through the Great Appalachian Valley road network; allelopathic; primary host of the spotted lanternfly devastating Pennsylvania, Virginia, and West Virginia orchards.' },
+  ],
+  gulfCoastal: [
+    { name: 'Kudzu',           latin: 'Pueraria montana',       type: 'vine',      threat: 'high',   note: 'The Gulf South is ground zero for kudzu — introduced in 1876 at the Philadelphia Centennial Exposition and distributed by the USDA through the 1950s; now covers over 7 million acres of the South.' },
+    { name: 'Cogon Grass',     latin: 'Imperata cylindrica',    type: 'grass',     threat: 'high',   note: 'Listed among the world\'s 10 worst invasive weeds; spreads by sharp rhizomes that penetrate through mulch; highly flammable and burns hotter than native grass — alters natural fire regimes in longleaf pine savannas.' },
+    { name: 'Water Hyacinth',  latin: 'Eichhornia crassipes',   type: 'perennial', threat: 'high',   note: 'Floating mats double in size every two weeks, blocking sunlight and depleting oxygen from Gulf coast waterways; considered one of the most problematic aquatic invasives in the world.' },
+    { name: 'Chinese Tallow',  latin: 'Triadica sebifera',      type: 'tree',      threat: 'high',   note: 'Rapidly converting Gulf Coast prairies and marshes into monoculture forest; birds disperse seeds widely; changes soil chemistry; extremely difficult to remove once established in coastal soils.' },
+  ],
+  neUpland: [
+    { name: 'Japanese Barberry', latin: 'Berberis thunbergii',  type: 'shrub',     threat: 'high',   note: 'Creates tick habitat in dense understory thickets; studies show barberry patches have 12× higher tick density and 120× higher Lyme disease risk than native vegetation; still widely sold in nurseries.' },
+    { name: 'Oriental Bittersweet', latin: 'Celastrus orbiculatus', type: 'vine',  threat: 'high',   note: 'Girdles and topples mature trees throughout the New England Upland; spreads rapidly along forest edges; easily confused with native bittersweet (C. scandens) — look for berries along the full stem, not just the tips.' },
+    { name: 'Burning Bush',    latin: 'Euonymus alatus',        type: 'shrub',     threat: 'medium', note: 'Brilliant red fall color has made it ubiquitous in New England landscapes; birds distribute seeds into forest edges and stream corridors; native alternatives include native blueberries or itea.' },
+    { name: 'Garlic Mustard',  latin: 'Alliaria petiolata',     type: 'perennial', threat: 'high',   note: 'Allelopathic root exudates disrupt the mycorrhizal networks that forest trees depend on; invades deep forest understory unlike most invasives; hand-pull before seed set (April–May) and bag carefully.' },
+  ],
+  neCoastal: [
+    { name: 'Common Reed',     latin: 'Phragmites australis',   type: 'grass',     threat: 'high',   note: 'Non-native genotype has displaced native cordgrass throughout New England salt marshes and coastal wetlands; tall monocultures eliminate nesting habitat for seaside sparrows and salt marsh sparrows.' },
+    { name: 'Japanese Knotweed', latin: 'Fallopia japonica',    type: 'perennial', threat: 'high',   note: 'Rhizomes penetrate concrete and foundations; extremely difficult to eradicate — regrows from 0.7g root fragments; forms dense monocultures along New England coastal stream corridors and disturbed sites.' },
+    { name: 'Beach Rose',      latin: 'Rosa rugosa',            type: 'shrub',     threat: 'medium', note: 'Native to coastal Asia, widely planted for dune stabilization; now invades native beach plum and cranberry communities on Cape Cod, Long Island, and throughout the New England coast.' },
+    { name: 'Japanese Barberry', latin: 'Berberis thunbergii',  type: 'shrub',     threat: 'high',   note: 'Creates tick habitat in dense understory thickets; studies show barberry patches have 12× higher tick density and 120× higher Lyme disease risk than native vegetation; still widely sold in nurseries.' },
+  ],
+  greatLakes: [
+    { name: 'Common Buckthorn', latin: 'Rhamnus cathartica',    type: 'shrub',     threat: 'high',   note: 'Leafs out early and drops leaves late, shading out native understory plants for weeks longer than native shrubs; berries cause diarrhea in birds, accelerating seed dispersal; nearly impossible to eradicate without sustained effort.' },
+    { name: 'Garlic Mustard',  latin: 'Alliaria petiolata',     type: 'perennial', threat: 'high',   note: 'The most aggressive invasive of Great Lakes forests; allelopathic root exudates disrupt mycorrhizal networks that oaks and maples depend on for nutrient uptake; pull before seed set in May.' },
+    { name: 'Purple Loosestrife', latin: 'Lythrum salicaria',   type: 'perennial', threat: 'high',   note: 'Dense stands have replaced native cattail and bulrush in Great Lakes wetlands; one plant produces 2.7 million seeds per year; eliminated critical nesting habitat for yellow-headed blackbirds and black terns.' },
+    { name: 'Phragmites',      latin: 'Phragmites australis',   type: 'grass',     threat: 'high',   note: 'Non-native genotype has become the dominant plant in many Great Lakes coastal wetlands; monocultures eliminate waterfowl nesting, fish spawning habitat, and the open water that migratory shorebirds require.' },
+  ],
+  interiorLowlands: [
+    { name: 'Callery Pear',    latin: 'Pyrus calleryana',       type: 'tree',      threat: 'high',   note: 'The most rapidly spreading invasive tree in the interior lowlands; escapes cultivation through cross-pollination between varieties; sharp thorns make natural areas impenetrable; forms dense thickets on roadsides and former agricultural fields.' },
+    { name: 'Bush Honeysuckle', latin: 'Lonicera maackii',      type: 'shrub',     threat: 'high',   note: 'Leafs out weeks earlier than native shrubs, creating a near-total shade canopy in Ohio Valley forest understories; eliminates spring ephemeral wildflowers; has invaded virtually every woodland in Kentucky, Ohio, and Indiana.' },
+    { name: 'Garlic Mustard',  latin: 'Alliaria petiolata',     type: 'perennial', threat: 'high',   note: 'Advancing rapidly through Interior Lowlands forests; allelopathic exudates disrupt the mycorrhizal networks that oaks, maples, and hickories depend on; pull before seed set in April–May.' },
+    { name: 'Multiflora Rose', latin: 'Rosa multiflora',        type: 'shrub',     threat: 'high',   note: 'Originally planted by USDA as "living fences" in the 1930s–1950s; now dominates disturbed fields, roadsides, and floodplains throughout the Interior Lowlands; each plant produces up to 500,000 seeds per year.' },
+  ],
+};
+
+/**
+ * Returns an HTML string listing invasive species warnings for a given ecoregion.
+ * @param {string} region
+ * @returns {string}  HTML fragment — empty string if region not found
+ */
+function makeInvasivesSection(region) {
+  const invasives = INVASIVE_SPECIES[region];
+  if (!invasives || invasives.length === 0) return '';
+  const threatBadge = function (t) {
+    var color = t === 'high' ? '#c0392b' : '#e67e22';
+    return '<span class="invasive-threat" style="background:' + color + ';color:#fff;font-size:0.65rem;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle">' + t.toUpperCase() + '</span>';
+  };
+  return (
+    '<div class="invasive-section">' +
+      '<h4 class="invasive-section-header">Invasive species — watch &amp; remove</h4>' +
+      '<ul class="invasive-list">' +
+        invasives.map(function (sp) {
+          return (
+            '<li>' +
+              '<span class="invasive-name">' + sp.name + '</span>' +
+              ' <em class="invasive-latin">' + sp.latin + '</em>' +
+              threatBadge(sp.threat) +
+              '<span class="invasive-note">' + sp.note + '</span>' +
+            '</li>'
+          );
+        }).join('') +
+      '</ul>' +
+    '</div>'
+  );
+}
+
 /**
  * Returns an HTML string showing the soil profile for a given ecoregion.
  * @param {'piedmont'|'coastal'|'ecotone'} region
@@ -1439,6 +1542,7 @@ function makeRegionPopup(props) {
       '<span class="region-tag ' + props.region + '">' + props.name + '</span>' +
       makeNativePlantsSection(props.region) +
       makeSoilSection(props.region) +
+      makeInvasivesSection(props.region) +
     '</div>'
   );
 }
@@ -1526,6 +1630,7 @@ function makeRegionDetailHTML(region) {
       '<p class="detail-description">' + props.description + '</p>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
+      makeInvasivesSection(region) +
     '</article>'
   );
 }
@@ -1553,6 +1658,45 @@ function makeFallLineDetailHTML() {
       makeNativePlantsSection('ecotone') +
       makeSoilSection('ecotone') +
     '</article>'
+  );
+}
+
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const MONTH_LABELS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/**
+ * Returns an HTML string showing the monthly planting calendar for a given hardiness zone.
+ * @param {string} zone  e.g. "7b"
+ * @returns {string}  HTML fragment — empty string if zone not found
+ */
+function makeCalendarSection(zone) {
+  var data = PLANTING_CALENDAR[zone];
+  if (!data) return '';
+  var rows = MONTHS.map(function (mon, i) {
+    var m     = data[mon] || { startIndoors: [], directSow: [], transplant: [] };
+    var label = MONTH_LABELS[i].slice(0, 3);
+    var parts = [];
+    if (m.startIndoors && m.startIndoors.length)
+      parts.push('<span class="cal-label cal-label--indoor">Indoor:</span> ' + m.startIndoors.join(', '));
+    if (m.directSow && m.directSow.length)
+      parts.push('<span class="cal-label cal-label--sow">Sow:</span> ' + m.directSow.join(', '));
+    if (m.transplant && m.transplant.length)
+      parts.push('<span class="cal-label cal-label--transplant">Out:</span> ' + m.transplant.join(', '));
+    var body = parts.length
+      ? parts.map(function (p) { return '<div class="cal-row">' + p + '</div>'; }).join('')
+      : '<div class="cal-row cal-row--idle">—</div>';
+    return (
+      '<div class="cal-month">' +
+        '<span class="cal-month-name">' + label + '</span>' +
+        '<div class="cal-month-body">' + body + '</div>' +
+      '</div>'
+    );
+  }).join('');
+  return (
+    '<div class="calendar-section">' +
+      '<h4 class="calendar-section-header">Monthly planting calendar</h4>' +
+      '<div class="calendar-months">' + rows + '</div>' +
+    '</div>'
   );
 }
 
@@ -1586,6 +1730,7 @@ function makeZoneDetailHTML(zone) {
         row('Growing season',   info.growingSeason) +
         row('Thrives here',     info.plants) +
       '</div>' +
+      makeCalendarSection(zone) +
     '</article>'
   );
 }
@@ -1930,6 +2075,884 @@ const HARDINESS_ZONE_INFO = {
     growingSeason: '365 days',
     plants:        'coconut palm, sea grape, red mangrove, torch ginger, tropical hardwoods',
   },
+};
+
+/* ─── Seasonal planting calendar by USDA hardiness zone ────────
+   12 months × 14 zones (3b–10a).
+   Each month has three arrays:
+     startIndoors — start seeds under lights / in cold frame
+     directSow    — direct sow outside
+     transplant   — transplant seedlings out
+   ────────────────────────────────────────────────────────────── */
+const PLANTING_CALENDAR = {
+  '3b': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Onions', 'Celery', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    apr: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Broccoli', 'Cabbage'],
+      directSow: [],
+      transplant: []
+    },
+    may: {
+      startIndoors: ['Tomatoes', 'Peppers'],
+      directSow: ['Spinach', 'Peas', 'Radishes'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Celery']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Beets', 'Carrots', 'Lettuce'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant']
+    },
+    jul: {
+      startIndoors: [],
+      directSow: ['Beans', 'Beets', 'Turnips', 'Radishes'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: ['Kale', 'Spinach'],
+      directSow: ['Spinach', 'Lettuce', 'Radishes'],
+      transplant: []
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '4a': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Onions', 'Celery', 'Broccoli', 'Cabbage'],
+      directSow: [],
+      transplant: []
+    },
+    apr: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant'],
+      directSow: ['Spinach', 'Peas', 'Radishes', 'Lettuce'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Peas', 'Beets', 'Carrots'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Beets', 'Carrots'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant']
+    },
+    jul: {
+      startIndoors: [],
+      directSow: ['Beans', 'Beets', 'Turnips', 'Radishes'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: ['Broccoli', 'Kale'],
+      directSow: ['Spinach', 'Lettuce', 'Radishes'],
+      transplant: []
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Radishes'],
+      transplant: []
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '4b': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery'],
+      directSow: [],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Broccoli', 'Cabbage'],
+      directSow: [],
+      transplant: ['Onions']
+    },
+    apr: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes'],
+      transplant: ['Broccoli', 'Cabbage', 'Onions', 'Celery']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Peas', 'Beets', 'Carrots'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini'],
+      transplant: ['Tomatoes', 'Peppers']
+    },
+    jul: {
+      startIndoors: [],
+      directSow: ['Beans', 'Beets', 'Turnips', 'Radishes'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: ['Broccoli', 'Kale'],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Peas'],
+      transplant: []
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Radishes', 'Kale'],
+      transplant: ['Broccoli']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Garlic', 'Spinach'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '5a': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Broccoli'],
+      directSow: [],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Broccoli', 'Cabbage'],
+      directSow: ['Spinach', 'Peas'],
+      transplant: ['Onions']
+    },
+    apr: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots'],
+      transplant: ['Broccoli', 'Cabbage', 'Onions', 'Celery']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Radishes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Cucumbers']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini'],
+      transplant: ['Tomatoes', 'Peppers', 'Melons']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Turnips'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Peas', 'Kale'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale'],
+      transplant: []
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Garlic', 'Spinach'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Leeks'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '5b': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Broccoli', 'Cabbage'],
+      directSow: [],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant'],
+      directSow: ['Spinach', 'Peas', 'Radishes'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage']
+    },
+    apr: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini', 'Beets'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Melons']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers'],
+      transplant: ['Tomatoes', 'Peppers', 'Squash', 'Cucumbers']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Turnips'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula'],
+      transplant: ['Kale']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Garlic'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: ['Garlic'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Leeks'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '6a': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Broccoli', 'Cabbage'],
+      directSow: ['Spinach', 'Peas'],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Kale'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage']
+    },
+    apr: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Basil'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Radishes', 'Chard'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Kale']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Melons', 'Squash']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Cucumbers', 'Beets'],
+      transplant: ['Tomatoes', 'Peppers', 'Basil']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Turnips'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard'],
+      transplant: ['Kale', 'Broccoli']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Garlic', 'Kale'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: ['Garlic', 'Spinach'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Leeks'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '6b': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: [],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Broccoli', 'Cabbage', 'Tomatoes'],
+      directSow: ['Spinach', 'Peas'],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Kale', 'Chard'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage']
+    },
+    apr: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Basil'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Radishes', 'Spinach'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Kale', 'Tomatoes']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Melons', 'Squash']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Cucumbers', 'Beets', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Basil', 'Cucumbers']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Turnips'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots'],
+      transplant: ['Kale', 'Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Radishes'],
+      transplant: []
+    },
+    nov: {
+      startIndoors: ['Microgreens'],
+      directSow: ['Garlic', 'Spinach', 'Kale'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Leeks'],
+      directSow: [],
+      transplant: []
+    }
+  },
+  '7a': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Spinach', 'Kale'],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Onions', 'Leeks', 'Celery', 'Tomatoes', 'Broccoli'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Kale', 'Radishes'],
+      transplant: []
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots', 'Chard'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Kale']
+    },
+    apr: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Basil'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Beans'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Tomatoes', 'Peppers']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Melons', 'Squash', 'Cucumbers']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Cucumbers', 'Beets', 'Sweet Potatoes'],
+      transplant: ['Melons', 'Sweet Potatoes']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Turnips'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Turnips'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Radishes', 'Lettuce'],
+      transplant: ['Kale']
+    },
+    nov: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Garlic', 'Spinach', 'Kale'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Leeks'],
+      directSow: ['Spinach'],
+      transplant: []
+    }
+  },
+  '7b': {
+    jan: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens', 'Tomatoes'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce'],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Celery', 'Broccoli'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Kale', 'Chard'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage']
+    },
+    mar: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Squash', 'Cucumbers', 'Melons'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Radishes', 'Spinach'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Kale']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Corn', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Cucumbers', 'Melons']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Sweet Potatoes']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Cucumbers', 'Beets'],
+      transplant: ['Sweet Potatoes']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula', 'Chard'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Turnips', 'Beets'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Radishes', 'Lettuce', 'Peas'],
+      transplant: ['Kale', 'Broccoli']
+    },
+    nov: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions'],
+      directSow: ['Spinach', 'Kale'],
+      transplant: []
+    }
+  },
+  '8a': {
+    jan: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes'],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Celery', 'Broccoli'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Kale', 'Beets', 'Carrots'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Kale']
+    },
+    mar: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Sweet Potatoes'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Radishes', 'Chard'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Tomatoes', 'Peppers']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Cucumbers', 'Melons']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Zucchini', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Melons', 'Sweet Potatoes']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Sweet Potatoes'],
+      transplant: ['Sweet Potatoes']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula', 'Chard'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Turnips', 'Beets'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    oct: {
+      startIndoors: ['Onions', 'Leeks'],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Lettuce', 'Peas', 'Radishes'],
+      transplant: ['Broccoli', 'Kale']
+    },
+    nov: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce', 'Radishes'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Tomatoes'],
+      directSow: ['Spinach', 'Kale', 'Peas'],
+      transplant: []
+    }
+  },
+  '8b': {
+    jan: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions', 'Leeks'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Beets'],
+      transplant: []
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Celery'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Kale', 'Carrots', 'Beets'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Kale']
+    },
+    mar: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Basil'],
+      directSow: ['Peas', 'Beets', 'Carrots', 'Lettuce', 'Chard', 'Beans'],
+      transplant: ['Onions', 'Celery', 'Broccoli', 'Cabbage', 'Tomatoes', 'Peppers']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Cucumbers', 'Melons']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Okra', 'Sweet Potatoes'],
+      transplant: ['Tomatoes', 'Peppers', 'Melons', 'Sweet Potatoes', 'Okra']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Okra', 'Sweet Potatoes'],
+      transplant: ['Sweet Potatoes']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Okra'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Peas', 'Arugula', 'Chard'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    sep: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Turnips', 'Beets'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: ['Onions', 'Leeks', 'Tomatoes'],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Lettuce', 'Peas', 'Radishes'],
+      transplant: ['Broccoli', 'Kale', 'Cabbage']
+    },
+    nov: {
+      startIndoors: ['Onions', 'Leeks', 'Microgreens'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce', 'Peas', 'Radishes'],
+      transplant: []
+    },
+    dec: {
+      startIndoors: ['Microgreens', 'Onions', 'Tomatoes', 'Peppers'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce'],
+      transplant: []
+    }
+  },
+  '9a': {
+    jan: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots', 'Chard'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Kale', 'Tomatoes', 'Peppers']
+    },
+    mar: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Basil', 'Okra'],
+      directSow: ['Beets', 'Carrots', 'Chard', 'Beans'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Sweet Potatoes', 'Okra'],
+      transplant: ['Squash', 'Cucumbers', 'Melons', 'Basil', 'Okra']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Okra', 'Sweet Potatoes'],
+      transplant: ['Sweet Potatoes', 'Okra']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Okra'],
+      transplant: []
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans', 'Carrots'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Arugula', 'Chard', 'Beets'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    sep: {
+      startIndoors: ['Onions', 'Leeks'],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Beets', 'Peas'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions'],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Carrots'],
+      transplant: ['Broccoli', 'Kale', 'Cabbage', 'Onions']
+    },
+    nov: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions', 'Leeks'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Beets'],
+      transplant: ['Kale']
+    },
+    dec: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Carrots'],
+      transplant: []
+    }
+  },
+  '9b': {
+    jan: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots', 'Chard'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons', 'Basil'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Beets', 'Carrots', 'Chard', 'Radishes'],
+      transplant: ['Onions', 'Broccoli', 'Cabbage', 'Kale', 'Tomatoes', 'Peppers']
+    },
+    mar: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Okra'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Chard', 'Corn'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons', 'Basil']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Sweet Potatoes', 'Okra'],
+      transplant: ['Squash', 'Cucumbers', 'Melons', 'Okra']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Okra', 'Sweet Potatoes'],
+      transplant: ['Sweet Potatoes', 'Okra']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Okra', 'Sweet Potatoes'],
+      transplant: []
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale'],
+      directSow: ['Beans'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: [],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Kale', 'Arugula', 'Chard', 'Beets'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale']
+    },
+    sep: {
+      startIndoors: ['Onions', 'Leeks', 'Tomatoes'],
+      directSow: ['Spinach', 'Lettuce', 'Radishes', 'Arugula', 'Chard', 'Carrots', 'Beets', 'Peas'],
+      transplant: ['Broccoli', 'Cabbage']
+    },
+    oct: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions'],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Carrots'],
+      transplant: ['Onions', 'Broccoli', 'Kale', 'Cabbage']
+    },
+    nov: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions', 'Leeks'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Beets'],
+      transplant: ['Kale', 'Broccoli']
+    },
+    dec: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Carrots'],
+      transplant: ['Kale']
+    }
+  },
+  '10a': {
+    jan: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Basil'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Beets', 'Carrots', 'Chard'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale', 'Onions']
+    },
+    feb: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons', 'Basil'],
+      directSow: ['Spinach', 'Peas', 'Lettuce', 'Beets', 'Carrots', 'Chard', 'Radishes'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale', 'Tomatoes', 'Peppers', 'Onions']
+    },
+    mar: {
+      startIndoors: ['Squash', 'Cucumbers', 'Melons', 'Okra'],
+      directSow: ['Beans', 'Beets', 'Carrots', 'Chard', 'Corn'],
+      transplant: ['Tomatoes', 'Peppers', 'Eggplant', 'Squash', 'Melons', 'Basil']
+    },
+    apr: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Squash', 'Cucumbers', 'Sweet Potatoes', 'Okra'],
+      transplant: ['Squash', 'Cucumbers', 'Melons', 'Okra', 'Sweet Potatoes']
+    },
+    may: {
+      startIndoors: [],
+      directSow: ['Beans', 'Corn', 'Okra', 'Sweet Potatoes'],
+      transplant: ['Sweet Potatoes', 'Okra']
+    },
+    jun: {
+      startIndoors: [],
+      directSow: ['Okra', 'Sweet Potatoes', 'Beans'],
+      transplant: ['Okra', 'Sweet Potatoes']
+    },
+    jul: {
+      startIndoors: ['Broccoli', 'Cabbage', 'Kale', 'Tomatoes'],
+      directSow: ['Beans', 'Okra'],
+      transplant: []
+    },
+    aug: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Broccoli', 'Cabbage'],
+      directSow: ['Beans', 'Corn'],
+      transplant: ['Kale']
+    },
+    sep: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions', 'Leeks'],
+      directSow: ['Spinach', 'Lettuce', 'Arugula', 'Chard', 'Carrots', 'Beets', 'Radishes'],
+      transplant: ['Broccoli', 'Cabbage', 'Kale', 'Tomatoes']
+    },
+    oct: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Onions'],
+      directSow: ['Spinach', 'Garlic', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Carrots'],
+      transplant: ['Onions', 'Broccoli', 'Kale', 'Cabbage', 'Tomatoes', 'Peppers']
+    },
+    nov: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Garlic', 'Spinach', 'Kale', 'Lettuce', 'Peas', 'Radishes', 'Beets', 'Carrots'],
+      transplant: ['Kale', 'Broccoli', 'Cabbage']
+    },
+    dec: {
+      startIndoors: ['Tomatoes', 'Peppers', 'Eggplant', 'Onions'],
+      directSow: ['Spinach', 'Kale', 'Peas', 'Lettuce', 'Radishes', 'Carrots', 'Chard'],
+      transplant: ['Onions', 'Kale']
+    }
+  }
 };
 
 /**
@@ -2984,6 +4007,10 @@ const GeoData = {
   makeNativePlantsSection,
   SOIL_TYPES,
   makeSoilSection,
+  INVASIVE_SPECIES,
+  makeInvasivesSection,
+  PLANTING_CALENDAR,
+  makeCalendarSection,
   makeRegionPopup,
   makeFallLinePopup,
   makeRegionDetailHTML,

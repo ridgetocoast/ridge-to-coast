@@ -340,6 +340,137 @@ html, body {
   line-height: 1.35;
 }
 
+/* ─── Invasive species warnings ───────────────────────────── */
+
+.invasive-section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.invasive-section-header {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #c06060;
+  margin: 0 0 6px;
+}
+
+.invasive-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.invasive-list li {
+  padding: 3px 0;
+  line-height: 1.35;
+}
+
+.invasive-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e8c8b0;
+}
+
+.invasive-latin {
+  font-size: 0.73rem;
+  font-style: italic;
+  color: #888;
+  margin-left: 2px;
+}
+
+.invasive-note {
+  display: block;
+  font-size: 0.72rem;
+  color: #999;
+  margin-top: 1px;
+}
+
+/* ─── Planting calendar ────────────────────────────────────── */
+
+.calendar-section {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.calendar-section-header {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #777;
+  margin: 0 0 8px;
+}
+
+.calendar-months {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cal-month {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 6px;
+  align-items: start;
+}
+
+.cal-month-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 2px;
+}
+
+.cal-month-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cal-row {
+  font-size: 0.73rem;
+  color: #ccc;
+  line-height: 1.35;
+}
+
+.cal-row--idle {
+  color: #555;
+}
+
+.cal-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
+.cal-label--indoor {
+  background: rgba(74, 154, 255, 0.2);
+  color: #7ab8f5;
+  border: 1px solid rgba(74, 154, 255, 0.3);
+}
+
+.cal-label--sow {
+  background: rgba(74, 180, 100, 0.2);
+  color: #7ed99a;
+  border: 1px solid rgba(74, 180, 100, 0.3);
+}
+
+.cal-label--transplant {
+  background: rgba(220, 160, 50, 0.2);
+  color: #e8c87a;
+  border: 1px solid rgba(220, 160, 50, 0.3);
+}
+
 /* ─── Search Bar ───────────────────────────────────────────── */
 #search-bar {
   position: fixed;

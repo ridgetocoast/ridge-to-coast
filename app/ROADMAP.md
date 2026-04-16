@@ -13,16 +13,16 @@
 | Hardiness zones — 22 states (was 8) | ✅ |
 | Hash routing detail pages (`#detail/region/`, `#detail/zone/`, `#detail/river/`) | ✅ |
 | `data/regions.geojson` async fetch architecture (EPA-ready) | ✅ |
-| 280 unit tests / 33 suites, 85 E2E tests | ✅ |
+| 308 unit tests / 37 suites, 85 E2E tests | ✅ |
 | README update | ✅ |
 | EPA Level III authoritative region polygons | ❌ |
 | Native plant expansion (10+ per region) | ✅ |
-| Invasive species warnings per region | ❌ |
-| Seasonal planting calendar per zone | ❌ |
-| City marker expansion (30+ cities — 34 total) | ✅ |
-| NE Upland / NE Coastal legend entries | ❌ |
-| Great Lakes Basin region | ❌ |
-| Interior Lowlands / Ohio Valley region | ❌ |
+| Invasive species warnings per region | ✅ |
+| Seasonal planting calendar per zone | ✅ |
+| City marker expansion (51 corridor cities) | ✅ |
+| NE Upland / NE Coastal legend entries | ✅ |
+| Great Lakes Basin region | ✅ |
+| Interior Lowlands / Ohio Valley region | ✅ |
 
 ---
 
@@ -360,7 +360,7 @@ Add for each new region key (matching existing structure):
 - `scripts/extract-regions.js` updated with L3 → `greatLakes` / `interiorLowlands` mappings
 - `scripts/generate-regions.js` updated with new inline polygons
 - `map.js` / `style.css` legend entries added (muted steel-blue for `greatLakes`, muted amber-green for `interiorLowlands`)
-- `FALL_LINE_CITIES` entries added for candidate cities above with full schema
+- `CORRIDOR_CITIES` entries added for candidate cities above with full schema
 - All existing unit tests pass + new suites for the two new regions (structure, plants, soil)
 - 85 E2E tests still pass
 
@@ -383,7 +383,7 @@ Add for each new region key (matching existing structure):
 lib/geo-data.js       — all data constants + HTML builder functions (no Leaflet/DOM)
 map.js                — Leaflet init + layer logic; fetches data/regions.geojson and
                         data/hardiness.geojson async
-data/regions.geojson  — 7-feature FeatureCollection (region polygons); load via:
+data/regions.geojson  — 9-feature FeatureCollection (region polygons); load via:
                         node scripts/generate-regions.js  (interim, from inline polygons)
                         node scripts/extract-regions.js /path/us_eco_l3.geojson  (EPA)
 scripts/process-hardiness.js   — clips ophz GeoJSON to corridor BBOX
@@ -392,7 +392,7 @@ scripts/extract-regions.js     — EPA Level III → data/regions.geojson
 scripts/generate-regions.js    — inline polygons → data/regions.geojson (interim)
 
 Test commands:
-  node --test tests/geo.test.js                                  # 280 unit tests
+  node --test tests/geo.test.js                                  # 308 unit tests
   python3 -m http.server 8765 &
   python3 -m pytest tests/e2e/ --base-url http://localhost:8765  # 85 E2E tests
 ```
