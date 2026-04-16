@@ -2,7 +2,7 @@
 
 An interactive web map of the **Appalachian watershed corridor** — from the mountain ridge through the Piedmont and the Atlantic Seaboard Fall Line to the Tidewater and the Atlantic Coast. Covers the geological, ecological, and horticultural character of the eastern United States for gardeners, farmers, arborists, and ecological conservation groups.
 
-The map currently covers the fall line corridor from **Peekskill NY / Hudson Highlands** south through Washington DC, Richmond VA, and Raleigh NC to **Columbus GA**, including Piedmont, Coastal Plain, hardiness zones, native plants, and soil profiles for PA, NJ, DE, MD, VA, NC, SC, and GA. Future phases will extend coverage to all states east of the Mississippi River.
+The map covers the full eastern corridor across **22 states**, from the Blue Ridge highlands and Great Appalachian Valley through the Piedmont, Fall Line, and Atlantic/Gulf Coastal Plains — including **6 ecological regions**, **25 fall line cities**, USDA plant hardiness zones 3b–10a, native plants, and soil profiles from Maine to Florida.
 
 Live at **[loobo07.github.io](https://loobo07.github.io)**
 
@@ -12,14 +12,21 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 
 | Layer / Feature | Description |
 |---|---|
-| **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ (Great Falls of the Passaic), New Brunswick NJ (Raritan River), Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N) |
-| **Coastal Plain (Tidewater)** | East of the fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers navigable to the sea. Eastern boundary follows the actual US Atlantic coastline (Natural Earth 50m data). Click for a popup with native plant recommendations and soil profile (Norfolk–Goldsboro sandy loam, pH 4.5–5.5, amendment advice). |
-| **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils, fast-flowing rivers with rapids at the fall line. Click for a popup with native plant recommendations and soil profile (Cecil–Appling clay loam, pH 5.0–6.0, amendment advice). |
-| **Fall Line (ecotone)** | Click the pink fall line for a popup with ecotone native plants and transitional soil profile (Appling–Norfolk transition, variable pH 5.0–6.5). |
-| **Hardiness Zones** | USDA Plant Hardiness Zones 5a–9a across 8 fall-line states (PA NJ DE MD VA NC SC GA), lazy-loaded and cached. Semi-transparent overlay (28% opacity) so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
-| **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive |
-| **City markers** | 15 fall line metros (Peekskill NY → Columbus GA) shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
-| **Layer toggles** | Show/hide region shading, fall line, city markers, and hardiness zones independently |
+| **Fall Line** | Approximate path of the geological boundary from Peekskill NY / Hudson Highlands (41.3°N) south through Paterson NJ, Trenton NJ, Baltimore MD, DC, Fredericksburg, Richmond, Raleigh, Columbia SC, Augusta GA, Macon GA to Columbus GA (32.5°N). Click for an ecotone popup with native plants and transitional soil profile. |
+| **New England Fall Zone** | Separate fall zone from Augusta ME south through Manchester NH, Lowell MA, Pawtucket RI to Waterbury CT — the mill-city fall line that powered the Industrial Revolution. |
+| **Coastal Plain (Tidewater)** | East of the mid-Atlantic fall line — flat terrain, sandy/silty sedimentary soils, tidal rivers. Eastern boundary follows the actual US Atlantic coastline (Natural Earth 50m data), including the Outer Banks and Georgia Sea Islands. Click for native plant recommendations and soil profile. |
+| **New England Coastal Lowland** | Glacial outwash and marine sediments SE of the New England fall zone — coastal CT, RI, MA, Long Island, and Cape Cod. Same coastal ecology as the mid-Atlantic Tidewater. |
+| **Piedmont** | West of the fall line — rolling hills, ancient crystalline bedrock, heavy clay soils. Extends from Maryland through the Virginia and Carolina Piedmont to NW Georgia. |
+| **New England Upland** | Glacially scoured crystalline upland NW of the New England fall zone — the equivalent of the Piedmont in CT, MA, NH, VT, and ME. |
+| **Blue Ridge / Appalachian Mountains** | Ancient crystalline highlands from South Mountain PA south through the Shenandoah, Black Mountains NC, and Great Smoky Mountains to NW Georgia. Elevations 1,500–6,600 ft, strongly acidic soils, spruce-fir forests and Southern Appalachian endemics. |
+| **Valley and Ridge / Great Appalachian Valley** | Parallel limestone ridges and fertile valley floors west of the Blue Ridge — the Shenandoah Valley (VA/WV), Cumberland Valley (MD/PA), Tennessee Valley, and Coosa Valley (AL/GA). Rich Alfisols support world-class orchards and grain farms. |
+| **Gulf Coastal Plain** | Southern continuation of the Atlantic Coastal Plain wrapping around the base of the Appalachians — AL/MS fall line, Memphis Embayment, Florida panhandle, and northern Florida peninsula. Tertiary sands and limestone, longleaf pine savannas, cypress swamps. |
+| **Major Rivers** | Invisible interactive layer — click any river for a detail page with drainage basin, fall line crossing, and ecological notes. Covers the James, Roanoke, Rappahannock, Potomac, Susquehanna, Delaware, Hudson, Connecticut, Savannah, Altamaha, Chattahoochee, and more. |
+| **Detail pages** | Hash-routed pages (`#detail/region/piedmont`, `#detail/zone/7b`, `#detail/river/james`) with full ecological writeups, native plant lists, soil profiles, and city tables. Shareable URLs. |
+| **Hardiness Zones** | USDA Plant Hardiness Zones 3b–10a across 22 states, lazy-loaded and cached. Semi-transparent overlay so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
+| **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive. |
+| **City markers** | 25 fall line and Appalachian cities shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
+| **Layer toggles** | Show/hide region shading, fall line, city markers, and hardiness zones independently. Regions switch to outline-only when hardiness zones are active to reduce visual overlap. |
 | **Location search** | Bottom search bar — enter a zip code or city name to fly the map to that location. GPS "locate me" button also supported. Results outside the corridor get a contextual note. |
 | **Collapsible legend** | Toggle button collapses/expands the legend panel. Starts collapsed on mobile (≤600 px) to maximise map visibility; starts expanded on desktop. |
 
@@ -45,7 +52,7 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 | Geocoding | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap) — free, no API key |
 | Hosting | GitHub Pages (static, no backend, no build step) |
 | Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
-| E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest (71 tests across 6 files) |
+| E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest (85 tests across 5 files) |
 | CI | GitHub Actions — unit tests (Node 20 + 22) and E2E (Python 3.12 + Chromium) run in parallel |
 
 ---
@@ -62,19 +69,22 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 │   ├── leaflet.js.map       # Leaflet source map
 │   └── leaflet.css          # Vendored Leaflet CSS
 ├── data/
-│   └── hardiness.geojson    # Processed USDA hardiness zones — VA + NC + MD clipped to corridor
+│   ├── hardiness.geojson    # Processed USDA hardiness zones — 22 states, zones 3b–10a
+│   └── regions.geojson      # Region polygons (7 features) — async-loaded by map.js
 ├── scripts/
 │   ├── process-hardiness.js # CLI: clips raw ophz GeoJSON to corridor bbox, reduces precision
-│   └── extract-coastline.js # CLI: extracts outer Atlantic coast from Natural Earth 50m data
+│   ├── extract-coastline.js # CLI: extracts outer Atlantic coast from Natural Earth 50m data
+│   ├── extract-regions.js   # CLI: converts EPA Level III ecoregion GeoJSON → data/regions.geojson
+│   └── generate-regions.js  # CLI: generates data/regions.geojson from inline polygon constants
 ├── tests/
-│   ├── geo.test.js          # 143 unit tests across 18 suites (Node built-in runner, no npm needed)
+│   ├── geo.test.js          # 280 unit tests across 33 suites (Node built-in runner, no npm needed)
 │   ├── results/             # TAP output from CI runs
 │   └── e2e/
 │       ├── conftest.py      # pytest-playwright fixtures; auto-fails on uncaught JS errors
-│       ├── test_map.py      # 19 E2E tests (page load, layers, hardiness toggle, mobile)
+│       ├── test_map.py      # 31 E2E tests (page load, layers, hardiness toggle, mobile)
 │       ├── test_search.py   # 12 E2E tests (search bar UI, geocoding, corridor messaging)
 │       ├── test_legend_toggle.py  # 9 E2E tests (collapsible legend, mobile/desktop state)
-│       ├── test_markers.py  # 12 E2E tests (city markers toggle, popup content, mobile)
+│       ├── test_markers.py  # 14 E2E tests (city markers toggle, popup content, mobile)
 │       ├── test_visual_rendering.py  # 19 E2E tests (SVG colors, opacities, hover, toggles)
 │       └── requirements.txt # pytest + pytest-playwright
 └── .github/
@@ -95,7 +105,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**172 tests across 20 suites:**
+**280 tests across 33 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -119,6 +129,19 @@ node --test tests/geo.test.js
 | 18 | `FALL_LINE_CITIES` array + `makeMarkerPopup()` (data structure, required fields, corridor BBOX check, popup HTML — city name, river, soil, zone badge, region badge) |
 | 19 | `NATIVE_PLANTS` + `makeNativePlantsSection()` (data structure, latin name format, type validation, Loblolly Pine/Bald Cypress spot checks, HTML output, cross-region isolation, region/fall-line popup integration) |
 | 20 | `SOIL_TYPES` + `makeSoilSection()` (data structure, required fields, pH range format, Cecil/Appling Piedmont spot check, Norfolk/Goldsboro Coastal spot check, HTML output, cross-region isolation, region/fall-line popup integration) |
+| 21 | `BLUE_RIDGE_GEOJSON` structure (Feature type, Polygon, closed ring, region tag, name) |
+| 22 | Blue Ridge ecological data (plants, soil, cities — structure, required fields, content spot checks) |
+| 23 | Appalachian city markers (Blue Ridge and Valley & Ridge cities — data structure, BBOX containment, region tag) |
+| 24 | Detail page HTML generators (`makeRegionDetailHTML()`, `makeZoneDetailHTML()`, `makeRiverDetailHTML()` — structure, required sections) |
+| 25 | `classifyLocation()` and `makeLocationReport()` (region assignment by lat/lon, report structure, all region keys) |
+| 26 | `NE_FALL_ZONE_GEOJSON` structure (Feature type, LineString, coord count, Augusta ME → Peekskill NY) |
+| 27 | `MAJOR_RIVERS_GEOJSON` structure (FeatureCollection, required properties — name, basin, fallLineCrossing) |
+| 28 | `makeRiverDetailHTML()` (returns HTML string, river name, basin, fall line crossing, ecological notes) |
+| 29 | `VALLEY_RIDGE_GEOJSON` structure (Feature type, Polygon, closed ring, region tag, name) |
+| 30 | Valley and Ridge ecological data (plants, soil, cities — structure, required fields, content spot checks) |
+| 31 | `NE_UPLAND_GEOJSON` structure (Feature type, Polygon, closed ring, `piedmont` region tag) |
+| 32 | `NE_COASTAL_GEOJSON` structure (Feature type, Polygon, closed ring, `coastal` region tag) |
+| 33 | Blue Ridge escarpment shared boundaries (east/west escarpment arrays — shared endpoints between Blue Ridge, Piedmont, and Valley & Ridge polygons) |
 
 ### E2E tests (Python Playwright)
 
@@ -131,14 +154,14 @@ python -m http.server 8000 &        # serve the static site locally
 python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 ```
 
-**71 tests across 5 files:**
+**85 tests across 5 files:**
 
 | File | Tests | What it covers |
 |---|---|---|
-| `test_map.py` | 19 | Page load, layer toggles (regions, fall line, hardiness), fetch/cache, mobile viewport |
+| `test_map.py` | 31 | Page load, layer toggles (regions, fall line, hardiness), fetch/cache, all 6 regions, rivers layer, detail page routing, mobile viewport |
 | `test_search.py` | 12 | Search bar structure, zip vs city routing, Nominatim calls, corridor detection, GPS button |
 | `test_legend_toggle.py` | 9 | Collapse/expand, mobile start state (collapsed), desktop start state (expanded), layer toggles work after expand |
-| `test_markers.py` | 12 | City marker DOM presence, legend toggle on/off, popup content (city name, river, zone, region badge), mobile viewport |
+| `test_markers.py` | 14 | City marker DOM presence, legend toggle on/off, popup content (city name, river, zone, region badge), Appalachian city markers, mobile viewport |
 | `test_visual_rendering.py` | 19 | SVG fill/stroke colors and opacities for all layers, hover opacity transitions, city marker count, toggle visual effect |
 
 Any uncaught JavaScript error during a test causes automatic failure via the `conftest.py` `page` fixture.
@@ -152,15 +175,15 @@ The raw ophz GeoJSON files (~0.1–1.6 MB per state) are not committed. Run the 
 ```bash
 BASE=https://raw.githubusercontent.com/kgjenkins/ophz/refs/heads/master/geojson
 
-# Download all fall-line states
-for STATE in PA NJ DE MD VA NC SC GA; do
+# Download all 22 corridor states
+for STATE in ME NH VT MA RI CT NY NJ DE MD PA WV VA NC SC GA FL AL MS TN KY OH; do
   curl -sL "$BASE/ophz_${STATE}.geojson" -o /tmp/ophz_${STATE}.geojson
 done
 
 # Merge into one file
 node -e "
   const fs = require('fs');
-  const states = ['PA','NJ','DE','MD','VA','NC','SC','GA'];
+  const states = ['ME','NH','VT','MA','RI','CT','NY','NJ','DE','MD','PA','WV','VA','NC','SC','GA','FL','AL','MS','TN','KY','OH'];
   const features = states.flatMap(s =>
     JSON.parse(fs.readFileSync('/tmp/ophz_' + s + '.geojson')).features);
   fs.writeFileSync('/tmp/ophz_merged.geojson',
@@ -172,7 +195,7 @@ node -e "
 node scripts/process-hardiness.js /tmp/ophz_merged.geojson data/hardiness.geojson
 ```
 
-Result: 1429 features, zones 5a–9a, ~1169 KB raw / ~261 KB gzip (79% raw reduction from 5.3 MB source). GitHub Pages serves gzip automatically.
+Result: 5125 features, zones 3b–10a, covering the full eastern corridor from Maine to Florida. GitHub Pages serves gzip automatically.
 
 **Known data gaps:** Washington DC is not a US state so is excluded from state-level ophz files. DC zone polygons from Maryland border to DC proper may have gaps near Rock Creek Park and the Potomac waterfront.
 
@@ -248,16 +271,27 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Location search (zip code / city) with Nominatim geocoding
 - [x] Collapsible legend (mobile-first, starts collapsed)
 - [x] Hardiness zone overlay with 5-fact popup cards (frost dates, growing season, plants)
-- [x] Add GA, PA, NJ, NY, SC hardiness data to pipeline (expand `data/hardiness.geojson` to all 8 fall-line states: PA NJ DE MD VA NC SC GA, zones 5a–9a)
-- [x] City markers for major fall line metros with click context (history, soil type, zone)
-- [x] Clip Coastal Plain polygon to the actual US coastline — replaced the straight ~73.8°W eastern boundary with Natural Earth 50m coastline data; blue overlay no longer extends over the Atlantic Ocean
-- [ ] Soil type detail layer (Piedmont clay vs Coastal Plain sand sub-types)
-- [x] Native plant recommendations by ecoregion — 6 plants per region (Piedmont / Coastal Plain / fall line ecotone) shown in region and fall line click popups
-- [x] Playwright E2E tests for visual rendering ([issue #2](https://github.com/loobo07/loobo07.github.io/issues/2)) — 19 tests verifying SVG fill/stroke colors, opacities, hover transitions, and layer toggle visual effect
-- [x] Soil type detail in region popups — USDA soil series, texture class, pH range, drainage class, and amendment recommendations for each ecoregion (Cecil–Appling Piedmont clay; Norfolk–Goldsboro Coastal sandy loam; Appling–Norfolk ecotone transition)
-- [x] Rename app to **Ridge to Coast** — expanded scope to full Appalachian watershed corridor (mountain ridge → Piedmont → Fall Line → Tidewater → Atlantic Coast)
+- [x] Expand hardiness zone data to 22 states (zones 3b–10a, Maine to Florida)
+- [x] City markers for 25 fall line and Appalachian metros with click context (history, soil type, zone)
+- [x] Clip Coastal Plain polygon to the actual US coastline — Natural Earth 50m coastline data; no more ocean overshoot
+- [x] Native plant recommendations by ecoregion — 6 plants per region shown in region and fall line click popups
+- [x] Playwright E2E tests for visual rendering — SVG attribute assertions for all map layers
+- [x] Soil type detail in region popups — USDA soil series, texture class, pH range, drainage class, amendment recommendations
+- [x] Rename app to **Ridge to Coast** — expanded scope to full Appalachian watershed corridor
+- [x] Blue Ridge region polygon with plants, soil, cities, and detail page
+- [x] Valley & Ridge / Great Appalachian Valley region polygon with ecological data
+- [x] New England Upland and Coastal Lowland regions (CT, MA, RI, NH, VT, ME, Long Island, Cape Cod)
+- [x] Gulf Coastal Plain region (AL, MS, TN Memphis Embayment, FL panhandle and peninsula)
+- [x] New England fall zone (Augusta ME → Manchester NH → Lowell MA → Pawtucket RI → Waterbury CT)
+- [x] Major rivers interactive layer with detail pages
+- [x] Hash-routed detail pages (`#detail/region/`, `#detail/zone/`, `#detail/river/`) with shareable URLs
+- [x] `data/regions.geojson` async fetch architecture (EPA Level III ready)
+- [ ] EPA Level III authoritative region polygons (replace interim hand-drawn polygons)
+- [ ] Expand native plants to 10+ per region (currently 6)
+- [ ] Invasive species warnings per region
+- [ ] Seasonal planting calendar per hardiness zone
+- [ ] City marker expansion to 30+ cities (currently 25)
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
-- [ ] Phase 1: Extend corridor to all states east of the Mississippi — expand fall line path, hardiness zone data, city markers, and BBOX; add Blue Ridge region polygon; add SSURGO soil layer, NHD river layer, and EPA ecoregion overlay
-- [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, seasonal planting calendar, printable location reports
+- [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, printable location reports
 - [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants`, `/api/v1/soil` endpoints via Cloudflare Workers or Vercel Edge Functions (free tier)
 - [ ] Phase 4: Mobile PWA, education curriculum, institutional partnerships, sustainable funding (USDA/EPA grants + institutional API subscriptions)
