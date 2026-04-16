@@ -65,19 +65,22 @@ jobs:
             exit 1
           fi
 
-      # ── 5. Verify all 5 region keys are present ───────────────────────────────
-      - name: Verify region keys
+      # ── 5. Verify all 9 region keys are present ───────────────────────────────
+      - name: Verify all 9 region keys are present
         run: |
           node -e "
             const gj = require('./data/regions.geojson');
             const keys = [...new Set(gj.features.map(f => f.properties.region))].sort();
-            const required = ['blueRidge','coastal','gulfCoastal','piedmont','valleyRidge'];
+            const required = [
+              'blueRidge','coastal','greatLakes','gulfCoastal',
+              'interiorLowlands','neCoastal','neUpland','piedmont','valleyRidge'
+            ];
             const missing = required.filter(k => !keys.includes(k));
             if (missing.length) {
               console.error('Missing region keys:', missing.join(', '));
               process.exit(1);
             }
-            console.log('All 5 region keys present:', keys.join(', '));
+            console.log('All 9 region keys present:', keys.join(', '));
             required.forEach(k => {
               const count = gj.features.filter(f => f.properties.region === k).length;
               console.log(' ', k, '—', count, 'features');
@@ -85,7 +88,7 @@ jobs:
           "
 
       # ── 6. Unit tests ────────────────────────────────────────────────────────
-      - name: Run unit tests (280 tests / 33 suites)
+      - name: Run unit tests (308 tests / 37 suites)
         run: node --test tests/geo.test.js
 
       # ── 7. Check whether data/regions.geojson actually changed ───────────────
@@ -147,9 +150,9 @@ jobs:
                 `| Changes | ${process.env.CHANGES || 'see diff'} |`,
                 '',
                 '## Verification',
-                '- [x] All 5 region keys present (coastal, piedmont, blueRidge, valleyRidge, gulfCoastal)',
+                '- [x] All 9 region keys present (coastal, piedmont, blueRidge, valleyRidge, gulfCoastal, neUpland, neCoastal, greatLakes, interiorLowlands)',
                 '- [x] File size < 2 MB',
-                '- [x] 280/280 unit tests pass',
+                '- [x] 308/308 unit tests pass',
                 '',
                 '## Review checklist',
                 '- [ ] Spot-check polygons in the map UI — regions look geographically correct',

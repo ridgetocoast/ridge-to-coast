@@ -83,7 +83,7 @@ Trigger the workflow from the Actions tab:
 > Actions → "Update EPA Level III region data" → Run workflow
 
 The workflow (`update-epa-regions.yml`) fetches the EPA data, regenerates
-`data/regions.geojson`, verifies region keys and file size, runs all 280 unit
+`data/regions.geojson`, verifies all 9 region keys and file size, runs all 308 unit
 tests, and opens a PR automatically if the data has changed. Runs quarterly
 on a schedule as well.
 
@@ -96,7 +96,7 @@ node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
 node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson
 
 # Step 3 — verify
-node --test tests/geo.test.js   # must pass 280/280
+node --test tests/geo.test.js   # must pass 308/308
 ```
 
 **L3 → region mapping** (in `scripts/extract-regions.js`):
