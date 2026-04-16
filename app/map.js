@@ -93,8 +93,8 @@ document.getElementById('back-btn').addEventListener('click', function () {
 /* ─── Map initialization ────────────────────────────────────── */
 
 var map = L.map('map', {
-  center: [37.5, -78.0],
-  zoom: 7,
+  center: [38.9, -77.0],
+  zoom: 8,
   zoomControl: true,
   attributionControl: false,
 });
@@ -235,10 +235,10 @@ loadRegions();
    ────────────────────────────────────────────────────────────── */
 
 var CITY_MARKER_STYLE = {
-  radius:      7,
+  radius:      4,
   fillColor:   '#ffffff',
   color:       '#e84393',
-  weight:      2.5,
+  weight:      2,
   opacity:     1,
   fillOpacity: 0.9,
 };
@@ -257,7 +257,7 @@ gd.CORRIDOR_CITIES.forEach(function (city) {
     className:  'city-tooltip',
   });
   marker.on('mouseover', function () {
-    this.setStyle({ radius: 9, fillColor: '#e84393', fillOpacity: 1 });
+    this.setStyle({ radius: 6, fillColor: '#e84393', fillOpacity: 1 });
     this.getElement() && (this.getElement().style.cursor = 'pointer');
   });
   marker.on('mouseout', function () {
