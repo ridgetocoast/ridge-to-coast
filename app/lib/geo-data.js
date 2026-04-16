@@ -426,7 +426,7 @@ const VALLEY_RIDGE_GEOJSON = {
 const NE_UPLAND_GEOJSON = {
   type: 'Feature',
   properties: {
-    region: 'piedmont',
+    region: 'neUpland',
     name: 'New England Upland',
     section: 'new-england',
     description:
@@ -470,7 +470,7 @@ const NE_UPLAND_GEOJSON = {
 const NE_COASTAL_GEOJSON = {
   type: 'Feature',
   properties: {
-    region: 'coastal',
+    region: 'neCoastal',
     name: 'New England Coastal Lowland',
     section: 'new-england',
     description:
@@ -507,6 +507,119 @@ const NE_COASTAL_GEOJSON = {
       [-74.000, 40.580],   // Long Island west end / Brooklyn area
       [-74.000, 40.750],   // NY Harbor / Staten Island area
       [-73.920, 41.290],   // Close ring at Peekskill
+    ]],
+  },
+};
+
+/* ─── Great Lakes Basin ──────────────────────────────────────
+   The Great Lakes drainage basin within the contiguous US —
+   Wisconsin, Michigan, northern Illinois/Indiana/Ohio, and
+   western New York. Bounded by the Mississippi River (west),
+   the US–Canada border (north), the Appalachian Plateau
+   western escarpment (east), and the southern limit of
+   Wisconsin glaciation (south, ~41–42°N).
+   ────────────────────────────────────────────────────────────── */
+const GREAT_LAKES_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region:      'greatLakes',
+    name:        'Great Lakes Basin',
+    states:      'WI, MI, IL (N), IN (N), OH (N), PA (NW), NY (W)',
+    climate:     'Humid continental — cold winters, lake-effect snow, short growing seasons',
+    description:
+      'One of the world\'s largest freshwater systems — Lake Superior, Michigan, Huron, ' +
+      'Erie, and Ontario hold 21 % of the Earth\'s surface fresh water. The basin\'s ' +
+      'calcareous glacial drift produces fertile Alfisols that underpin the Great Lakes ' +
+      'agricultural belt, while the lakes themselves moderate temperature extremes and ' +
+      'generate legendary lake-effect snowbelts on eastern and southern shores.',
+    area_sq_mi:  94250,
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      // SW corner: Mississippi River at Prairie du Chien WI
+      [-91.200, 43.000],   // Prairie du Chien WI — Mississippi River
+      // NW: up WI/MN border to Lake Superior
+      [-92.000, 46.500],   // NW Wisconsin — Bayfield County approach to Lake Superior
+      // Lake Superior US south shore: WI through MI Upper Peninsula
+      [-90.500, 46.900],   // Ashland WI — Chequamegon Bay, Lake Superior south shore
+      [-84.800, 46.500],   // Sault Ste. Marie MI — eastern Lake Superior
+      // Michigan Upper Peninsula east end → Mackinac Straits
+      [-84.300, 45.800],   // Mackinac City MI — Straits of Mackinac
+      // Michigan Lower Peninsula: Lake Huron west coast south to Detroit
+      [-82.500, 44.000],   // Alcona Co. MI — mid Lake Huron shore
+      [-82.700, 42.600],   // Detroit MI — Lake St. Clair / Detroit River
+      // Lake Erie south shore: Toledo area to Buffalo NY
+      [-82.700, 41.700],   // Toledo OH — western Lake Erie
+      [-80.500, 42.200],   // Cleveland OH — Lake Erie south shore
+      [-79.000, 42.900],   // Buffalo NY — Lake Erie east end / Niagara Falls
+      // Lake Ontario south shore: Niagara to Watertown NY
+      [-76.200, 43.400],   // Rochester NY — Lake Ontario south shore
+      [-75.500, 43.700],   // Watertown NY — Lake Ontario eastern end
+      // Eastern terminus: southern Adirondack foothills
+      [-74.200, 43.500],   // Glens Falls NY — southern Adirondack foothills
+      // South through western NY to join valleyRidge at Allegheny Front PA
+      [-77.000, 42.000],   // Corning NY — Southern Tier
+      [-79.200, 41.400],   // Kane PA — Allegheny Front (= valleyRidge NE corner, seamless join)
+      // Southern boundary: inland through OH, IN, IL (limit of Great Lakes drainage)
+      [-83.500, 41.200],   // Findlay OH — Maumee / Lake Erie watershed southern limit
+      [-84.500, 41.500],   // Fort Wayne IN — Maumee River headwaters
+      [-86.000, 41.400],   // Logansport IN — Tippecanoe River basin
+      [-87.500, 41.500],   // Chicago IL — southern tip of Lake Michigan
+      // SW: along WI/IL border back to Mississippi River
+      [-89.500, 42.500],   // Rockford IL area / SW Wisconsin
+      [-91.200, 43.000],   // Close ring at Prairie du Chien
+    ]],
+  },
+};
+
+/* ─── Interior Lowlands / Ohio Valley ────────────────────────
+   The Ohio–Tennessee–Cumberland river drainage west of the
+   Appalachian Plateau — central and western Ohio, Indiana,
+   Illinois east of the Mississippi, Kentucky, and central
+   Tennessee. Fills the gap between the valleyRidge (east),
+   gulfCoastal (south), and greatLakes (north) regions.
+   ────────────────────────────────────────────────────────────── */
+const INTERIOR_LOWLANDS_GEOJSON = {
+  type: 'Feature',
+  properties: {
+    region:      'interiorLowlands',
+    name:        'Interior Lowlands / Ohio Valley',
+    states:      'OH (W), IN, IL (E), KY, TN (central)',
+    climate:     'Humid continental — warm summers, cold winters; Ohio River tempers extremes',
+    description:
+      'The great interior heartland drained by the Ohio, Tennessee, and Cumberland ' +
+      'rivers — some of the most fertile soils in North America. Deep Alfisols and ' +
+      'Mollisols derived from calcareous glacial drift and loess blanket a landscape ' +
+      'that transitions from the Bluegrass horse country and Nashville Basin limestone ' +
+      'bowls in the south to the flat till-plain corn and soybean belt in the north.',
+    area_sq_mi:  165000,
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      // NW corner: Prairie du Chien WI — same as greatLakes SW, Mississippi River
+      [-91.200, 43.000],   // Prairie du Chien WI — Mississippi River (= greatLakes SW)
+      // W boundary: down the Mississippi River
+      [-91.500, 40.500],   // Quincy IL area — Mississippi River
+      [-89.000, 37.000],   // Cairo IL — Ohio / Mississippi confluence area
+      [-88.000, 35.000],   // Kentucky / Tennessee — connects to gulfCoastal north boundary
+      // SE: follow gulfCoastal northern boundary east
+      [-86.000, 35.800],   // Huntsville AL / NW Tennessee (= valleyRidge south)
+      [-85.800, 35.000],   // NW Alabama escarpment (= valleyRidge / gulfCoastal junction)
+      // E boundary: valleyRidge western edge north through KY, OH
+      [-85.500, 36.600],   // TN/KY border — Cumberland Plateau western edge (= valleyRidge)
+      [-84.000, 37.500],   // Somerset KY — Appalachian Plateau western escarpment (= valleyRidge)
+      [-84.800, 38.800],   // Covington KY / Cincinnati OH (= valleyRidge western boundary)
+      [-83.000, 39.200],   // Portsmouth OH — Appalachian Plateau western edge (= valleyRidge)
+      [-82.000, 40.000],   // Chillicothe OH area (= valleyRidge western boundary)
+      // NE: shared boundary with greatLakes southern limit
+      [-83.500, 41.200],   // Findlay OH — (= greatLakes southern limit)
+      [-84.500, 41.500],   // Fort Wayne IN (= greatLakes)
+      [-86.000, 41.400],   // Logansport IN (= greatLakes)
+      [-87.500, 41.500],   // Chicago IL (= greatLakes SW)
+      [-89.500, 42.500],   // SW Wisconsin (= greatLakes western boundary)
+      [-91.200, 43.000],   // Close ring at Prairie du Chien
     ]],
   },
 };
@@ -596,6 +709,66 @@ const STYLES = {
     fillOpacity: 0,
     fillColor:   '#4682DC',
     color:       '#4682DC',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  neUpland: {
+    fillColor:   '#4a9a8a',   // Muted teal — glaciated northern forest
+    fillOpacity: 0.18,
+    color:       '#4a9a8a',
+    weight:      0,
+    interactive: true,
+  },
+  neCoastal: {
+    fillColor:   '#6baed6',   // Soft coastal blue — distinctly lighter than Atlantic coastal
+    fillOpacity: 0.18,
+    color:       '#6baed6',
+    weight:      0,
+    interactive: true,
+  },
+  greatLakes: {
+    fillColor:   '#4a7ab5',   // Steel blue — Great Lakes water character
+    fillOpacity: 0.18,
+    color:       '#4a7ab5',
+    weight:      0,
+    interactive: true,
+  },
+  interiorLowlands: {
+    fillColor:   '#8a7d4a',   // Muted amber-brown — agricultural heartland
+    fillOpacity: 0.18,
+    color:       '#8a7d4a',
+    weight:      0,
+    interactive: true,
+  },
+  neUplandOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4a9a8a',
+    color:       '#4a9a8a',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  neCoastalOutline: {
+    fillOpacity: 0,
+    fillColor:   '#6baed6',
+    color:       '#6baed6',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  greatLakesOutline: {
+    fillOpacity: 0,
+    fillColor:   '#4a7ab5',
+    color:       '#4a7ab5',
+    weight:      2,
+    opacity:     0.65,
+    interactive: true,
+  },
+  interiorLowlandsOutline: {
+    fillOpacity: 0,
+    fillColor:   '#8a7d4a',
+    color:       '#8a7d4a',
     weight:      2,
     opacity:     0.65,
     interactive: true,
@@ -1052,6 +1225,58 @@ const NATIVE_PLANTS = {
       note:  'Vigorous native vine of Gulf South fence rows and forest edges; large orange-red trumpet flowers are a major hummingbird nectar source all summer.',
     },
   ],
+  neUpland: [
+    { name: 'Sugar Maple',         latin: 'Acer saccharum',             type: 'tree',      note: 'Iconic New England canopy tree; thin acidic glacial soils produce the intense fall color and concentrated sap for maple syrup production.' },
+    { name: 'Yellow Birch',        latin: 'Betula alleghaniensis',      type: 'tree',      note: 'Characteristic upland tree of rocky glaciated slopes; wintergreen-scented bark; the primary hardwood of the northern hardwood forest.' },
+    { name: 'Eastern White Pine',  latin: 'Pinus strobus',              type: 'tree',      note: 'Dominant conifer of the NE upland — grows on thin glacial till where hardwoods struggle; its mast timbers built the Royal Navy and the colonial fishing fleet.' },
+    { name: 'White Trillium',      latin: 'Trillium grandiflorum',      type: 'perennial', note: 'Spring ephemeral of rich glacial till mesic forests; requires undisturbed soil with deep leaf litter; indicator of old-growth or long-recovering forest.' },
+    { name: 'Bunchberry',          latin: 'Cornus canadensis',          type: 'perennial', note: 'Low groundcover on acidic rocky soils and under conifers; tiny white flowers and bright red berry clusters; related to flowering dogwood but only 6 inches tall.' },
+    { name: 'Blue Cohosh',         latin: 'Caulophyllum thalictroides', type: 'perennial', note: 'Rich cove and mesic glacial till forest floor; blue-black berries and bluish-green foliage; indicator of calcareous influence in otherwise acidic upland soils.' },
+    { name: 'Lowbush Blueberry',   latin: 'Vaccinium angustifolium',    type: 'shrub',     note: 'Native to acidic rocky barrens and thin glacial soils; fire-adapted — crown-sprouts prolifically after burn; the foundation of Maine\'s wild blueberry industry.' },
+    { name: 'Mountain Laurel',     latin: 'Kalmia latifolia',           type: 'shrub',     note: 'Broad-leaved evergreen of rocky acidic upland slopes; showy pink-white flower clusters in June; state flower of CT and PA; extremely drought-tolerant once established.' },
+    { name: 'Pennsylvania Sedge',  latin: 'Carex pensylvanica',         type: 'grass',     note: 'Fine-textured groundcover sedge of dry acid oak-pine woodland; forms dense mats under thin glacial soils; excellent lawn alternative in shaded acidic sites.' },
+    { name: 'Christmas Fern',      latin: 'Polystichum acrostichoides', type: 'fern',      note: 'Evergreen fern of rocky upland slopes and ledge outcrops; one of the most common ferns of the NE upland; persists through snow cover providing winter wildlife cover.' },
+    { name: 'Climbing Bittersweet', latin: 'Celastrus scandens',        type: 'vine',      note: 'Native alternative to invasive Oriental bittersweet; orange-red berried capsules in fall; critical food source for migratory thrushes and waxwings on fall foliage routes.' },
+  ],
+  neCoastal: [
+    { name: 'Pitch Pine',          latin: 'Pinus rigida',               type: 'tree',      note: 'Fire-adapted pine of the coastal barrens — the only eastern pine that sprouts from the trunk after fire; dominates the sandy glacial outwash plains of Cape Cod, Long Island, and the Pine Barrens of NJ.' },
+    { name: 'Black Cherry',        latin: 'Prunus serotina',            type: 'tree',      note: 'Fast-growing woodland edge tree of coastal sandy soils; aromatic bark; small black cherries are the single most important wildlife fruit in the Northeast.' },
+    { name: 'American Holly',      latin: 'Ilex opaca',                 type: 'tree',      note: 'Broadleaf evergreen of coastal plain and maritime forest; red berries persist through winter providing late-season food for cedar waxwings and hermit thrushes.' },
+    { name: 'Seaside Goldenrod',   latin: 'Solidago sempervirens',      type: 'perennial', note: 'Salt-tolerant perennial of dunes, salt marshes, and coastal roadsides; late-season nectar source for monarch butterflies on their southward migration.' },
+    { name: 'Sea Lavender',        latin: 'Limonium carolinianum',      type: 'perennial', note: 'Lavender-purple flower spikes of tidal salt marshes; blooms August–September; dried flower heads persist through winter; indicator of high marsh zones.' },
+    { name: 'Wild Columbine',      latin: 'Aquilegia canadensis',       type: 'perennial', note: 'Red-and-yellow pendulous flowers on rocky coastal outcrops and thin sandy soils; primary spring nectar source for ruby-throated hummingbirds arriving from Central America.' },
+    { name: 'Bayberry',            latin: 'Morella caroliniensis',      type: 'shrub',     note: 'Aromatic waxy berries are the original candle wax of the colonial era; salt-spray tolerant; nitrogen-fixing; critical stopover food for yellow-rumped warblers in fall migration.' },
+    { name: 'Highbush Blueberry',  latin: 'Vaccinium corymbosum',       type: 'shrub',     note: 'Native to coastal bogs and sandy acid soils; parent of all commercial blueberry cultivars; larval host for over 200 butterfly and moth species.' },
+    { name: 'American Beach Grass', latin: 'Ammophila breviligulata',   type: 'grass',     note: 'Primary dune-building grass of the Atlantic coast; horizontal rhizomes stabilize shifting sand by growing upward as burial increases; essential to Cape Cod, Long Island, and barrier island dune ecosystems.' },
+    { name: 'Sensitive Fern',      latin: 'Onoclea sensibilis',         type: 'fern',      note: 'Common fern of coastal wetland margins, freshwater swales, and inter-dune swales behind barrier beaches; first fronds to wilt at frost (hence the name); beaded fertile fronds persist as wildlife cover.' },
+    { name: 'Groundnut',           latin: 'Apios americana',            type: 'vine',      note: 'Nitrogen-fixing legume vine of coastal thickets and wetland edges; edible starchy tubers were a major food source for Wampanoag and Narragansett peoples and the Pilgrims\' first winter.' },
+  ],
+  greatLakes: [
+    { name: 'Bur Oak',             latin: 'Quercus macrocarpa',         type: 'tree',      note: 'Fire-resistant savanna oak of the Great Lakes transition zone; massive corky bark and deep taproot; anchor species of the oak openings ecosystem along Lake Erie and southern Lake Michigan shorelines.' },
+    { name: 'Paper Birch',         latin: 'Betula papyrifera',          type: 'tree',      note: 'Iconic white-barked birch of the boreal-temperate transition; colonizes post-disturbance openings around Lake Superior; bark used for canoe construction by Ojibwe and other Great Lakes nations for millennia.' },
+    { name: 'Tamarack',            latin: 'Larix laricina',             type: 'tree',      note: 'The only deciduous conifer of the Great Lakes basin; brilliant gold in October before needle-drop; grows in cold sphagnum bogs and wetlands from Lake Superior south to Indiana; indicator of high water table.' },
+    { name: 'Prairie Blazing Star', latin: 'Liatris pycnostachya',      type: 'perennial', note: 'Magenta spikes of the tallgrass prairie openings along Lake Michigan; blooms top-to-bottom unlike most plants; critical monarch butterfly nectar source on the fall migration corridor along the lake.' },
+    { name: 'Wild Bergamot',       latin: 'Monarda fistulosa',          type: 'perennial', note: 'Aromatic perennial of dry prairie and savanna openings around the Great Lakes; lavender flower heads attract a diversity of native bees including specialist mining bees; the original North American culinary herb.' },
+    { name: 'Jack-in-the-Pulpit',  latin: 'Arisaema triphyllum',        type: 'perennial', note: 'Fascinating spring wildflower of moist lakeside and riparian forests; the hooded spathe shelters the spadix; bright red berries in fall toxic to most animals but eaten by wood thrushes.' },
+    { name: 'Buttonbush',          latin: 'Cephalanthus occidentalis',  type: 'shrub',     note: 'Spherical white flower heads of lakeshores and wetland margins; critical nectar plant; woody structure provides year-round nesting and roosting habitat for songbirds and waterfowl.' },
+    { name: 'Nannyberry',          latin: 'Viburnum lentago',           type: 'shrub',     note: 'Tall native viburnum of wetland edges and stream banks around the Great Lakes; clusters of blue-black berries in fall are heavily utilized by migrating cedar waxwings and American robins.' },
+    { name: 'Big Bluestem',        latin: 'Andropogon gerardii',        type: 'grass',     note: 'The signature grass of the tallgrass prairie — reaches 8 feet in deep Great Lakes basin soils; its three-pronged seed head gives it the name "turkey foot"; foundation species of the prairie-forest mosaic.' },
+    { name: 'Ostrich Fern',        latin: 'Matteuccia struthiopteris',  type: 'fern',      note: 'Spectacular vase-shaped fern of lakeside floodplains and rich bottomlands; edible fiddleheads harvested in spring; spreads by underground stolons to form large colonies in moist Great Lakes riparian corridors.' },
+    { name: 'Wild Grape',          latin: 'Vitis riparia',              type: 'vine',      note: 'Riverbank grape of Great Lakes shorelines and stream corridors; extremely cold-hardy to zone 2; parent species of many cold-climate wine grape cultivars; berries feed over 100 bird species in fall migration.' },
+  ],
+  interiorLowlands: [
+    { name: 'Tulip Poplar',        latin: 'Liriodendron tulipifera',    type: 'tree',      note: 'Fastest-growing eastern hardwood; the tallest tree of the Ohio Valley bottomlands reaching 150 feet; orange-and-green tulip-shaped flowers in May; pioneer species on rich alluvial Interior Lowlands soils.' },
+    { name: 'Sycamore',            latin: 'Platanus occidentalis',      type: 'tree',      note: 'Massive streamside giant of the Ohio River and its tributaries; the white-barked upper canopy is visible from miles away; once sustained the largest contiguous deciduous forest in the world across the Interior Lowlands.' },
+    { name: 'Shagbark Hickory',    latin: 'Carya ovata',                type: 'tree',      note: 'Shaggy-barked mast producer of the Interior Lowlands till plains; deep roots break glacial subsoil; the heaviest and hardest-hitting of all Appalachian hardwoods; critical winter food for fox squirrels.' },
+    { name: 'Pale Purple Coneflower', latin: 'Echinacea pallida',       type: 'perennial', note: 'Long-petaled coneflower of the tallgrass prairie remnants of Indiana, Illinois, and Kentucky; blooms drooping petals contrast with the orange central cone; deep taproot — survives drought and fire.' },
+    { name: 'Wild Blue Phlox',     latin: 'Phlox divaricata',           type: 'perennial', note: 'Carpet-forming spring wildflower of the Interior Plateau river corridors; fragrant blue-lavender blooms in April–May; spreads by stolons in rich limestone-derived mesic soils of the Bluegrass and Nashville Basin.' },
+    { name: 'Cup Plant',           latin: 'Silphium perfoliatum',       type: 'perennial', note: 'Towering prairie perennial — paired leaves form cups that hold rainwater for insects and birds; reaches 8 feet in deep Interior Lowlands soils; a landmark plant of the Illinois and Indiana tallgrass prairie remnants.' },
+    { name: 'Spicebush',           latin: 'Lindera benzoin',            type: 'shrub',     note: 'Aromatic understory shrub of the Interior Plateau river corridors; earliest woodland shrub to flower in spring; red berries ripen in fall and are the primary food source for migrating wood thrushes along the Ohio Valley.' },
+    { name: 'Elderberry',          latin: 'Sambucus canadensis',        type: 'shrub',     note: 'Fast-growing shrub of disturbed alluvial soils along the Ohio River and its tributaries; heavy fruit clusters in August; supports over 40 bird species; flowers and berries have centuries of culinary and medicinal use.' },
+    { name: 'Prairie Dropseed',    latin: 'Sporobolus heterolepis',     type: 'grass',     note: 'Fine-textured bunchgrass of the Interior Lowlands prairie remnants; fragrant coriander-scented seeds ripen in fall; extremely long-lived (100+ years) in undisturbed prairie; indicator of intact glaciated prairie soils.' },
+    { name: 'Maidenhair Fern',     latin: 'Adiantum pedatum',           type: 'fern',      note: 'Delicate fan-shaped fern of rich cove forests and limestone hollow floors of the Interior Plateau; requires calcium-rich soils — a reliable indicator of the phosphatic limestone geology underlying the Bluegrass and Nashville Basin.' },
+    { name: 'Trumpet Vine',        latin: 'Campsis radicans',           type: 'vine',      note: 'Vigorous native vine of the Interior Lowlands floodplains; large orange-red trumpet flowers June–September are a critical hummingbird nectar source; self-clinging on brick and stone; can top 40 feet on mature riparian trees.' },
+  ],
 };
 
 /**
@@ -1137,6 +1362,34 @@ const SOIL_TYPES = {
     drainage:   'Excessively drained on uplands; poorly to very poorly drained in flatwoods and swamps; hardpan (spodic) layer common 24–48 in. below surface',
     amendments: 'Heavy organic matter needed to retain moisture and nutrients in sandy profiles; raised beds recommended for vegetables; avoid waterlogging in flatwoods; sulfur rarely needed — soils already acidic',
   },
+  neUpland: {
+    series:     'Paxton–Montauk–Charlton (Inceptisols / Spodosols from glacial till)',
+    texture:    'Stony sandy loam to gravelly loam (thin, rocky profiles from glacial scour)',
+    pH:         '4.5–5.5 (strongly acidic; granite and gneiss parent material)',
+    drainage:   'Excessively drained on bedrock outcrops; perched water tables in glacial kettles and low-lying depressions; frost-heave common above 1000 ft',
+    amendments: 'Ericaceous compost for acid-loving shrubs; deep organic mulch critical to retain moisture in thin soils; sulfur rarely needed — already acidic; avoid alkaline lime without a soil test',
+  },
+  neCoastal: {
+    series:     'Plymouth–Carver–Deerfield (Entisols / Spodosols from glacial outwash)',
+    texture:    'Fine sand to coarse sand (glacial outwash plains — essentially beach sand inland)',
+    pH:         '4.0–5.5 (very acidic; heavy leaching from sandy parent material)',
+    drainage:   'Excessively drained on outwash plains; perched bogs in low swales; water table very close to surface in coastal lowlands',
+    amendments: 'Massive organic matter additions critical — sand holds almost no nutrients or moisture; raised beds strongly recommended; slow-release organic fertilizers; great for blueberries and cranberries with no pH adjustment needed',
+  },
+  greatLakes: {
+    series:     'Poygan–Hochheim–Kewaunee (Alfisols / Mollisols from calcareous glacial till)',
+    texture:    'Silty clay loam to sandy loam (glacial drift rich in limestone and dolomite)',
+    pH:         '6.5–7.8 (near-neutral to mildly alkaline; calcareous till parent material)',
+    drainage:   'Well to moderately drained on till plains; seasonally wet in glacial lake plains near shorelines; abundant tile drainage in agricultural areas',
+    amendments: 'Generally fertile with minimal amendment needed; iron and manganese deficiency possible at high pH; lime rarely needed; excellent for vegetable production; watch for compaction in heavy clay till near lake shores',
+  },
+  interiorLowlands: {
+    series:     'Miami–Crosby–Cincinnati (Alfisols from calcareous till; Mollisols in prairie zones)',
+    texture:    'Silt loam to silty clay loam (some of the deepest, most fertile soils in North America)',
+    pH:         '6.0–7.5 (near-neutral; limestone-influenced; prairie Mollisols slightly more acidic)',
+    drainage:   'Variable — well drained on ridge tops; poorly drained in glaciated till plains; extensive tile drainage installed historically; rich Ohio River bottomlands seasonally flooded',
+    amendments: 'Historically among the most productive soils on Earth; phosphorus and potassium often adequate; organic matter additions improve drainage in heavy clay subsoils; nitrogen is the primary limiting nutrient in row-crop agriculture',
+  },
 };
 
 /**
@@ -1221,12 +1474,16 @@ function makeFallLinePopup() {
    ────────────────────────────────────────────────────────────── */
 
 var REGION_LABELS = {
-  coastal:     'Coastal Plain (Tidewater)',
-  gulfCoastal: 'Gulf Coastal Plain',
-  piedmont:    'Piedmont',
-  blueRidge:   'Blue Ridge / Appalachian Mountains',
-  valleyRidge: 'Valley and Ridge / Great Appalachian Valley',
-  ecotone:     'Fall Line Ecotone',
+  coastal:          'Coastal Plain (Tidewater)',
+  gulfCoastal:      'Gulf Coastal Plain',
+  piedmont:         'Piedmont',
+  blueRidge:        'Blue Ridge / Appalachian Mountains',
+  valleyRidge:      'Valley and Ridge / Great Appalachian Valley',
+  ecotone:          'Fall Line Ecotone',
+  neUpland:         'New England Upland',
+  neCoastal:        'New England Coastal Lowland',
+  greatLakes:       'Great Lakes Basin',
+  interiorLowlands: 'Interior Lowlands / Ohio Valley',
 };
 
 /**
@@ -1235,11 +1492,31 @@ var REGION_LABELS = {
  * @returns {string}
  */
 function makeRegionDetailHTML(region) {
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON, gulfCoastal: GULF_COASTAL_GEOJSON };
+  var geojsonMap = {
+    piedmont:         PIEDMONT_GEOJSON,
+    coastal:          COASTAL_PLAIN_GEOJSON,
+    blueRidge:        BLUE_RIDGE_GEOJSON,
+    valleyRidge:      VALLEY_RIDGE_GEOJSON,
+    gulfCoastal:      GULF_COASTAL_GEOJSON,
+    neUpland:         NE_UPLAND_GEOJSON,
+    neCoastal:        NE_COASTAL_GEOJSON,
+    greatLakes:       GREAT_LAKES_GEOJSON,
+    interiorLowlands: INTERIOR_LOWLANDS_GEOJSON,
+  };
   var geojson = geojsonMap[region];
   if (!geojson) return '';
   var props = geojson.properties;
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', gulfCoastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
+  var REGION_COLORS = {
+    piedmont:         '#c88232',
+    coastal:          '#4682dc',
+    gulfCoastal:      '#4682dc',
+    blueRidge:        '#4a7c59',
+    valleyRidge:      '#9b7aad',
+    neUpland:         '#4a9a8a',
+    neCoastal:        '#6baed6',
+    greatLakes:       '#4a7ab5',
+    interiorLowlands: '#8a7d4a',
+  };
   var color = REGION_COLORS[region] || '#888888';
   return (
     '<article class="detail-page">' +
@@ -1321,8 +1598,8 @@ function makeZoneDetailHTML(zone) {
  */
 function makeCityDetailHTML(slug) {
   var city = null;
-  for (var i = 0; i < FALL_LINE_CITIES.length; i++) {
-    var c = FALL_LINE_CITIES[i];
+  for (var i = 0; i < CORRIDOR_CITIES.length; i++) {
+    var c = CORRIDOR_CITIES[i];
     if ((c.name + '-' + c.state).toLowerCase().replace(/\s+/g, '-') === slug) {
       city = c;
       break;
@@ -1427,10 +1704,10 @@ function makeLocationReport(lat, lon) {
   var props   = geojson.properties;
 
   // Find nearest city by haversine distance
-  var nearest  = FALL_LINE_CITIES[0];
+  var nearest  = CORRIDOR_CITIES[0];
   var minDistKm = haversineKm([lon, lat], [nearest.lon, nearest.lat]);
-  for (var i = 1; i < FALL_LINE_CITIES.length; i++) {
-    var c = FALL_LINE_CITIES[i];
+  for (var i = 1; i < CORRIDOR_CITIES.length; i++) {
+    var c = CORRIDOR_CITIES[i];
     var d = haversineKm([lon, lat], [c.lon, c.lat]);
     if (d < minDistKm) { minDistKm = d; nearest = c; }
   }
@@ -1730,7 +2007,7 @@ function makeZonePopup(zone) {
      zone    — USDA hardiness zone for the city centre
      note    — one-line founding / geographic context
    ────────────────────────────────────────────────────────────── */
-const FALL_LINE_CITIES = [
+const CORRIDOR_CITIES = [
   {
     name:   'Peekskill',
     state:  'NY',
@@ -2107,6 +2384,195 @@ const FALL_LINE_CITIES = [
     soil:   'Malbis loamy sand (Coastal Plain alluvial)',
     zone:   '8b',
     note:   'Capital of French Louisiana (1702–1720) at the head of Mobile Bay — the Mobile-Tensaw delta is one of the most biodiverse river deltas in North America, draining nearly all of the Tennessee and Cumberland river systems.',
+  },
+  // ── Great Lakes Basin cities ──────────────────────────────────────────────
+  {
+    name:   'Chicago',
+    state:  'IL',
+    lat:     41.881,
+    lon:    -87.627,
+    river:  'Chicago River',
+    region: 'greatLakes',
+    soil:   'Varna-Drummer silt loam (glacial lake plain)',
+    zone:   '6a',
+    note:   'Founded at the one-mile Chicago Portage between the Great Lakes and Mississippi drainages — the only place on Earth where two continental watersheds nearly touch at grade. The Illinois & Michigan Canal (1848) connected the Atlantic seaboard to the Gulf of Mexico interior.',
+  },
+  {
+    name:   'Milwaukee',
+    state:  'WI',
+    lat:     43.044,
+    lon:    -87.910,
+    river:  'Milwaukee River',
+    region: 'greatLakes',
+    soil:   'Kewaunee clay loam (calcareous glacial till)',
+    zone:   '5b',
+    note:   'Where the Milwaukee, Menomonee, and Kinnickinnic rivers converge at Lake Michigan — the world\'s leading wheat market in the 1860s; beer brewing thrived on the lake\'s cold water, regional barley, and the calcareous till soils that grew premium hops.',
+  },
+  {
+    name:   'Detroit',
+    state:  'MI',
+    lat:     42.331,
+    lon:    -83.046,
+    river:  'Detroit River',
+    region: 'greatLakes',
+    soil:   'Lambton silty clay loam (glacial lake-laid sediments)',
+    zone:   '6a',
+    note:   'Founded 1701 by Antoine Cadillac at the narrows of the Detroit River — the strategic passage between Lake Erie and Lake Huron. Still one of the most navigated waterways in North America, carrying more cargo tonnage than the Panama and Suez Canals combined.',
+  },
+  {
+    name:   'Cleveland',
+    state:  'OH',
+    lat:     41.499,
+    lon:    -81.694,
+    river:  'Cuyahoga River',
+    region: 'greatLakes',
+    soil:   'Mahoning silty clay loam (glacial Lake Erie sediment)',
+    zone:   '6a',
+    note:   'At the mouth of the Cuyahoga — "The Crooked River." The Ohio & Erie Canal (1832) made Cleveland one of the fastest-growing antebellum cities; the Cuyahoga\'s notorious 1969 fire directly catalyzed the Clean Water Act of 1972.',
+  },
+  {
+    name:   'Toledo',
+    state:  'OH',
+    lat:     41.664,
+    lon:    -83.555,
+    river:  'Maumee River',
+    region: 'greatLakes',
+    soil:   'Hoytville silty clay (ancient Lake Erie lakebed)',
+    zone:   '6a',
+    note:   'The Maumee River drains the largest watershed emptying into the Great Lakes — its phosphorus-rich agricultural runoff is the primary driver of Lake Erie\'s recurring harmful algal blooms. The Battle of Fallen Timbers (1794) was fought just south of the city.',
+  },
+  {
+    name:   'Green Bay',
+    state:  'WI',
+    lat:     44.519,
+    lon:    -88.020,
+    river:  'Fox River',
+    region: 'greatLakes',
+    soil:   'Poygan clay (calcareous glacial lake plain)',
+    zone:   '5a',
+    note:   'The Fox River connects Green Bay to the Wisconsin River via a one-mile portage at Portage WI — the main French fur trade route linking the Great Lakes to the Mississippi for over 150 years. The bay\'s heavy lake clay soils support the most productive dairy land in Wisconsin.',
+  },
+  {
+    name:   'Ann Arbor',
+    state:  'MI',
+    lat:     42.281,
+    lon:    -83.748,
+    river:  'Huron River',
+    region: 'greatLakes',
+    soil:   'Conover loam (calcareous glacial till, Huron River watershed)',
+    zone:   '6a',
+    note:   'University of Michigan (1837) relocated here from Detroit along the Huron River valley — one of Michigan\'s earliest mill towns. The Ann Arbor Railroad was one of the first to use car ferry service across Lake Michigan to connect the Great Lakes rail network.',
+  },
+  {
+    name:   'Buffalo',
+    state:  'NY',
+    lat:     42.886,
+    lon:    -78.879,
+    river:  'Niagara River',
+    region: 'greatLakes',
+    soil:   'Dunkirk silty clay loam (Lake Erie lake-laid sediment)',
+    zone:   '6a',
+    note:   'At the eastern end of Lake Erie where the Niagara River drops 326 feet over Niagara Falls into Lake Ontario. The Erie Canal (1825) made Buffalo the western terminus of the canal system — the city grew from 200 people to 100,000 in a single generation.',
+  },
+  {
+    name:   'Marquette',
+    state:  'MI',
+    lat:     46.543,
+    lon:    -87.395,
+    river:  'Carp River',
+    region: 'greatLakes',
+    soil:   'Rubicon loamy sand (Spodosol — iron-pan over sandy outwash)',
+    zone:   '5a',
+    note:   'Iron ore capital of the Upper Peninsula — the Marquette Iron Range (discovered 1844) supplied the steel for America\'s industrial revolution, shipped via the Soo Locks to Pittsburgh\'s furnaces. Annual snowfall exceeds 150 inches from Lake Superior lake-effect storms.',
+  },
+  // ── Interior Lowlands / Ohio Valley cities ───────────────────────────────
+  {
+    name:   'Columbus',
+    state:  'OH',
+    lat:     39.961,
+    lon:    -82.998,
+    river:  'Scioto River',
+    region: 'interiorLowlands',
+    soil:   'Crosby silt loam (poorly drained calcareous glacial till)',
+    zone:   '6a',
+    note:   'Laid out as Ohio\'s state capital in 1812 at the geographic center of the state on the National Road corridor. The Scioto River valley\'s deep till-plain soils once supported migratory passenger pigeon flocks so dense they darkened the sky for hours.',
+  },
+  {
+    name:   'Indianapolis',
+    state:  'IN',
+    lat:     39.768,
+    lon:    -86.158,
+    river:  'White River',
+    region: 'interiorLowlands',
+    soil:   'Miami silt loam (calcareous glacial till — Tipton Till Plain)',
+    zone:   '6a',
+    note:   'Platted 1821 at the White River forks at Indiana\'s geographic center — designed as a planned capital city on the National Road. Near the southern terminus of the Shelbyville moraine: to the north, flat glaciated till; to the south, the unglaciated knobstone escarpment.',
+  },
+  {
+    name:   'Louisville',
+    state:  'KY',
+    lat:     38.252,
+    lon:    -85.759,
+    river:  'Ohio River',
+    region: 'interiorLowlands',
+    soil:   'Wheeling silty clay loam (Ohio River alluvial terrace)',
+    zone:   '6b',
+    note:   'The Falls of the Ohio — a 26-foot Devonian limestone ledge extending 2.5 miles across the river — forced all river traffic to portage and made Louisville the gateway to the western frontier. The limestone shelf is the largest exposed Devonian coral reef bed in the world.',
+  },
+  {
+    name:   'Nashville',
+    state:  'TN',
+    lat:     36.165,
+    lon:    -86.784,
+    river:  'Cumberland River',
+    region: 'interiorLowlands',
+    soil:   'Maury silt loam (phosphatic Ordovician limestone — Nashville Basin)',
+    zone:   '7a',
+    note:   'The Nashville Basin is a natural amphitheater of phosphate-rich limestone that produces the thickest bluegrass and the finest thoroughbred horses in America. The same limestone geology that grows the grass and builds the bones of champion horses also filters the spring water used in Tennessee whiskey production.',
+  },
+  {
+    name:   'Cincinnati',
+    state:  'OH',
+    lat:     39.103,
+    lon:    -84.512,
+    river:  'Ohio River',
+    region: 'interiorLowlands',
+    soil:   'Rossmoyne silt loam (glacial outwash terrace, pre-Illinoian)',
+    zone:   '6b',
+    note:   'Where the Ohio River bends in a dramatic horseshoe — the "Queen City" was the largest city west of the Appalachians in 1850. Fountain Square sits above the confluence of the Little Miami and Great Miami rivers; the river terrace\'s deep alluvial soils made Cincinnati the pork-packing capital of pre–Civil War America.',
+  },
+  {
+    name:   'Lexington',
+    state:  'KY',
+    lat:     38.040,
+    lon:    -84.503,
+    river:  'Kentucky River',
+    region: 'interiorLowlands',
+    soil:   'Maury silt loam (Bluegrass phosphatic limestone)',
+    zone:   '6b',
+    note:   'Heart of the Bluegrass — Ordovician phosphatic limestone weathers into dark calcium-rich soils that grow the densest bluegrass in North America and produce horses with unusually dense bones. Keeneland\'s racecourse sits directly on this bedrock; the phosphorus that feeds the grass literally builds the bones of champion thoroughbreds.',
+  },
+  {
+    name:   'Springfield',
+    state:  'IL',
+    lat:     39.781,
+    lon:    -89.650,
+    river:  'Sangamon River',
+    region: 'interiorLowlands',
+    soil:   'Muscatine silt loam (Mollisol — loess over glacial till, prairie origin)',
+    zone:   '6a',
+    note:   'Abraham Lincoln\'s home from 1837 until his 1861 departure for Washington. The Sangamon county soils bear some of the thickest loess deposits in North America — blown from Mississippi River glacial outwash during the last deglaciation, creating what became the most productive corn and soybean land on Earth.',
+  },
+  {
+    name:   'Evansville',
+    state:  'IN',
+    lat:     37.971,
+    lon:    -87.571,
+    river:  'Ohio River',
+    region: 'interiorLowlands',
+    soil:   'Wheeling silt loam (Ohio River alluvial bottomland)',
+    zone:   '6b',
+    note:   'At the great southward bend of the Ohio in southwestern Indiana — the last glacial terminus draws a sharp line here between the flat Tipton Till Plain to the north and the unglaciated Knobstone escarpment to the south. Lincoln\'s boyhood home at Pigeon Creek was 25 miles northeast.',
   },
 ];
 
@@ -2506,7 +2972,10 @@ const GeoData = {
   VALLEY_RIDGE_GEOJSON,
   NE_UPLAND_GEOJSON,
   NE_COASTAL_GEOJSON,
+  GREAT_LAKES_GEOJSON,
+  INTERIOR_LOWLANDS_GEOJSON,
   GULF_COASTAL_GEOJSON,
+  REGION_LABELS,
   BLUE_RIDGE_EAST_ESCARPMENT,
   BLUE_RIDGE_WEST_ESCARPMENT,
   STYLES,
@@ -2530,7 +2999,7 @@ const GeoData = {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
-  FALL_LINE_CITIES,
+  CORRIDOR_CITIES,
   makeMarkerPopup,
   isValidUSZipCode,
   isInCorridor,

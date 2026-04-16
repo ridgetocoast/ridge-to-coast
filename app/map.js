@@ -245,7 +245,7 @@ var CITY_MARKER_STYLE = {
 
 var cityMarkersLayer = L.featureGroup();
 
-gd.FALL_LINE_CITIES.forEach(function (city) {
+gd.CORRIDOR_CITIES.forEach(function (city) {
   var marker = L.circleMarker([city.lat, city.lon], CITY_MARKER_STYLE);
   var slug = (city.name + '-' + city.state).toLowerCase().replace(/\s+/g, '-');
   marker.on('click', function () {

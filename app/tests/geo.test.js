@@ -43,7 +43,7 @@ const {
   getZoneColor,
   getZoneInfo,
   makeZonePopup,
-  FALL_LINE_CITIES,
+  CORRIDOR_CITIES,
   makeMarkerPopup,
   NATIVE_PLANTS,
   makeNativePlantsSection,
@@ -926,24 +926,24 @@ describe('buildSearchQuery()', () => {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   SUITE 18 — FALL_LINE_CITIES and makeMarkerPopup()
+   SUITE 18 — CORRIDOR_CITIES and makeMarkerPopup()
    ═══════════════════════════════════════════════════════════════ */
 
-describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
-  it('FALL_LINE_CITIES is an array', () => {
-    assert.ok(Array.isArray(FALL_LINE_CITIES));
+describe('CORRIDOR_CITIES and makeMarkerPopup()', () => {
+  it('CORRIDOR_CITIES is an array', () => {
+    assert.ok(Array.isArray(CORRIDOR_CITIES));
   });
 
   it('has at least 12 cities', () => {
     assert.ok(
-      FALL_LINE_CITIES.length >= 12,
-      `expected ≥12 cities, got ${FALL_LINE_CITIES.length}`
+      CORRIDOR_CITIES.length >= 12,
+      `expected ≥12 cities, got ${CORRIDOR_CITIES.length}`
     );
   });
 
   it('each city has all required fields', () => {
     const required = ['name', 'state', 'lat', 'lon', 'river', 'note', 'soil', 'region', 'zone'];
-    for (const city of FALL_LINE_CITIES) {
+    for (const city of CORRIDOR_CITIES) {
       for (const field of required) {
         assert.ok(
           city[field] !== undefined && city[field] !== '',
@@ -954,7 +954,7 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('all city latitudes are within the eastern US corridor BBOX', () => {
-    for (const city of FALL_LINE_CITIES) {
+    for (const city of CORRIDOR_CITIES) {
       assert.ok(
         city.lat >= 24.0 && city.lat <= 47.5,
         `${city.name} lat ${city.lat} outside [24, 47.5]`
@@ -963,7 +963,7 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('all city longitudes are within the eastern US corridor BBOX', () => {
-    for (const city of FALL_LINE_CITIES) {
+    for (const city of CORRIDOR_CITIES) {
       assert.ok(
         city.lon >= -92.0 && city.lon <= -66.5,
         `${city.name} lon ${city.lon} outside [-92, -66.5]`
@@ -972,8 +972,8 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('all city regions are valid ecoregion keys', () => {
-    const valid = new Set(['piedmont', 'coastal', 'blueRidge', 'valleyRidge', 'gulfCoastal', 'ecotone']);
-    for (const city of FALL_LINE_CITIES) {
+    const valid = new Set(['piedmont', 'coastal', 'blueRidge', 'valleyRidge', 'gulfCoastal', 'ecotone', 'neUpland', 'neCoastal', 'greatLakes', 'interiorLowlands']);
+    for (const city of CORRIDOR_CITIES) {
       assert.ok(
         valid.has(city.region),
         `${city.name} has invalid region: ${city.region}`
@@ -982,7 +982,7 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('all cities are within the corridor BBOX', () => {
-    for (const city of FALL_LINE_CITIES) {
+    for (const city of CORRIDOR_CITIES) {
       assert.ok(
         isInCorridor(city.lat, city.lon),
         `${city.name} (${city.lat}, ${city.lon}) is outside the corridor BBOX`
@@ -991,8 +991,8 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('Richmond is present with correct data', () => {
-    const richmond = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
-    assert.ok(richmond, 'Richmond not found in FALL_LINE_CITIES');
+    const richmond = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
+    assert.ok(richmond, 'Richmond not found in CORRIDOR_CITIES');
     assert.strictEqual(richmond.state, 'VA');
     assert.strictEqual(richmond.zone, '7b');
     assert.strictEqual(richmond.region, 'piedmont');
@@ -1000,70 +1000,70 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
   });
 
   it('Columbus GA is present and is piedmont zone 8b', () => {
-    const columbus = FALL_LINE_CITIES.find(c => c.name === 'Columbus' && c.state === 'GA');
+    const columbus = CORRIDOR_CITIES.find(c => c.name === 'Columbus' && c.state === 'GA');
     assert.ok(columbus, 'Columbus GA not found');
     assert.strictEqual(columbus.zone, '8b');
     assert.strictEqual(columbus.region, 'piedmont');
   });
 
   it('Peekskill NY is present in the city list', () => {
-    const peekskill = FALL_LINE_CITIES.find(c => c.name === 'Peekskill');
+    const peekskill = CORRIDOR_CITIES.find(c => c.name === 'Peekskill');
     assert.ok(peekskill, 'Peekskill not found');
     assert.strictEqual(peekskill.state, 'NY');
   });
 
-  it('Augusta ME is the northernmost city (New England expansion)', () => {
-    const augusta = FALL_LINE_CITIES.find(c => c.name === 'Augusta' && c.state === 'ME');
-    assert.ok(augusta, 'Augusta ME not found');
-    const maxLat = Math.max(...FALL_LINE_CITIES.map(c => c.lat));
-    assert.strictEqual(augusta.lat, maxLat, 'Augusta ME should have the highest latitude');
+  it('Marquette MI is the northernmost city (Great Lakes expansion)', () => {
+    const marquette = CORRIDOR_CITIES.find(c => c.name === 'Marquette' && c.state === 'MI');
+    assert.ok(marquette, 'Marquette MI not found');
+    const maxLat = Math.max(...CORRIDOR_CITIES.map(c => c.lat));
+    assert.strictEqual(marquette.lat, maxLat, 'Marquette MI should have the highest latitude');
   });
 
   it('makeMarkerPopup() returns a non-empty string', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.strictEqual(typeof html, 'string');
     assert.ok(html.length > 0);
   });
 
   it('popup contains city name and state', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('Richmond'), 'popup missing city name');
     assert.ok(html.includes('VA'), 'popup missing state');
   });
 
   it('popup contains river name', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('James River'), 'popup missing river name');
   });
 
   it('popup contains soil info', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('Cecil'), 'popup missing soil series');
   });
 
   it('popup contains zone badge', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('7b'), 'popup missing zone');
     assert.ok(html.includes('zone-badge'), 'popup missing zone-badge class');
   });
 
   it('popup contains region badge with correct class', () => {
-    const richmond = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const richmond = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const htmlR = makeMarkerPopup(richmond);
     assert.ok(htmlR.includes('city-region-badge piedmont'), 'Richmond popup missing piedmont badge');
 
-    const dc = FALL_LINE_CITIES.find(c => c.name === 'Washington');
+    const dc = CORRIDOR_CITIES.find(c => c.name === 'Washington');
     const htmlDC = makeMarkerPopup(dc);
     assert.ok(htmlDC.includes('city-region-badge coastal'), 'DC popup missing coastal badge');
   });
 
   it('popup contains founding note text', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Richmond');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Richmond');
     const html = makeMarkerPopup(city);
     assert.ok(html.includes('Belle Isle') || html.includes('James'), 'popup missing founding note');
   });
@@ -1439,12 +1439,12 @@ describe('Blue Ridge ecological data', () => {
 
 describe('Appalachian city markers', () => {
   it('total city count is at least 20 (original 15 + 6 Appalachian)', () => {
-    assert.ok(FALL_LINE_CITIES.length >= 20,
-      `expected ≥20 cities, got ${FALL_LINE_CITIES.length}`);
+    assert.ok(CORRIDOR_CITIES.length >= 20,
+      `expected ≥20 cities, got ${CORRIDOR_CITIES.length}`);
   });
 
   it('Asheville NC is present with correct data', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Asheville');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Asheville');
     assert.ok(city, 'Asheville not found');
     assert.equal(city.state, 'NC');
     assert.equal(city.region, 'blueRidge');
@@ -1452,7 +1452,7 @@ describe('Appalachian city markers', () => {
   });
 
   it('Chattanooga TN is present with correct data', () => {
-    const city = FALL_LINE_CITIES.find(c => c.name === 'Chattanooga');
+    const city = CORRIDOR_CITIES.find(c => c.name === 'Chattanooga');
     assert.ok(city, 'Chattanooga not found');
     assert.equal(city.state, 'TN');
     assert.equal(city.region, 'blueRidge');
@@ -1462,8 +1462,8 @@ describe('Appalachian city markers', () => {
   it('all new Appalachian cities are within the expanded BBOX', () => {
     const appalachian = ['Charlottesville', 'Staunton', 'Roanoke', 'Asheville', 'Greenville', 'Chattanooga'];
     for (const name of appalachian) {
-      const city = FALL_LINE_CITIES.find(c => c.name === name);
-      assert.ok(city, `${name} not found in FALL_LINE_CITIES`);
+      const city = CORRIDOR_CITIES.find(c => c.name === name);
+      assert.ok(city, `${name} not found in CORRIDOR_CITIES`);
       assert.ok(isInCorridor(city.lat, city.lon),
         `${name} (${city.lat}, ${city.lon}) is outside the corridor BBOX`);
     }
@@ -1958,8 +1958,8 @@ describe('NE_UPLAND_GEOJSON structure', () => {
     assert.ok(maxLat >= 42, `expected max lat ≥42°N for New England, got ${maxLat}`);
   });
 
-  it('properties.region is "piedmont"', () => {
-    assert.equal(NE_UPLAND_GEOJSON.properties.region, 'piedmont');
+  it('properties.region is "neUpland"', () => {
+    assert.equal(NE_UPLAND_GEOJSON.properties.region, 'neUpland');
   });
 });
 
@@ -1983,8 +1983,8 @@ describe('NE_COASTAL_GEOJSON structure', () => {
     assert.equal(ring[0][1], ring[ring.length - 1][1], 'first/last lat must match');
   });
 
-  it('properties.region is "coastal"', () => {
-    assert.equal(NE_COASTAL_GEOJSON.properties.region, 'coastal');
+  it('properties.region is "neCoastal"', () => {
+    assert.equal(NE_COASTAL_GEOJSON.properties.region, 'neCoastal');
   });
 
   it('covers New England latitudes (at least one point above 41°N)', () => {

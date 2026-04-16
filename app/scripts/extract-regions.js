@@ -58,17 +58,21 @@ const BBOX = { west: -92.0, east: -66.5, south: 24.0, north: 47.5 };
 // Codes not listed here (e.g. Great Plains, Ozarks, Great Lakes basin
 // north of our BBOX) are silently skipped.
 const L3_TO_REGION = {
-  // ── Coastal Plain (Atlantic seaboard + NE coastal lowland) ───────────────
+  // ── Coastal Plain (Atlantic seaboard) ────────────────────────────────────
   '63': 'coastal',   // Middle Atlantic Coastal Plain  (NJ, DE, MD, VA, NC coast)
   '65': 'coastal',   // Southeastern Plains             (SC, GA, AL, MS inland plain)
-  '83': 'coastal',   // Mixed Wood Plains               (NY, CT, RI, MA — NE coast)
 
-  // ── Piedmont (crystalline upland, including NE equivalents) ──────────────
+  // ── New England Coastal Lowland ───────────────────────────────────────────
+  '83': 'neCoastal', // Mixed Wood Plains               (NY, CT, RI, MA — NE coast)
+
+  // ── Piedmont (crystalline upland, mid-Atlantic) ───────────────────────────
   '45': 'piedmont',  // Piedmont                        (DE, MD, VA, NC, SC, GA, PA, NJ, NY)
   '64': 'piedmont',  // Northern Piedmont               (NJ, PA — transition zone)
-  '58': 'piedmont',  // Northeastern Highlands           (MA, VT, NH, ME uplands)
   '59': 'piedmont',  // Atlantic Highlands               (NJ Highlands, NY Piedmont)
-  '84': 'piedmont',  // Laurentian Mixed Forest Province (NY — Adirondack fringe)
+
+  // ── New England Upland (glaciated crystalline upland) ────────────────────
+  '58': 'neUpland',  // Northeastern Highlands           (MA, VT, NH, ME uplands)
+  '84': 'neUpland',  // Laurentian Mixed Forest Province (NY — Adirondack fringe)
 
   // ── Blue Ridge ────────────────────────────────────────────────────────────
   '66': 'blueRidge', // Blue Ridge                      (VA, WV, NC, TN, GA, SC)
@@ -78,26 +82,42 @@ const L3_TO_REGION = {
   '68': 'valleyRidge',  // Southwestern Appalachians     (AL, TN — Coosa & TN valleys)
   '69': 'valleyRidge',  // Central Appalachians          (WV, VA, MD, PA, KY)
   '70': 'valleyRidge',  // Western Allegheny Plateau     (WV, PA, OH)
-  '71': 'valleyRidge',  // Interior Plateau              (KY, TN, AL — Bluegrass, Nashville Basin)
-  '78': 'valleyRidge',  // Lakeplain/Erie Lk Plain       (NY, PA, OH — Lake Erie shore)
   '79': 'valleyRidge',  // N Appalachian Plateau+Uplands (NY, PA — Catskills, Poconos)
   '80': 'valleyRidge',  // Northern Allegheny Plateau    (NY, PA — Southern Tier)
-  '81': 'valleyRidge',  // Erie/Ontario Lake Plain        (NY, PA, OH — Great Lakes coast)
 
   // ── Gulf Coastal Plain (Mississippi Embayment + Gulf states + Florida) ────
   '73': 'gulfCoastal',  // Mississippi Alluvial Plain    (MS, TN, KY — Mississippi R. valley)
   '74': 'gulfCoastal',  // Mississippi Valley Loess      (MS, TN — loess bluffs)
   '75': 'gulfCoastal',  // Southern Coastal Plain        (FL, GA, AL, MS — Gulf coast)
   '76': 'gulfCoastal',  // Southern Florida Coastal Plain (FL south, Keys)
+
+  // ── Great Lakes Basin ────────────────────────────────────────────────────
+  '50': 'greatLakes',   // Northern Lakes and Forests    (WI, MI, MN — boreal transition)
+  '51': 'greatLakes',   // North Central Hardwood Forests (MN, WI — hardwood north)
+  '53': 'greatLakes',   // SE Wisconsin Till Plains      (WI — calcareous till)
+  '56': 'greatLakes',   // S Michigan/N Indiana Drift Plains (MI, IN — glacial drift)
+  '57': 'greatLakes',   // Huron/Erie Lake Plains        (OH, MI, IN — lake plain)
+  '78': 'greatLakes',   // Lakeplain/Erie Lake Plain     (NY, PA, OH — Lake Erie shore)
+  '81': 'greatLakes',   // Erie/Ontario Lake Plain       (NY, PA, OH — Great Lakes coast)
+
+  // ── Interior Lowlands / Ohio Valley ──────────────────────────────────────
+  '54': 'interiorLowlands',  // Central Corn Belt Plains (IL, IN — prairie till)
+  '55': 'interiorLowlands',  // Eastern Corn Belt Plains (OH, IN — glaciated till)
+  '71': 'interiorLowlands',  // Interior Plateau         (KY, TN, AL — Bluegrass, Nashville Basin)
+  '72': 'interiorLowlands',  // Interior River Lowlands  (IL, MO, KY — Ohio River corridor)
 };
 
 // ── Region display names (used in properties.name) ────────────────────────
 const REGION_NAMES = {
-  coastal:     'Coastal Plain',
-  piedmont:    'Piedmont',
-  blueRidge:   'Blue Ridge / Appalachian Mountains',
-  valleyRidge: 'Valley and Ridge / Great Appalachian Valley',
-  gulfCoastal: 'Gulf Coastal Plain',
+  coastal:          'Coastal Plain',
+  piedmont:         'Piedmont',
+  blueRidge:        'Blue Ridge / Appalachian Mountains',
+  valleyRidge:      'Valley and Ridge / Great Appalachian Valley',
+  gulfCoastal:      'Gulf Coastal Plain',
+  neUpland:         'New England Upland',
+  neCoastal:        'New England Coastal Lowland',
+  greatLakes:       'Great Lakes Basin',
+  interiorLowlands: 'Interior Lowlands / Ohio Valley',
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

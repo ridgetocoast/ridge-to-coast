@@ -51,6 +51,8 @@ const sources = [
   gd.NE_COASTAL_GEOJSON,
   gd.VALLEY_RIDGE_GEOJSON,
   gd.BLUE_RIDGE_GEOJSON,
+  gd.GREAT_LAKES_GEOJSON,
+  gd.INTERIOR_LOWLANDS_GEOJSON,
 ];
 
 const features = sources.map(function (f) {
