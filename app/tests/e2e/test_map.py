@@ -96,8 +96,8 @@ def test_vector_layers_render(page):
     """Fall line, region shading, and rivers SVG paths are present after load."""
     wait_for_map(page)
     paths = page.locator(".leaflet-overlay-pane path")
-    # 7 region polygons (coastal, piedmont, neCoastal, neUpland, blueRidge, valleyRidge,
-    # gulfCoastal) + 2 fall line segments + 14 rivers = 23+ paths
+    # 9 region polygons (coastal, piedmont, blueRidge, valleyRidge, gulfCoastal,
+    # neCoastal, neUpland, greatLakes, interiorLowlands) + fall line + rivers = 12+ paths
     assert paths.count() >= 7, (
         f"Expected at least 7 SVG paths (regions + fall line + rivers), got {paths.count()}"
     )

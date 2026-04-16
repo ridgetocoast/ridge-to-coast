@@ -72,14 +72,15 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 │   └── leaflet.css          # Vendored Leaflet CSS
 ├── data/
 │   ├── hardiness.geojson    # Processed USDA hardiness zones — 22 states, zones 3b–10a
-│   └── regions.geojson      # Region polygons (7 features) — async-loaded by map.js
+│   └── regions.geojson      # Region polygons (9 features) — async-loaded by map.js
 ├── scripts/
 │   ├── process-hardiness.js # CLI: clips raw ophz GeoJSON to corridor bbox, reduces precision
 │   ├── extract-coastline.js # CLI: extracts outer Atlantic coast from Natural Earth 50m data
+│   ├── fetch-epa-ecoregions.js # CLI: fetches EPA Level III ecoregion data via ArcGIS REST API
 │   ├── extract-regions.js   # CLI: converts EPA Level III ecoregion GeoJSON → data/regions.geojson
 │   └── generate-regions.js  # CLI: generates data/regions.geojson from inline polygon constants
 ├── tests/
-│   ├── geo.test.js          # 280 unit tests across 33 suites (Node built-in runner, no npm needed)
+│   ├── geo.test.js          # 308 unit tests across 37 suites (Node built-in runner, no npm needed)
 │   ├── results/             # TAP output from CI runs
 │   └── e2e/
 │       ├── conftest.py      # pytest-playwright fixtures; auto-fails on uncaught JS errors
@@ -91,8 +92,9 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 │       └── requirements.txt # pytest + pytest-playwright
 └── .github/
     └── workflows/
-        ├── test.yml         # Unit tests — Node 20 and 22, every push and PR
-        └── e2e.yml          # E2E tests — Python 3.12 + Chromium, every push and PR
+        ├── test.yml                # Unit tests — Node 20 and 22, every push and PR
+        ├── e2e.yml                 # E2E tests — Python 3.12 + Chromium, every push and PR
+        └── update-epa-regions.yml  # Daily EPA data fetch (05:00 EST) — auto-commits to master on change
 ```
 
 ---
@@ -107,7 +109,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**280 tests across 33 suites:**
+**308 tests across 37 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -128,7 +130,7 @@ node --test tests/geo.test.js
 | 15 | `isValidUSZipCode()` (5-digit pass, invalid reject, edge cases) |
 | 16 | `isInCorridor()` — true for Richmond, Raleigh, DC, Philadelphia, New Brunswick NJ, Paterson NJ, Peekskill NY, Columbia SC, Macon GA, Columbus GA; false for Boston MA, Montauk NY, Louisville KY, Jacksonville FL, Miami FL; BBOX boundary inclusive |
 | 17 | `buildSearchQuery()` (zip vs city routing, Nominatim URL format, encoding) |
-| 18 | `FALL_LINE_CITIES` array + `makeMarkerPopup()` (data structure, required fields, corridor BBOX check, popup HTML — city name, river, soil, zone badge, region badge) |
+| 18 | `CORRIDOR_CITIES` array + `makeMarkerPopup()` (data structure, required fields, corridor BBOX check, popup HTML — city name, river, soil, zone badge, region badge) |
 | 19 | `NATIVE_PLANTS` + `makeNativePlantsSection()` (data structure, latin name format, type validation, Loblolly Pine/Bald Cypress spot checks, HTML output, cross-region isolation, region/fall-line popup integration) |
 | 20 | `SOIL_TYPES` + `makeSoilSection()` (data structure, required fields, pH range format, Cecil/Appling Piedmont spot check, Norfolk/Goldsboro Coastal spot check, HTML output, cross-region isolation, region/fall-line popup integration) |
 | 21 | `BLUE_RIDGE_GEOJSON` structure (Feature type, Polygon, closed ring, region tag, name) |
@@ -141,9 +143,13 @@ node --test tests/geo.test.js
 | 28 | `makeRiverDetailHTML()` (returns HTML string, river name, basin, fall line crossing, ecological notes) |
 | 29 | `VALLEY_RIDGE_GEOJSON` structure (Feature type, Polygon, closed ring, region tag, name) |
 | 30 | Valley and Ridge ecological data (plants, soil, cities — structure, required fields, content spot checks) |
-| 31 | `NE_UPLAND_GEOJSON` structure (Feature type, Polygon, closed ring, `piedmont` region tag) |
-| 32 | `NE_COASTAL_GEOJSON` structure (Feature type, Polygon, closed ring, `coastal` region tag) |
+| 31 | `NE_UPLAND_GEOJSON` structure (Feature type, Polygon, closed ring, `neUpland` region tag) |
+| 32 | `NE_COASTAL_GEOJSON` structure (Feature type, Polygon, closed ring, `neCoastal` region tag) |
 | 33 | Blue Ridge escarpment shared boundaries (east/west escarpment arrays — shared endpoints between Blue Ridge, Piedmont, and Valley & Ridge polygons) |
+| 34 | `INVASIVE_SPECIES` structure (10 region keys, ≥ 4 entries each, valid type and threat fields, two-word latin binomials) |
+| 35 | `makeInvasivesSection()` (HTML output for all 10 regions, empty string for unknown, threat badge colors) |
+| 36 | `PLANTING_CALENDAR` structure (14 zones 3b–10a, all 12 months, every month ≥ 1 activity, all items non-empty strings) |
+| 37 | `makeCalendarSection()` (HTML output for all 14 zones, 12 month entries, color-coded labels, wired into `makeZoneDetailHTML()`) |
 
 ### E2E tests (Python Playwright)
 
@@ -160,7 +166,7 @@ python -m pytest tests/e2e/ --base-url http://localhost:8000 -v
 
 | File | Tests | What it covers |
 |---|---|---|
-| `test_map.py` | 31 | Page load, layer toggles (regions, fall line, hardiness), fetch/cache, all 6 regions, rivers layer, detail page routing, mobile viewport |
+| `test_map.py` | 31 | Page load, layer toggles (regions, fall line, hardiness), fetch/cache, all 10 regions, rivers layer, detail page routing, mobile viewport |
 | `test_search.py` | 12 | Search bar structure, zip vs city routing, Nominatim calls, corridor detection, GPS button |
 | `test_legend_toggle.py` | 9 | Collapse/expand, mobile start state (collapsed), desktop start state (expanded), layer toggles work after expand |
 | `test_markers.py` | 14 | City marker DOM presence, legend toggle on/off, popup content (city name, river, zone, region badge), Appalachian city markers, mobile viewport |
@@ -288,11 +294,12 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Major rivers interactive layer with detail pages
 - [x] Hash-routed detail pages (`#detail/region/`, `#detail/zone/`, `#detail/river/`) with shareable URLs
 - [x] `data/regions.geojson` async fetch architecture (EPA Level III ready)
-- [ ] EPA Level III authoritative region polygons (replace interim hand-drawn polygons)
-- [ ] Expand native plants to 10+ per region (currently 6)
-- [ ] Invasive species warnings per region
-- [ ] Seasonal planting calendar per hardiness zone
-- [x] City marker expansion to 30+ cities — 34 cities
+- [x] Great Lakes Basin and Interior Lowlands / Ohio Valley regions — full western expansion to Mississippi
+- [x] Expand native plants to 10+ per region
+- [x] Invasive species warnings per region (10 regions, threat badges)
+- [x] Seasonal planting calendar per hardiness zone (14 zones × 12 months)
+- [x] City marker expansion — 51 corridor cities across all 9 regions
+- [ ] EPA Level III authoritative region polygons (replace interim hand-drawn polygons; daily pipeline at 05:00 EST ready)
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
 - [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, printable location reports
 - [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants`, `/api/v1/soil` endpoints via Cloudflare Workers or Vercel Edge Functions (free tier)
