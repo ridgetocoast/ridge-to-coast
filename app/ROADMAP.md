@@ -68,29 +68,35 @@
 
 **Branch:** `data/epa-ecoregions`  
 **Label:** `data`  
-**Scope:** `data/regions.geojson` (regenerate), `scripts/extract-regions.js` (adjust if needed)
+**Scope:** `data/regions.geojson` (regenerate), `scripts/extract-regions.js`, `scripts/fetch-epa-ecoregions.js`
 
-**What:** Replace the interim hand-drawn polygons in `data/regions.geojson` with authoritative EPA Level III ecoregion boundaries. The pipeline script `scripts/extract-regions.js` is already written.
+**Status:** Scripts complete — `data/regions.geojson` remains on improved interim polygons pending network access to `geodata.epa.gov`.
 
-**Steps:**
-1. Fetch paginated EPA ArcGIS REST endpoint:
-   ```
-   https://geodata.epa.gov/arcgis/rest/services/OA/EcoregionsByState/MapServer/1/query
-   ?where=1%3D1&outFields=US_L3CODE,US_L3NAME&f=geojson&resultOffset=0&resultRecordCount=1000
-   ```
-2. Merge pages into `/tmp/us_eco_l3.geojson`
-3. Run: `node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson`
-4. Verify output has all 5 region keys, file < 2 MB
-5. All 280 unit tests pass; all 85 E2E tests pass
+**What:** Replace the interim hand-drawn polygons in `data/regions.geojson` with authoritative EPA Level III ecoregion boundaries.
 
-**L3 → region mapping** (already in `scripts/extract-regions.js`):
+**Full pipeline (run from a machine with access to geodata.epa.gov):**
+```bash
+# Step 1 — fetch all EPA L3 features (paginates automatically)
+node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
+
+# Step 2 — extract + map to Ridge to Coast region keys
+node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson
+
+# Step 3 — verify
+node --test tests/geo.test.js   # must pass 280/280
+```
+
+**L3 → region mapping** (in `scripts/extract-regions.js`):
 - `63, 65, 83` → `coastal`
 - `45, 64, 58, 59, 84` → `piedmont`
 - `66` → `blueRidge`
 - `67–71, 78–81` → `valleyRidge`
 - `73–76` → `gulfCoastal`
 
-**Note:** If ArcGIS endpoint is blocked, use `node scripts/generate-regions.js` (interim, uses existing inline polygons).
+**Fallback (no network):**
+```bash
+node scripts/generate-regions.js   # regenerates from inline polygons in lib/geo-data.js
+```
 
 ---
 
