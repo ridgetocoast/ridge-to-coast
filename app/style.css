@@ -139,10 +139,10 @@ html, body {
 
 .swatch.citymarker {
   background: #fff;
-  border: 2.5px solid #e84393;
+  border: 2px solid #e84393;
   border-radius: 50%;
-  width: 14px;
-  height: 14px;
+  width: 9px;
+  height: 9px;
 }
 
 #legend hr {
