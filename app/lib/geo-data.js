@@ -663,6 +663,36 @@ const NATIVE_PLANTS = {
       type:  'shrub',
       note:  'Largest native fruit; riparian corridors and bottomlands',
     },
+    {
+      name:  'American Beautyberry',
+      latin: 'Callicarpa americana',
+      type:  'shrub',
+      note:  'Vivid magenta berries in fall clusters; thrives in Piedmont clay and woodland edges; strong wildlife value for songbirds.',
+    },
+    {
+      name:  'Mayapple',
+      latin: 'Podophyllum peltatum',
+      type:  'perennial',
+      note:  'Woodland floor groundcover; large umbrella-like leaves carpet Piedmont mesic slopes; lemon-yellow fruit edible when fully ripe.',
+    },
+    {
+      name:  'Wild Ginger',
+      latin: 'Asarum canadense',
+      type:  'perennial',
+      note:  'Low-growing groundcover for heavy clay; ginger-scented rhizomes; reddish-brown spring flowers hidden at the leaf base.',
+    },
+    {
+      name:  'Cinnamon Fern',
+      latin: 'Osmundastrum cinnamomeum',
+      type:  'fern',
+      note:  'Large shuttlecock fern of moist Piedmont bottomlands; distinctive cinnamon-brown fertile fronds emerge in spring.',
+    },
+    {
+      name:  'Trumpet Honeysuckle',
+      latin: 'Lonicera sempervirens',
+      type:  'vine',
+      note:  'Native alternative to invasive Japanese honeysuckle; scarlet tubular flowers attract hummingbirds and clearwing moths.',
+    },
   ],
   coastal: [
     {
@@ -701,6 +731,42 @@ const NATIVE_PLANTS = {
       type:  'perennial',
       note:  'Endemic to NC Coastal Plain longleaf pine savannas; globally rare',
     },
+    {
+      name:  'Inkberry',
+      latin: 'Ilex glabra',
+      type:  'shrub',
+      note:  'Evergreen native holly of coastal plain wetlands; glossy black berries persist through winter and feed over 20 bird species.',
+    },
+    {
+      name:  'Wax Myrtle',
+      latin: 'Morella cerifera',
+      type:  'shrub',
+      note:  'Salt-tolerant evergreen shrub of coastal edges and pocosins; aromatic waxy berries were used to make bayberry candles.',
+    },
+    {
+      name:  'Swamp Milkweed',
+      latin: 'Asclepias incarnata',
+      type:  'perennial',
+      note:  'Essential monarch butterfly host plant; thrives in wet sandy Coastal Plain soils and tidal marsh edges; pink flower clusters.',
+    },
+    {
+      name:  'Blue-eyed Grass',
+      latin: 'Sisyrinchium angustifolium',
+      type:  'perennial',
+      note:  'Delicate grass-like perennial of sandy Coastal Plain meadows; small blue-violet flowers with a yellow center in spring.',
+    },
+    {
+      name:  'Royal Fern',
+      latin: 'Osmunda regalis',
+      type:  'fern',
+      note:  'Large fern of coastal plain wetlands and pocosins; distinctive fertile pinnae resemble flowering plumes at the frond tips.',
+    },
+    {
+      name:  'Virginia Creeper',
+      latin: 'Parthenocissus quinquefolia',
+      type:  'vine',
+      note:  'Five-leaflet native vine with brilliant scarlet fall color; small dark berries are a critical food source for migratory birds.',
+    },
   ],
   ecotone: [
     {
@@ -732,6 +798,42 @@ const NATIVE_PLANTS = {
       latin: 'Sanguinaria canadensis',
       type:  'perennial',
       note:  'Spring ephemeral on rich fall line slopes; fleeting white flowers',
+    },
+    {
+      name:  'Tulip Poplar',
+      latin: 'Liriodendron tulipifera',
+      type:  'tree',
+      note:  'Tallest eastern hardwood; grows fastest in the rich mesic soils of fall line ravines; tulip-shaped yellow-green flowers in May.',
+    },
+    {
+      name:  'American Beech',
+      latin: 'Fagus grandifolia',
+      type:  'tree',
+      note:  'Signature tree of undisturbed fall line slopes; smooth silver-gray bark; beechnuts are a critical mast crop for bears, turkeys, and deer.',
+    },
+    {
+      name:  'Black Birch',
+      latin: 'Betula lenta',
+      type:  'tree',
+      note:  'Rocky fall line slopes and gorges; wintergreen-scented twigs; a pioneer on disturbed shale outcrops along the crystalline-sediment boundary.',
+    },
+    {
+      name:  'Jack-in-the-Pulpit',
+      latin: 'Arisaema triphyllum',
+      type:  'perennial',
+      note:  'Shaded fall line coves and streambanks; hooded spathe protects tiny flowers; clusters of brilliant red berries persist into fall.',
+    },
+    {
+      name:  'River Oats',
+      latin: 'Chasmanthium latifolium',
+      type:  'grass',
+      note:  'Graceful shade-tolerant grass of fall line stream corridors; flat dangling spikelets rattle in the wind through winter.',
+    },
+    {
+      name:  'Cross Vine',
+      latin: 'Bignonia capreolata',
+      type:  'vine',
+      note:  'Bold orange-red trumpet flowers in spring; semi-evergreen; clings to fall line tree trunks and rocky outcrops with adhesive tendrils.',
     },
   ],
   blueRidge: [
@@ -771,6 +873,36 @@ const NATIVE_PLANTS = {
       type:  'shrub',
       note:  'Streamside ericaceous shrub; arching branches and white flowers in late spring',
     },
+    {
+      name:  'Yellow Buckeye',
+      latin: 'Aesculus flava',
+      type:  'tree',
+      note:  'Dominant tree of rich Blue Ridge cove forests; large compound leaves and yellow flower spikes; glossy buckeye nuts ripen in September.',
+    },
+    {
+      name:  'Turk\'s Cap Lily',
+      latin: 'Lilium superbum',
+      type:  'perennial',
+      note:  'Spectacular mountain lily reaching 6–8 ft; recurved orange-red petals with purple spots; grows in wet mountain meadows and seeps.',
+    },
+    {
+      name:  'Mountain Oat Grass',
+      latin: 'Danthonia compressa',
+      type:  'grass',
+      note:  'Characteristic grass of high-elevation rocky balds and mountain meadows; flat leaf blades; one of few grasses tolerant of spruce-fir zone conditions.',
+    },
+    {
+      name:  'Maidenhair Fern',
+      latin: 'Adiantum pedatum',
+      type:  'fern',
+      note:  'Delicate fan-shaped fronds on glossy black stems; indicator of undisturbed rich cove forest soils; grows in dense colonies along mountain streams.',
+    },
+    {
+      name:  'American Wisteria',
+      latin: 'Wisteria frutescens',
+      type:  'vine',
+      note:  'Native wisteria — not invasive; fragrant blue-purple flower clusters in spring; grows along Blue Ridge waterways and forest edges.',
+    },
   ],
   valleyRidge: [
     {
@@ -809,6 +941,42 @@ const NATIVE_PLANTS = {
       type:  'tree',
       note:  'Specialist of limestone cliffs and outcrops; sharply toothed leaves resemble chestnut; an anchor species of cedar-oak calcareous woodlands',
     },
+    {
+      name:  'Wild Bergamot',
+      latin: 'Monarda fistulosa',
+      type:  'perennial',
+      note:  'Lavender flower heads attract bumblebees and hummingbirds; thrives on calcareous soils and limestone glades of the Great Valley; aromatic oregano-like foliage.',
+    },
+    {
+      name:  'Buttonbush',
+      latin: 'Cephalanthus occidentalis',
+      type:  'shrub',
+      note:  'Distinctive spherical white flower heads like lacrosse balls; dominant shrub of Valley & Ridge stream margins and flooded limestone flats.',
+    },
+    {
+      name:  'Wild Azalea',
+      latin: 'Rhododendron canescens',
+      type:  'shrub',
+      note:  'Fragrant pink flowers before the leaves emerge in early spring; lights up limestone-influenced bottomland forests throughout the Appalachian Valley.',
+    },
+    {
+      name:  'Big Bluestem',
+      latin: 'Andropogon gerardii',
+      type:  'grass',
+      note:  'Tallgrass prairie icon reaching 6–8 ft; dominant on Valley & Ridge limestone glades and calcareous cedar prairies; three-pronged seedhead called turkey-foot.',
+    },
+    {
+      name:  'Ostrich Fern',
+      latin: 'Matteuccia struthiopteris',
+      type:  'fern',
+      note:  'Vase-shaped fern of Valley & Ridge alluvial bottomlands; edible fiddleheads in spring; tolerates seasonal flooding on limestone river terraces.',
+    },
+    {
+      name:  'Groundnut',
+      latin: 'Apios americana',
+      type:  'vine',
+      note:  'Tuberous nitrogen-fixing vine of streambanks and bottomland thickets; fragrant maroon-pink flowers; edible tubers were a staple food for Indigenous peoples.',
+    },
   ],
   gulfCoastal: [
     {
@@ -846,6 +1014,42 @@ const NATIVE_PLANTS = {
       latin: 'Sarracenia purpurea',
       type:  'perennial',
       note:  'Carnivorous bog plant of Gulf Coast pitcher plant prairies; traps insects in rain-filled pitchers; indicator of undisturbed acidic wetlands',
+    },
+    {
+      name:  'Yaupon Holly',
+      latin: 'Ilex vomitoria',
+      type:  'shrub',
+      note:  'The only caffeinated plant native to North America; salt-tolerant evergreen shrub of Gulf Coast scrub and maritime forests; red berries for birds.',
+    },
+    {
+      name:  'Cardinal Flower',
+      latin: 'Lobelia cardinalis',
+      type:  'perennial',
+      note:  'Brilliant scarlet spikes are the quintessential hummingbird plant; thrives in Gulf coastal wetlands, bayou margins, and moist pine savannas.',
+    },
+    {
+      name:  'Black-eyed Susan',
+      latin: 'Rudbeckia hirta',
+      type:  'perennial',
+      note:  'Tough short-lived perennial of Gulf Coastal Plain pine savannas and roadsides; golden-yellow daisy with dark cone; self-seeds reliably in sandy soils.',
+    },
+    {
+      name:  'Gulf Muhly',
+      latin: 'Muhlenbergia capillaris',
+      type:  'grass',
+      note:  'Clouds of rosy-pink flower plumes in October define Gulf Coast grasslands and longleaf pine savannas; extremely drought-tolerant once established.',
+    },
+    {
+      name:  'Netted Chain Fern',
+      latin: 'Woodwardia areolata',
+      type:  'fern',
+      note:  'Distinctive chain-like spore pattern on fertile fronds; indicator of undisturbed Gulf Coast boggy flatwoods, seepage bogs, and pitcher plant prairies.',
+    },
+    {
+      name:  'Trumpet Creeper',
+      latin: 'Campsis radicans',
+      type:  'vine',
+      note:  'Vigorous native vine of Gulf South fence rows and forest edges; large orange-red trumpet flowers are a major hummingbird nectar source all summer.',
     },
   ],
 };

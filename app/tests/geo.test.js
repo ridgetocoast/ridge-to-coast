@@ -1113,7 +1113,7 @@ describe('NATIVE_PLANTS and makeNativePlantsSection()', () => {
   });
 
   it('type field is one of the expected values', () => {
-    const valid = new Set(['tree', 'shrub', 'perennial', 'grass', 'fern']);
+    const valid = new Set(['tree', 'shrub', 'perennial', 'grass', 'fern', 'vine']);
     for (const [region, plants] of Object.entries(NATIVE_PLANTS)) {
       for (const plant of plants) {
         assert.ok(
