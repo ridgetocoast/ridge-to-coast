@@ -953,26 +953,26 @@ describe('FALL_LINE_CITIES and makeMarkerPopup()', () => {
     }
   });
 
-  it('all city latitudes are within the eastern US (including New England)', () => {
+  it('all city latitudes are within the eastern US corridor BBOX', () => {
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
-        city.lat >= 32.0 && city.lat <= 45.0,
-        `${city.name} lat ${city.lat} outside [32, 45]`
+        city.lat >= 24.0 && city.lat <= 47.5,
+        `${city.name} lat ${city.lat} outside [24, 47.5]`
       );
     }
   });
 
-  it('all city longitudes are within the eastern US', () => {
+  it('all city longitudes are within the eastern US corridor BBOX', () => {
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
-        city.lon >= -86.0 && city.lon <= -69.0,
-        `${city.name} lon ${city.lon} outside [-86, -69]`
+        city.lon >= -92.0 && city.lon <= -66.5,
+        `${city.name} lon ${city.lon} outside [-92, -66.5]`
       );
     }
   });
 
   it('all city regions are valid ecoregion keys', () => {
-    const valid = new Set(['piedmont', 'coastal', 'blueRidge']);
+    const valid = new Set(['piedmont', 'coastal', 'blueRidge', 'valleyRidge', 'gulfCoastal', 'ecotone']);
     for (const city of FALL_LINE_CITIES) {
       assert.ok(
         valid.has(city.region),

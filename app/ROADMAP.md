@@ -14,12 +14,15 @@
 | Hash routing detail pages (`#detail/region/`, `#detail/zone/`, `#detail/river/`) | ✅ |
 | `data/regions.geojson` async fetch architecture (EPA-ready) | ✅ |
 | 280 unit tests / 33 suites, 85 E2E tests | ✅ |
-| README update | ❌ |
+| README update | ✅ |
 | EPA Level III authoritative region polygons | ❌ |
-| Native plant expansion (10+ per region, currently 6) | ❌ |
+| Native plant expansion (10+ per region) | ✅ |
 | Invasive species warnings per region | ❌ |
 | Seasonal planting calendar per zone | ❌ |
-| City marker expansion (30+ cities, currently 21) | ❌ |
+| City marker expansion (30+ cities — 34 total) | ✅ |
+| NE Upland / NE Coastal legend entries | ❌ |
+| Great Lakes Basin region | ❌ |
+| Interior Lowlands / Ohio Valley region | ❌ |
 
 ---
 
@@ -231,6 +234,146 @@ const PLANTING_CALENDAR = {
 - New unit test suite; 1–2 new E2E tests
 
 **Sources:** Old Farmer's Almanac (by zone), USDA PHZM zone definitions
+
+---
+
+## Issue 7 — NE Upland / NE Coastal legend entries
+
+**Branch:** `feat/ne-legend-entries`  
+**Label:** `enhancement`  
+**Scope:** `map.js` (legend config), `style.css` (legend colors), `tests/e2e/test_legend_toggle.py`
+
+**What:** NE Upland and NE Coastal regions render as shaded polygons on the map but have no named rows in the legend toggle panel. Add legend entries so users can identify and toggle these two regions independently.
+
+**Context:** The EPA pipeline (Issue 2) replaces polygon *boundaries* only — it does not add or remove legend entries. The legend region keys (`blueRidge`, `valleyRidge`, `gulfCoastal`, `piedmont`, `coastal`) are Ridge to Coast labels mapped from EPA L3 codes, not EPA labels. NE Upland and NE Coastal are separate Ridge to Coast region keys (`neUpland`, `neCoastal`) that need the same legend treatment regardless of polygon source.
+
+**Changes needed:**
+- In `map.js`: add `neUpland` and `neCoastal` to the region layer/legend config with display names "NE Upland" and "NE Coastal"
+- In `style.css`: assign distinct fill colors (currently they fall back to a default) — suggest muted teal for NE Upland, muted blue-green for NE Coastal
+- In `tests/e2e/test_legend_toggle.py`: add toggle tests for the two new legend rows
+
+**Acceptance criteria:**
+- Legend panel shows entries for "NE Upland" and "NE Coastal" with matching swatch colors
+- Clicking each legend entry toggles the respective polygon layer on/off
+- All existing 280 unit + 85 E2E tests still pass; new E2E tests added for the two new toggle rows
+
+---
+
+## Issue 8 — Western Expansion: Great Lakes & Interior Lowlands
+
+**Branch:** `feat/western-expansion`  
+**Label:** `enhancement`  
+**Scope:** `lib/geo-data.js`, `data/regions.geojson`, `scripts/extract-regions.js`, `scripts/generate-regions.js`, `tests/geo.test.js`, `map.js` (legend), `style.css`
+
+### Why
+
+The Appalachian Mountains are a continental divide: rivers drain either east to the Atlantic (already mapped) or west into the Ohio, Tennessee, and Cumberland rivers — which all flow to the Mississippi. The current map covers only the Atlantic slope. Adding the western watershed completes the corridor and captures the full range of states east of the Mississippi River.
+
+### Two new region keys
+
+| Key | Display name | Core states |
+|---|---|---|
+| `greatLakes` | Great Lakes Basin | WI, MI, northern IL/IN/OH, MN east of Mississippi |
+| `interiorLowlands` | Interior Lowlands / Ohio Valley | central & western OH, IN, IL east of Mississippi, KY, central TN |
+
+### Geographic boundaries
+
+**`greatLakes`** — the Great Lakes drainage basin south of the Canadian border:
+- West boundary: Mississippi River from Prairie du Chien WI (~43.0°N, -91.2°W) north to the WI/MN border, then east to Lake Superior
+- North boundary: US–Canada border along Lake Superior, Lake Huron, Lake Erie, Lake Ontario
+- South boundary: southern limit of the last glaciation (roughly the Valparaiso/Shelbyville moraines at ~41°N in Indiana/Ohio, ~42°N in Illinois)
+- East boundary: connects to `neUpland` at the Niagara Frontier / western New York; `valleyRidge` at the Appalachian Plateau escarpment in northwestern Pennsylvania
+
+**`interiorLowlands`** — the Ohio-Tennessee-Cumberland drainage west of the Appalachian Plateau:
+- West boundary: Mississippi River (~-89.5°W at Missouri–Illinois line, south to Memphis)
+- East boundary: Appalachian Plateau western escarpment (~-82°W in Ohio, ~-84°W in Kentucky)
+- North boundary: southern limit of glaciation / `greatLakes` southern edge (~41°N)
+- South boundary: connects to `gulfCoastal` at the Memphis embayment (~35°N) and Gulf Coastal foothills
+
+### EPA Level III → region mapping (for `scripts/extract-regions.js`)
+
+| EPA L3 Code | L3 Name | → Ridge to Coast key |
+|---|---|---|
+| 50 | Northern Lakes and Forests | `greatLakes` |
+| 51 | North Central Hardwood Forests | `greatLakes` |
+| 53 | Southeastern Wisconsin Till Plains | `greatLakes` |
+| 56 | Southern Michigan/Northern Indiana Drift Plains | `greatLakes` |
+| 57 | Huron/Erie Lake Plains | `greatLakes` |
+| 83 | Eastern Great Lakes and Hudson Lowlands | `greatLakes` |
+| 54 | Central Corn Belt Plains | `interiorLowlands` |
+| 55 | Eastern Corn Belt Plains | `interiorLowlands` |
+| 70 | Interior River Valleys and Hills | `interiorLowlands` |
+| 71 | Interior Plateau | `interiorLowlands` |
+| 72 | Interior River Lowlands | `interiorLowlands` |
+
+### Data required in `lib/geo-data.js`
+
+Add for each new region key (matching existing structure):
+
+1. **GeoJSON polygon constant** — e.g. `GREAT_LAKES_GEOJSON`, `INTERIOR_LOWLANDS_GEOJSON`  
+   - `properties`: `{ region, name, states, climate, description, area_sq_mi }`
+
+2. **`NATIVE_PLANTS[key]`** — ≥ 10 entries, balanced types (tree × 3, perennial × 3, shrub × 2, grass × 1, fern × 1, vine × 1)
+
+   Key natives for `greatLakes`: Sugar Maple, Paper Birch, White Pine, Bur Oak, Wild Bergamot, Prairie Blazing Star, Buttonbush, Highbush Blueberry, Blue-Eyed Grass, Ostrich Fern, Virginia Wild Rye, Wild Grape  
+   Key natives for `interiorLowlands`: Tulip Poplar, Sycamore, Shagbark Hickory, Redbud, Wild Blue Phlox, Pale Purple Coneflower, Spicebush, Wild Ginger, Prairie Dropseed, Maidenhair Fern, Trumpet Vine
+
+3. **`SOIL_TYPES[key]`** — soil profile object  
+
+   `greatLakes` soils: Poygan–Hochheim–Kewaunee (Inceptisols / Alfisols from glacial till and lake sediments); silty clay loam to sandy loam; pH 6.5–7.5; well to moderately drained; rich in calcium from limestone drift; minimal amendment on most sites  
+   `interiorLowlands` soils: Miami–Crosby–Cincinnati (Alfisols / Mollisols in prairie zones); silt loam to silty clay loam; pH 6.0–7.5; variable drainage — well drained on uplands, poorly drained in glaciated till plains; historically some of the most fertile soils in North America
+
+4. **`REGION_LABELS[key]`** — display names as above
+
+### Candidate cities
+
+**`greatLakes`:**
+| City | State | lat | lon |
+|---|---|---|---|
+| Chicago | IL | 41.881 | -87.627 |
+| Milwaukee | WI | 43.044 | -87.910 |
+| Detroit | MI | 42.331 | -83.046 |
+| Cleveland | OH | 41.499 | -81.694 |
+| Toledo | OH | 41.664 | -83.555 |
+| Green Bay | WI | 44.519 | -88.020 |
+| Ann Arbor | MI | 42.281 | -83.748 |
+| Buffalo | NY | 42.886 | -78.879 |
+| Marquette | MI | 46.543 | -87.395 |
+
+**`interiorLowlands`:**
+| City | State | lat | lon |
+|---|---|---|---|
+| Columbus | OH | 39.961 | -82.998 |
+| Indianapolis | IN | 39.768 | -86.158 |
+| Louisville | KY | 38.252 | -85.759 |
+| Nashville | TN | 36.165 | -86.784 |
+| Cincinnati | OH | 39.103 | -84.512 |
+| Lexington | KY | 38.040 | -84.503 |
+| Springfield | IL | 39.781 | -89.650 |
+| Evansville | IN | 37.971 | -87.571 |
+
+### Acceptance criteria
+
+- 2 new GeoJSON polygon constants in `lib/geo-data.js`
+- `NATIVE_PLANTS`, `SOIL_TYPES`, `REGION_LABELS` entries for both keys
+- `data/regions.geojson` regenerated with 9 features total (7 existing + 2 new)
+- `scripts/extract-regions.js` updated with L3 → `greatLakes` / `interiorLowlands` mappings
+- `scripts/generate-regions.js` updated with new inline polygons
+- `map.js` / `style.css` legend entries added (muted steel-blue for `greatLakes`, muted amber-green for `interiorLowlands`)
+- `FALL_LINE_CITIES` entries added for candidate cities above with full schema
+- All existing unit tests pass + new suites for the two new regions (structure, plants, soil)
+- 85 E2E tests still pass
+
+### Implementation order
+
+1. Polygon constants + GeoJSON in `lib/geo-data.js`
+2. Regenerate `data/regions.geojson`
+3. Add native plants and soil profiles
+4. Add city entries to `FALL_LINE_CITIES`
+5. Update `scripts/extract-regions.js` with new L3 codes
+6. Update legend in `map.js` + colors in `style.css`
+7. Update unit tests (city BBOX, region key allowlist) + add new suites
+8. Update ROADMAP status table and README
 
 ---
 

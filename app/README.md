@@ -2,7 +2,7 @@
 
 An interactive web map of the **Appalachian watershed corridor** — from the mountain ridge through the Piedmont and the Atlantic Seaboard Fall Line to the Tidewater and the Atlantic Coast. Covers the geological, ecological, and horticultural character of the eastern United States for gardeners, farmers, arborists, and ecological conservation groups.
 
-The map covers the full eastern corridor across **22 states**, from the Blue Ridge highlands and Great Appalachian Valley through the Piedmont, Fall Line, and Atlantic/Gulf Coastal Plains — including **6 ecological regions**, **25 fall line cities**, USDA plant hardiness zones 3b–10a, native plants, and soil profiles from Maine to Florida.
+The map covers the full eastern corridor across **22 states**, from the Blue Ridge highlands and Great Appalachian Valley through the Piedmont, Fall Line, and Atlantic/Gulf Coastal Plains — including **6 ecological regions**, **34 fall line cities**, USDA plant hardiness zones 3b–10a, native plants, and soil profiles from Maine to Florida.
 
 Live at **[loobo07.github.io](https://loobo07.github.io)**
 
@@ -25,7 +25,7 @@ Live at **[loobo07.github.io](https://loobo07.github.io)**
 | **Detail pages** | Hash-routed pages (`#detail/region/piedmont`, `#detail/zone/7b`, `#detail/river/james`) with full ecological writeups, native plant lists, soil profiles, and city tables. Shareable URLs. |
 | **Hardiness Zones** | USDA Plant Hardiness Zones 3b–10a across 22 states, lazy-loaded and cached. Semi-transparent overlay so region shading remains visible beneath. Zone-code labels (e.g. `7b`) appear on each polygon at zoom ≥ 9. |
 | **Hardiness popups** | Tap any zone for 5 facts: avg minimum winter temp, first frost date, last frost date, growing season length, and example plants that thrive. |
-| **City markers** | 25 fall line and Appalachian cities shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
+| **City markers** | 34 fall line and Appalachian cities shown as white circles with a pink border. Click for a popup with: river crossed, founding context (head of navigation history), soil type, and hardiness zone. Hover shows city name tooltip. Toggle in the legend. |
 | **Layer toggles** | Show/hide region shading, fall line, city markers, and hardiness zones independently. Regions switch to outline-only when hardiness zones are active to reduce visual overlap. |
 | **Location search** | Bottom search bar — enter a zip code or city name to fly the map to that location. GPS "locate me" button also supported. Results outside the corridor get a contextual note. |
 | **Collapsible legend** | Toggle button collapses/expands the legend panel. Starts collapsed on mobile (≤600 px) to maximise map visibility; starts expanded on desktop. |
@@ -290,7 +290,7 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [ ] Expand native plants to 10+ per region (currently 6)
 - [ ] Invasive species warnings per region
 - [ ] Seasonal planting calendar per hardiness zone
-- [ ] City marker expansion to 30+ cities (currently 25)
+- [x] City marker expansion to 30+ cities — 34 cities
 - [ ] Community garden network layer — fall line cities sharing growing knowledge
 - [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, printable location reports
 - [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants`, `/api/v1/soil` endpoints via Cloudflare Workers or Vercel Edge Functions (free tier)
