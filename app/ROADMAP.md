@@ -74,7 +74,17 @@
 
 **What:** Replace the interim hand-drawn polygons in `data/regions.geojson` with authoritative EPA Level III ecoregion boundaries.
 
-**Full pipeline (run from a machine with access to geodata.epa.gov):**
+**Automated pipeline (GitHub Actions — no local setup needed):**
+
+Trigger the workflow from the Actions tab:
+> Actions → "Update EPA Level III region data" → Run workflow
+
+The workflow (`update-epa-regions.yml`) fetches the EPA data, regenerates
+`data/regions.geojson`, verifies region keys and file size, runs all 280 unit
+tests, and opens a PR automatically if the data has changed. Runs quarterly
+on a schedule as well.
+
+**Manual pipeline (requires access to geodata.epa.gov):**
 ```bash
 # Step 1 — fetch all EPA L3 features (paginates automatically)
 node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson

@@ -1,0 +1,174 @@
+name: Update EPA Level III region data
+
+# ── Triggers ──────────────────────────────────────────────────────────────────
+#
+#  Manual:   Actions → "Update EPA Level III region data" → Run workflow
+#            Optional: set `dry_run: true` to fetch + test without committing.
+#
+#  Schedule: Runs quarterly (1st of Jan, Apr, Jul, Oct at 03:00 UTC) to pick
+#            up any boundary revisions EPA publishes to their ArcGIS service.
+#
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run — fetch and test but do not open a PR'
+        required: false
+        default: 'false'
+        type: boolean
+  schedule:
+    - cron: '0 3 1 1,4,7,10 *'   # quarterly
+
+permissions:
+  contents: write        # push the data branch
+  pull-requests: write   # open the PR
+
+jobs:
+  update-regions:
+    name: Fetch EPA data → regenerate regions.geojson → open PR
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so we can diff the data file
+
+      # ── 2. Node.js ───────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 3. Fetch EPA Level III ecoregions ────────────────────────────────────
+      - name: Fetch EPA Level III ecoregion GeoJSON
+        run: |
+          echo "Fetching EPA Level III ecoregions..."
+          node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
+          FEAT=$(node -e "const f=require('/tmp/us_eco_l3.geojson'); console.log(f.features.length)")
+          echo "Downloaded ${FEAT} EPA features"
+          echo "EPA_FEATURES=${FEAT}" >> "$GITHUB_ENV"
+
+      # ── 4. Extract → data/regions.geojson ────────────────────────────────────
+      - name: Extract Ridge to Coast regions from EPA data
+        run: |
+          node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson 2>&1 | tee /tmp/extract.log
+          FEAT=$(node -e "const f=require('./data/regions.geojson'); console.log(f.features.length)")
+          SIZE=$(du -k data/regions.geojson | cut -f1)
+          echo "Output: ${FEAT} features, ${SIZE} KB"
+          echo "REGION_FEATURES=${FEAT}" >> "$GITHUB_ENV"
+          echo "REGION_SIZE_KB=${SIZE}"  >> "$GITHUB_ENV"
+          # Fail if file is suspiciously large (> 2 MB = 2048 KB)
+          if [ "$SIZE" -gt 2048 ]; then
+            echo "ERROR: regions.geojson is ${SIZE} KB — exceeds 2 MB limit"
+            exit 1
+          fi
+
+      # ── 5. Verify all 5 region keys are present ───────────────────────────────
+      - name: Verify region keys
+        run: |
+          node -e "
+            const gj = require('./data/regions.geojson');
+            const keys = [...new Set(gj.features.map(f => f.properties.region))].sort();
+            const required = ['blueRidge','coastal','gulfCoastal','piedmont','valleyRidge'];
+            const missing = required.filter(k => !keys.includes(k));
+            if (missing.length) {
+              console.error('Missing region keys:', missing.join(', '));
+              process.exit(1);
+            }
+            console.log('All 5 region keys present:', keys.join(', '));
+            required.forEach(k => {
+              const count = gj.features.filter(f => f.properties.region === k).length;
+              console.log(' ', k, '—', count, 'features');
+            });
+          "
+
+      # ── 6. Unit tests ────────────────────────────────────────────────────────
+      - name: Run unit tests (280 tests / 33 suites)
+        run: node --test tests/geo.test.js
+
+      # ── 7. Check whether data/regions.geojson actually changed ───────────────
+      - name: Check for data changes
+        id: diff
+        run: |
+          if git diff --quiet data/regions.geojson; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to data/regions.geojson — EPA data is unchanged."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            ADDED=$(git diff --numstat data/regions.geojson | awk '{print $1}')
+            REMOVED=$(git diff --numstat data/regions.geojson | awk '{print $2}')
+            echo "changes=+${ADDED}/-${REMOVED} lines" >> "$GITHUB_OUTPUT"
+            echo "data/regions.geojson changed: +${ADDED}/-${REMOVED} lines"
+          fi
+
+      # ── 8. Push branch + open PR (skip if no change or dry run) ─────────────
+      - name: Push data branch
+        if: steps.diff.outputs.changed == 'true' && inputs.dry_run != 'true'
+        run: |
+          BRANCH="data/epa-regions-$(date +%Y-%m-%d)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data/regions.geojson
+          git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))
+
+          Source: EPA ArcGIS REST — EcoregionsByState/MapServer/1
+          EPA features fetched: ${{ env.EPA_FEATURES }}
+          Ridge to Coast features: ${{ env.REGION_FEATURES }}
+          File size: ${{ env.REGION_SIZE_KB }} KB
+
+          Automated update via .github/workflows/update-epa-regions.yml"
+          git push origin "$BRANCH"
+          echo "BRANCH=${BRANCH}" >> "$GITHUB_ENV"
+
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true' && inputs.dry_run != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.create({
+              owner:   context.repo.owner,
+              repo:    context.repo.repo,
+              title:   `data: update regions.geojson from EPA Level III ecoregions (${new Date().toISOString().slice(0,10)})`,
+              head:    process.env.BRANCH,
+              base:    'master',
+              body:    [
+                '## Automated EPA Level III region data update',
+                '',
+                `Triggered by: ${context.eventName === 'schedule' ? 'quarterly schedule' : 'manual workflow_dispatch'}`,
+                '',
+                '| Metric | Value |',
+                '|---|---|',
+                `| EPA features fetched | ${process.env.EPA_FEATURES} |`,
+                `| Ridge to Coast features | ${process.env.REGION_FEATURES} |`,
+                `| File size | ${process.env.REGION_SIZE_KB} KB |`,
+                `| Changes | ${process.env.CHANGES || 'see diff'} |`,
+                '',
+                '## Verification',
+                '- [x] All 5 region keys present (coastal, piedmont, blueRidge, valleyRidge, gulfCoastal)',
+                '- [x] File size < 2 MB',
+                '- [x] 280/280 unit tests pass',
+                '',
+                '## Review checklist',
+                '- [ ] Spot-check polygons in the map UI — regions look geographically correct',
+                '- [ ] No unexpected region gaps or overlaps',
+                '- [ ] Merge when satisfied',
+              ].join('\n'),
+            });
+            core.notice(`PR opened: ${pr.html_url}`);
+
+      # ── 9. Workflow summary ───────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## EPA Region Update Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| EPA features fetched | ${EPA_FEATURES:-n/a} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Ridge to Coast features | ${REGION_FEATURES:-n/a} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| File size | ${REGION_SIZE_KB:-n/a} KB |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Data changed | ${{ steps.diff.outputs.changed }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Dry run | ${{ inputs.dry_run }} |" >> "$GITHUB_STEP_SUMMARY"
