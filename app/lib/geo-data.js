@@ -400,12 +400,12 @@ const VALLEY_RIDGE_GEOJSON = {
       // Eastern boundary: Blue Ridge western escarpment north → south
       // ends at [-85.000, 34.700] (Cohutta Wilderness, NW Georgia)
       ...BLUE_RIDGE_WEST_ESCARPMENT,
-      // Southern boundary: NW Georgia foothills → central TN Highland Rim
-      [-87.500, 35.000],   // Central TN / western Highland Rim edge
-      [-88.000, 35.500],   // Western TN boundary — Gulf Coastal Plain takes over west of here
+      // Southern boundary: NW Georgia foothills → Alabama/Tennessee Appalachian front
+      [-85.800, 35.000],   // NW Alabama — Lookout Mountain / Sand Mountain western escarpment
+      [-86.000, 35.800],   // NE Alabama / NW Tennessee — Cumberland Plateau western edge
       // Western boundary: up through KY and eastern OH to Lake Erie
-      [-88.000, 36.700],   // Western Kentucky / Land Between the Lakes
-      [-87.500, 37.500],   // Central Kentucky / Elizabethtown / Mammoth Cave NP
+      [-85.500, 36.600],   // TN/KY border — Cumberland Plateau western escarpment
+      [-84.000, 37.500],   // Eastern Kentucky — Appalachian Plateau western escarpment
       [-84.800, 38.800],   // Northern Kentucky / Cincinnati OH area (Bluegrass region)
       [-83.000, 39.200],   // SW Ohio / Chillicothe (Appalachian Plateau western edge)
       [-82.000, 40.000],   // SE Ohio / Athens OH (Appalachian Plateau)
@@ -441,22 +441,15 @@ const NE_UPLAND_GEOJSON = {
     coordinates: [[
       // South: connect to existing Piedmont region at Peekskill NY
       [-73.920, 41.290],
-      // West boundary: extended to cover Finger Lakes, Buffalo NY, and Lake Erie
-      [-75.600, 41.900],   // Catskill Mountains / upper Delaware River headwaters
-      [-76.800, 42.100],   // Southern Tier NY / Elmira area (extended west)
-      [-79.000, 42.400],   // Finger Lakes NY / Corning area
-      [-79.500, 42.800],   // Buffalo NY / Niagara Falls area
-      [-79.800, 42.900],   // Lake Erie shore — NY/PA border
-      [-80.500, 42.200],   // Lake Erie PA shore (SE from Erie PA toward OH border)
-      // Trace north along Lake Ontario watershed back toward the Adirondacks
-      [-80.000, 43.500],   // SW Ontario–NY border / Lake Ontario–Lake Erie divide
-      [-76.500, 43.800],   // Lake Ontario eastern shore / Oswego NY area
-      [-74.800, 43.200],   // Southern Adirondacks / Lake George area (keep)
-      [-73.600, 44.000],   // Lake Champlain south — includes Burlington VT (keep)
-      [-73.400, 44.800],   // VT / Quebec border — all of Vermont inside (keep)
-      [-72.000, 45.500],   // NH / Quebec border extended (keep)
-      [-70.500, 46.500],   // Central Maine / Aroostook County (keep)
-      [-67.200, 47.000],   // NE Maine — north terminus (keep)
+      // West boundary: Hudson Valley / Taconic / Green Mountain divide
+      [-74.500, 41.900],   // Catskill Mountains / mid-Hudson Valley
+      [-74.200, 42.700],   // Catskill Mountains north / Greene County NY
+      [-73.900, 43.300],   // Southern Adirondacks foothills / Saratoga Springs area
+      [-73.600, 44.000],   // Lake Champlain south — Burlington VT area
+      [-73.200, 44.900],   // Vermont interior — south of Quebec border
+      [-72.000, 45.000],   // NH / Quebec border at the 45th parallel
+      [-70.500, 46.500],   // Central Maine / Aroostook County
+      [-67.200, 47.000],   // NE Maine — north terminus
       // East boundary: NE fall zone south from Maine to Peekskill
       [-69.781, 44.311],   // Augusta ME (fall zone NE terminus)
       [-71.455, 43.004],   // Manchester NH
@@ -502,8 +495,17 @@ const NE_COASTAL_GEOJSON = {
       [-67.500, 44.800],   // Maine coast / Eastport / Passamaquoddy Bay
       [-70.200, 43.700],   // New Hampshire seacoast / Portsmouth area
       [-70.900, 42.600],   // Massachusetts coast / Plymouth area
+      // Cape Cod — extends east to ~70°W before turning south
+      [-70.000, 41.700],   // Cape Cod outer elbow / Chatham MA
+      [-69.900, 41.550],   // Monomoy Point / Cape Cod south tip
       [-71.000, 41.500],   // Rhode Island coast / Newport area
       [-72.300, 41.200],   // Connecticut coast / New Haven area
+      // Long Island — swing south to include the island then back up to Peekskill
+      [-72.000, 41.000],   // Eastern Long Island / Montauk Point area
+      [-71.900, 40.650],   // Long Island south shore / eastern mid-island
+      [-73.100, 40.500],   // Long Island south shore / Fire Island / Babylon
+      [-74.000, 40.580],   // Long Island west end / Brooklyn area
+      [-74.000, 40.750],   // NY Harbor / Staten Island area
       [-73.920, 41.290],   // Close ring at Peekskill
     ]],
   },
@@ -1863,19 +1865,17 @@ const GULF_COASTAL_GEOJSON = {
       [-88.000, 32.500],  // Eastern Mississippi fall line
       [-88.500, 33.500],  // North-central Mississippi
       [-89.500, 34.000],  // NW Mississippi — approaching Memphis
-      [-90.300, 35.200],  // Memphis TN / Mississippi River
-      [-89.500, 37.000],  // Paducah KY — northern Mississippi Embayment extent
-      [-88.100, 37.200],  // Western Kentucky interior
-      [-88.200, 36.500],  // Western Tennessee / Kentucky Lake area
+      [-90.300, 35.200],  // Memphis TN / Mississippi River — embayment limit
+      [-89.800, 35.500],  // N Mississippi embayment — cap just north of Memphis
+      [-88.500, 35.200],  // Western Tennessee — Tennessee River valley
       [-88.300, 35.000],  // Western Tennessee fall zone / Tennessee River
       [-89.200, 31.000],  // Western Mississippi / Gulf coast approach
       // Gulf coast and Florida (unchanged):
       [-89.500, 30.100],  // Pascagoula MS / Gulf coast
       [-88.000, 30.300],  // Mobile Bay AL
       [-84.900, 29.700],  // Tallahassee FL / Apalachicola
-      [-82.000, 25.000],  // Naples FL / Gulf side
-      [-80.100, 24.550],  // Florida Keys / Key West
-      [-80.050, 25.800],  // Miami FL / Biscayne Bay
+      [-82.500, 27.500],  // Central FL west coast — Charlotte Harbor / Sarasota area
+      [-80.600, 28.400],  // Central FL east coast — Cape Canaveral / Brevard County
       [-81.500, 30.100],  // Jacksonville FL / St. Johns River
       [-83.000, 30.400],  // Okefenokee Swamp / Waycross GA
       [-84.500, 31.000],  // Southern Georgia / Thomasville area
