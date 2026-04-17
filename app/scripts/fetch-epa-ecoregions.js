@@ -16,12 +16,26 @@
  *
  * ── Data source ───────────────────────────────────────────────────────────
  *   US EPA Level III Ecoregions of the Conterminous United States
- *   ArcGIS REST MapServer — public, no API key required.
- *   https://geodata.epa.gov/arcgis/rest/services/OA/EcoregionsByState/MapServer/1
+ *   Last updated by EPA: May 2025. Public domain, no API key required.
+ *
+ *   Primary (ArcGIS REST, paginated GeoJSON — this script):
+ *     https://geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2
+ *
+ *   Alternative A (HTTPS zip, requires ogr2ogr/GDAL to convert shapefile):
+ *     curl -sL https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip \
+ *          -o /tmp/us_eco_l3.zip && unzip /tmp/us_eco_l3.zip -d /tmp/us_eco_l3/
+ *     ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson /tmp/us_eco_l3/us_eco_l3_state.shp
+ *
+ *   Alternative B (S3 file browser, no API needed):
+ *     https://dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/index.html#ORD/Ecoregions/
+ *
+ *   CEC (same data + Canada + Mexico):
+ *     https://www.cec.org/north-american-environmental-atlas/terrestrial-ecoregions-level-iii/
  *
  * ── Network requirement ───────────────────────────────────────────────────
  *   Requires outbound HTTPS to geodata.epa.gov.
- *   If blocked, generate interim polygons instead:
+ *   GitHub Actions runners reach it; local environments may be blocked (403).
+ *   If blocked locally, use Alternative A above or:
  *     node scripts/generate-regions.js
  *
  * ── How it works ──────────────────────────────────────────────────────────
@@ -40,7 +54,7 @@ const path    = require('path');
 const { URL } = require('url');
 
 const OUTPUT  = process.argv[2] || '/tmp/us_eco_l3.geojson';
-const BASE    = 'https://geodata.epa.gov/arcgis/rest/services/OA/EcoregionsByState/MapServer/1/query';
+const BASE    = 'https://geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2/query';
 const PAGE    = 1000;   // features per request (server max is typically 1000)
 
 /** Fetch one page of GeoJSON and return the parsed object. */
@@ -112,7 +126,7 @@ async function main() {
   const geojson = {
     type:     'FeatureCollection',
     _meta: {
-      source:    'EPA ArcGIS REST — EcoregionsByState/MapServer/1',
+      source:    'EPA ArcGIS REST — USEPA_Ecoregions_Level_III_and_IV/MapServer/2',
       fetched:   new Date().toISOString().slice(0, 10),
       features:  allFeatures.length,
     },

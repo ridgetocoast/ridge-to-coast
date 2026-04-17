@@ -20,19 +20,24 @@
 | EPA Level III pipeline (GitHub Actions, daily) | [#6](../../pull/6) |
 | README update | [#4](../../pull/4) |
 
-### EPA region data source note
+### EPA region data source
 
-The pipeline at `.github/workflows/update-epa-regions.yml` fetches from
-`geodata.epa.gov` — currently inaccessible from local environments (403).
-GitHub Actions runners can reach it; trigger via Actions → "Update EPA Level
-III region data" → Run workflow.
+EPA Level III Ecoregion data is **actively maintained** (last updated May 2025).
+The pipeline script (`scripts/fetch-epa-ecoregions.js`) was updated to the
+current ArcGIS endpoint. Trigger via Actions → "Update EPA Level III region data".
 
-**Alternative:** [`screening-tools.com/climate-economic-justice-screening-tool`](https://screening-tools.com/climate-economic-justice-screening-tool)
-is a *different dataset* — CEJST census-tract disadvantaged-community data,
-not ecoregion boundaries. It could be a future overlay layer but does not
-replace the ecoregion pipeline. CEJST data is published by CEQ (Council on
-Environmental Quality); its status under the current administration is
-uncertain — check before building on it.
+| Source | URL | Notes |
+|---|---|---|
+| ArcGIS REST (script) | `geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2` | Paginated GeoJSON; reachable from GitHub Actions |
+| HTTPS zip | `gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip` | Shapefile; needs ogr2ogr to convert |
+| S3 browser | `dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/index.html#ORD/Ecoregions/` | Manual browse + download |
+| CEC (NA) | `cec.org/north-american-environmental-atlas/terrestrial-ecoregions-level-iii/` | Same data + Canada + Mexico |
+
+**Note on CEJST** (`screening-tools.com/climate-economic-justice-screening-tool`):
+This is a *different dataset* — census-tract environmental justice scores, not
+ecoregion polygons. It could become a future overlay layer (#future), but does
+not replace the ecoregion pipeline. Its status under the current administration
+is uncertain.
 
 ---
 
