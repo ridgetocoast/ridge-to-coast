@@ -55,46 +55,51 @@ jobs:
         run: |
           set -e
 
-          # Primary URL — state-clipped version (~34 MB zip)
-          URL_PRIMARY="https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip"
-          # Fallback URL — full CONUS version
-          URL_FALLBACK="https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip"
+          # Try zip downloads first (multiple URLs), fall back to ArcGIS REST
+          # NOTE: gaftp.epa.gov may be blocked from some runners — S3 is more reliable
+          URLS=(
+            "https://dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/ORD/Ecoregions/us/us_eco_l3_state.zip"
+            "https://dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/ORD/Ecoregions/us/us_eco_l3.zip"
+            "https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip"
+            "https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip"
+          )
 
-          echo "Downloading EPA Level III ecoregion shapefile..."
-          if curl -sL --fail --connect-timeout 30 --max-time 120 \
-                  "$URL_PRIMARY" -o /tmp/us_eco_l3.zip 2>/dev/null; then
-            echo "  Downloaded from: $URL_PRIMARY"
-          elif curl -sL --fail --connect-timeout 30 --max-time 120 \
-                  "$URL_FALLBACK" -o /tmp/us_eco_l3.zip 2>/dev/null; then
-            echo "  Downloaded from: $URL_FALLBACK"
+          DOWNLOADED=false
+          for URL in "${URLS[@]}"; do
+            echo "  Trying: $URL"
+            if curl -sL --fail --connect-timeout 20 --max-time 180 "$URL" -o /tmp/us_eco_l3.zip 2>/dev/null; then
+              echo "  Downloaded from: $URL"
+              DOWNLOADED=true
+              break
+            fi
+          done
+
+          if [ "$DOWNLOADED" = "true" ]; then
+            echo "  Unzipping..."
+            unzip -q /tmp/us_eco_l3.zip -d /tmp/us_eco_l3_shp/
+            SHP=$(find /tmp/us_eco_l3_shp/ -name "*.shp" | head -1)
+            echo "  Found shapefile: $SHP"
+            ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson "$SHP" \
+                    -select US_L3CODE,US_L3NAME
           else
-            echo "ERROR: Both URLs failed. Trying ArcGIS REST fallback..."
+            echo "  All zip URLs failed — using ArcGIS REST fallback (layer 11 = polygons)..."
             node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
-            FEAT=$(node -e "const f=require('/tmp/us_eco_l3.geojson'); console.log(f.features.length)")
-            echo "EPA_FEATURES=${FEAT}" >> "$GITHUB_ENV"
-            exit 0
           fi
 
-          echo "  Unzipping..."
-          unzip -q /tmp/us_eco_l3.zip -d /tmp/us_eco_l3_shp/
-
-          # Find the shapefile — filename may vary between EPA releases
-          SHP=$(find /tmp/us_eco_l3_shp/ -name "*.shp" | head -1)
-          echo "  Found shapefile: $SHP"
-
-          # Convert shapefile → WGS84 GeoJSON (keep only the fields we need)
-          ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson "$SHP" \
-                  -select US_L3CODE,US_L3NAME
-
-          FEAT=$(node -e "const f=require('/tmp/us_eco_l3.geojson'); console.log(f.features.length)")
-          echo "  ${FEAT} EPA features converted to GeoJSON"
+          # NOTE: require() does not support .geojson extension — use JSON.parse + readFileSync
+          FEAT=$(node -e "const fs=require('fs'); const f=JSON.parse(fs.readFileSync('/tmp/us_eco_l3.geojson','utf8')); console.log(f.features.length)")
+          if [ "$FEAT" -eq 0 ]; then
+            echo "ERROR: 0 features fetched — all sources failed"
+            exit 1
+          fi
+          echo "  ${FEAT} EPA features ready"
           echo "EPA_FEATURES=${FEAT}" >> "$GITHUB_ENV"
 
       # ── 5. Extract → data/regions.geojson ────────────────────────────────────
       - name: Extract Ridge to Coast regions from EPA data
         run: |
           node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson 2>&1 | tee /tmp/extract.log
-          FEAT=$(node -e "const f=require('./data/regions.geojson'); console.log(f.features.length)")
+          FEAT=$(node -e "const fs=require('fs'); const f=JSON.parse(fs.readFileSync('./data/regions.geojson','utf8')); console.log(f.features.length)")
           SIZE=$(du -k data/regions.geojson | cut -f1)
           echo "Output: ${FEAT} features, ${SIZE} KB"
           echo "REGION_FEATURES=${FEAT}" >> "$GITHUB_ENV"
@@ -109,7 +114,7 @@ jobs:
       - name: Verify all 9 region keys are present
         run: |
           node -e "
-            const gj = require('./data/regions.geojson');
+            const gj = JSON.parse(require('fs').readFileSync('./data/regions.geojson','utf8'));
             const keys = [...new Set(gj.features.map(f => f.properties.region))].sort();
             const required = [
               'blueRidge','coastal','greatLakes','gulfCoastal',

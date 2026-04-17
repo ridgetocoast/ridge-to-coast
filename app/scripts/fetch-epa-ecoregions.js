@@ -19,7 +19,9 @@
  *   Last updated by EPA: May 2025. Public domain, no API key required.
  *
  *   Primary (ArcGIS REST, paginated GeoJSON — this script):
- *     https://geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2
+ *     Layer 11 = "Level III Ecoregion Polygons" (layer 2 = lines only — do not use)
+ *     https://geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/11
+ *     Alternate host: gispub.epa.gov (same service path)
  *
  *   Alternative A (HTTPS zip, requires ogr2ogr/GDAL to convert shapefile):
  *     curl -sL https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip \
@@ -54,7 +56,12 @@ const path    = require('path');
 const { URL } = require('url');
 
 const OUTPUT  = process.argv[2] || '/tmp/us_eco_l3.geojson';
-const BASE    = 'https://geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2/query';
+// Layer 11 = "Level III Ecoregion Polygons" (layer 2 = lines, layer 1 = Level IV — do not use)
+const HOSTS = [
+  'https://geodata.epa.gov',
+  'https://gispub.epa.gov',
+];
+let BASE = HOSTS[0] + '/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/11/query';
 const PAGE    = 1000;   // features per request (server max is typically 1000)
 
 /** Fetch one page of GeoJSON and return the parsed object. */
@@ -90,35 +97,43 @@ function fetchPage(offset) {
   });
 }
 
-async function main() {
+async function fetchAllPages() {
   const allFeatures = [];
   let offset = 0;
   let page   = 1;
 
-  process.stderr.write('Fetching EPA Level III Ecoregions from ArcGIS REST API...\n');
-
   for (;;) {
     process.stderr.write(`  Page ${page} (offset ${offset})...`);
-    let data;
-    try {
-      data = await fetchPage(offset);
-    } catch (err) {
-      process.stderr.write('\n');
-      console.error(`\nFetch error: ${err.message}`);
-      console.error('\nIf geodata.epa.gov is unreachable, use the interim generator:');
-      console.error('  node scripts/generate-regions.js');
-      process.exit(1);
-    }
-
+    const data = await fetchPage(offset);
     const features = data.features || [];
     process.stderr.write(` ${features.length} features\n`);
     allFeatures.push(...features);
-
-    // ArcGIS signals "more pages" via exceededTransferLimit: true
     if (!data.exceededTransferLimit || features.length < PAGE) break;
-
     offset += PAGE;
     page++;
+  }
+  return allFeatures;
+}
+
+async function main() {
+  let allFeatures = [];
+
+  for (const host of HOSTS) {
+    BASE = `${host}/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/11/query`;
+    process.stderr.write(`Fetching from ${host}...\n`);
+    try {
+      allFeatures = await fetchAllPages();
+      if (allFeatures.length > 0) break;
+      process.stderr.write(`  0 features returned — trying next host\n`);
+    } catch (err) {
+      process.stderr.write(`  Error: ${err.message} — trying next host\n`);
+    }
+  }
+
+  if (allFeatures.length === 0) {
+    console.error('\nERROR: All ArcGIS hosts returned 0 features.');
+    console.error('Fallback: node scripts/generate-regions.js');
+    process.exit(1);
   }
 
   process.stderr.write(`\nTotal features fetched: ${allFeatures.length}\n`);
