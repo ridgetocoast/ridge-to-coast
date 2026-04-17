@@ -26,7 +26,7 @@ STYLES reference (from lib/geo-data.js):
   regionHover: fillOpacity 0.32
 
 City marker style (from map.js CITY_MARKER_STYLE):
-  fillColor '#ffffff', color '#e84393', weight 2.5, fillOpacity 0.9
+  fillColor '#ffffff', color '#e84393', weight 2, fillOpacity 0.9
 """
 
 import pytest
@@ -443,7 +443,7 @@ def test_city_markers_high_fill_opacity(page):
 
 
 def test_city_marker_count_matches_cities_data(page):
-    """Number of rendered city markers equals the length of FALL_LINE_CITIES."""
+    """Number of rendered city markers equals the length of CORRIDOR_CITIES."""
     page.goto("/")
     page.wait_for_selector(".leaflet-overlay-pane path", timeout=LAYER_TIMEOUT)
 
@@ -451,12 +451,12 @@ def test_city_marker_count_matches_cities_data(page):
         () => {
             let rendered = 0;
             cityMarkersLayer.eachLayer(function() { rendered++; });
-            const defined = window.GeoData.FALL_LINE_CITIES.length;
+            const defined = window.GeoData.CORRIDOR_CITIES.length;
             return { rendered, defined };
         }
     """)
     assert result['rendered'] == result['defined'], (
-        f"Expected {result['defined']} city markers (one per FALL_LINE_CITIES entry), "
+        f"Expected {result['defined']} city markers (one per CORRIDOR_CITIES entry), "
         f"got {result['rendered']} rendered"
     )
 
