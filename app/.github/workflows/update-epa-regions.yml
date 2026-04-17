@@ -41,16 +41,56 @@ jobs:
         with:
           node-version: '20'
 
-      # ── 3. Fetch EPA Level III ecoregions ────────────────────────────────────
-      - name: Fetch EPA Level III ecoregion GeoJSON
+      # ── 3. GDAL (ogr2ogr — shapefile → GeoJSON conversion) ───────────────────
+      - name: Install GDAL
+        run: sudo apt-get install -y --no-install-recommends gdal-bin
+
+      # ── 4. Download + convert EPA Level III ecoregion shapefile ──────────────
+      #
+      #  Option B — HTTPS zip download (more reliable than ArcGIS REST pagination)
+      #  Source: https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/
+      #  Fallback (ArcGIS REST): node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
+      #
+      - name: Download EPA ecoregion shapefile and convert to GeoJSON
         run: |
-          echo "Fetching EPA Level III ecoregions..."
-          node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
+          set -e
+
+          # Primary URL — state-clipped version (~34 MB zip)
+          URL_PRIMARY="https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip"
+          # Fallback URL — full CONUS version
+          URL_FALLBACK="https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip"
+
+          echo "Downloading EPA Level III ecoregion shapefile..."
+          if curl -sL --fail --connect-timeout 30 --max-time 120 \
+                  "$URL_PRIMARY" -o /tmp/us_eco_l3.zip 2>/dev/null; then
+            echo "  Downloaded from: $URL_PRIMARY"
+          elif curl -sL --fail --connect-timeout 30 --max-time 120 \
+                  "$URL_FALLBACK" -o /tmp/us_eco_l3.zip 2>/dev/null; then
+            echo "  Downloaded from: $URL_FALLBACK"
+          else
+            echo "ERROR: Both URLs failed. Trying ArcGIS REST fallback..."
+            node scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson
+            FEAT=$(node -e "const f=require('/tmp/us_eco_l3.geojson'); console.log(f.features.length)")
+            echo "EPA_FEATURES=${FEAT}" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "  Unzipping..."
+          unzip -q /tmp/us_eco_l3.zip -d /tmp/us_eco_l3_shp/
+
+          # Find the shapefile — filename may vary between EPA releases
+          SHP=$(find /tmp/us_eco_l3_shp/ -name "*.shp" | head -1)
+          echo "  Found shapefile: $SHP"
+
+          # Convert shapefile → WGS84 GeoJSON (keep only the fields we need)
+          ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson "$SHP" \
+                  -select US_L3CODE,US_L3NAME
+
           FEAT=$(node -e "const f=require('/tmp/us_eco_l3.geojson'); console.log(f.features.length)")
-          echo "Downloaded ${FEAT} EPA features"
+          echo "  ${FEAT} EPA features converted to GeoJSON"
           echo "EPA_FEATURES=${FEAT}" >> "$GITHUB_ENV"
 
-      # ── 4. Extract → data/regions.geojson ────────────────────────────────────
+      # ── 5. Extract → data/regions.geojson ────────────────────────────────────
       - name: Extract Ridge to Coast regions from EPA data
         run: |
           node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson 2>&1 | tee /tmp/extract.log
@@ -65,7 +105,7 @@ jobs:
             exit 1
           fi
 
-      # ── 5. Verify all 9 region keys are present ───────────────────────────────
+      # ── 6. Verify all 9 region keys are present ───────────────────────────────
       - name: Verify all 9 region keys are present
         run: |
           node -e "
@@ -87,11 +127,11 @@ jobs:
             });
           "
 
-      # ── 6. Unit tests ────────────────────────────────────────────────────────
+      # ── 7. Unit tests ────────────────────────────────────────────────────────
       - name: Run unit tests (308 tests / 37 suites)
         run: node --test tests/geo.test.js
 
-      # ── 7. Check whether data/regions.geojson actually changed ───────────────
+      # ── 8. Check whether data/regions.geojson actually changed ───────────────
       - name: Check for data changes
         id: diff
         run: |
@@ -106,7 +146,7 @@ jobs:
             echo "data/regions.geojson changed: +${ADDED}/-${REMOVED} lines"
           fi
 
-      # ── 8. Commit directly to master → triggers GitHub Pages redeploy ─────────
+      # ── 9. Commit directly to master → triggers GitHub Pages redeploy ─────────
       - name: Commit and push to master
         if: steps.diff.outputs.changed == 'true' && inputs.dry_run != 'true'
         run: |
@@ -115,7 +155,7 @@ jobs:
           git add data/regions.geojson
           git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))
 
-          Source: EPA ArcGIS REST — USEPA_Ecoregions_Level_III_and_IV/MapServer/2
+          Source: EPA HTTPS zip — gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/
           EPA features fetched: ${{ env.EPA_FEATURES }}
           Ridge to Coast features: ${{ env.REGION_FEATURES }}
           File size: ${{ env.REGION_SIZE_KB }} KB
@@ -123,7 +163,7 @@ jobs:
           Automated daily update via .github/workflows/update-epa-regions.yml"
           git push origin master
 
-      # ── 9. Workflow summary ───────────────────────────────────────────────────
+      # ── 10. Workflow summary ──────────────────────────────────────────────────
       - name: Write job summary
         if: always()
         run: |
