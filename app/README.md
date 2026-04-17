@@ -209,6 +209,35 @@ Result: 5125 features, zones 3b–10a, covering the full eastern corridor from M
 
 ---
 
+## Region data pipeline
+
+`data/regions.geojson` contains the 9 region polygons as interim hand-drawn boundaries. Replace with authoritative **EPA Level III Ecoregion** boundaries using the pipeline below. EPA data is actively maintained (last updated May 2025); the ArcGIS endpoint requires unrestricted outbound HTTPS (available on GitHub Actions runners, blocked in some local environments).
+
+**Option A — ArcGIS REST (paginated GeoJSON, no extra tools):**
+```bash
+node scripts/fetch-epa-ecoregions.js
+node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson
+node --test tests/geo.test.js   # verify 308 tests still pass
+```
+
+**Option B — HTTPS zip download (requires `ogr2ogr` / GDAL):**
+```bash
+curl -sL https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip \
+     -o /tmp/us_eco_l3.zip
+unzip /tmp/us_eco_l3.zip -d /tmp/us_eco_l3/
+ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson \
+        /tmp/us_eco_l3/us_eco_l3_state.shp
+node scripts/extract-regions.js /tmp/us_eco_l3.geojson data/regions.geojson
+```
+
+**Automated:** `.github/workflows/update-epa-regions.yml` runs the pipeline daily at 05:00 EST and commits any changed `data/regions.geojson` directly to master. Trigger a manual run via **Actions → "Update EPA Level III region data" → Run workflow**.
+
+ArcGIS endpoint: `geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2`  
+S3 file browser: `dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/index.html#ORD/Ecoregions/`  
+CEC (North America): `cec.org/north-american-environmental-atlas/terrestrial-ecoregions-level-iii/`
+
+---
+
 ## Security
 
 - **Content Security Policy** — enforced via `<meta>` tag (GitHub Pages cannot set HTTP headers). Locks scripts to `'self'`, tiles to CARTO, geocoding to `nominatim.openstreetmap.org`, no eval, no inline scripts.
@@ -299,8 +328,7 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Invasive species warnings per region (10 regions, threat badges)
 - [x] Seasonal planting calendar per hardiness zone (14 zones × 12 months)
 - [x] City marker expansion — 51 corridor cities across all 9 regions
-- [ ] EPA Level III authoritative region polygons (replace interim hand-drawn polygons; daily pipeline at 05:00 EST ready)
-- [ ] Community garden network layer — fall line cities sharing growing knowledge
-- [ ] Phase 2: Live data integrations — USDA PLANTS API, iNaturalist observations, NWS frost advisories, watershed delineation, printable location reports
-- [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants`, `/api/v1/soil` endpoints via Cloudflare Workers or Vercel Edge Functions (free tier)
-- [ ] Phase 4: Mobile PWA, education curriculum, institutional partnerships, sustainable funding (USDA/EPA grants + institutional API subscriptions)
+- [ ] EPA Level III authoritative region polygons — pipeline and corrected ArcGIS endpoint in place; trigger via Actions → "Update EPA Level III region data"
+- [ ] Phase 2: Live data integrations — NWS frost advisories, USGS streamflow, iNaturalist observations, watershed delineation, location report pages (see [open issues](../../issues))
+- [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants` endpoints via Cloudflare Workers (see [open issues](../../issues))
+- [ ] Phase 4: Mobile PWA, watershed education module, custom org layers, sustainable funding
