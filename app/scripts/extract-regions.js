@@ -37,7 +37,9 @@
  *      south of Quebec, north of Florida Keys).
  *   3. Map each US_L3CODE to one of our 5 region keys.
  *   4. Skip features whose code has no mapping (Great Plains, etc.).
- *   5. Reduce coordinate precision to 3 decimal places (~111 m).
+ *   5. Round coordinates to 3 decimal places (~111 m).
+ *   5b. Apply Douglas-Peucker simplification at 0.005° (~555 m) to remove
+ *       collinear vertices — reduces file size ~95% vs raw shapefile.
  *   6. Write a FeatureCollection to the output path.
  */
 
@@ -122,20 +124,59 @@ const REGION_NAMES = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const PRECISION = 3; // decimal places — ~111 m at equator
+const PRECISION     = 3;     // decimal places — ~111 m at equator
+const SIMPLIFY_TOL  = 0.005; // degrees — ~555 m; adequate for regional ecological display
 
 function round(n) {
   return Math.round(n * 1e3) / 1e3;
 }
 
-/** Reduce all coordinate values in a geometry to PRECISION decimal places. */
+/** Perpendicular distance from point p to the line defined by endpoints a and b. */
+function perpDist(p, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  if (dx === 0 && dy === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+  const t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy);
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+}
+
+/** Ramer-Douglas-Peucker polyline simplification. */
+function rdp(pts, tol) {
+  if (pts.length <= 2) return pts;
+  let maxD = 0, maxI = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = perpDist(pts[i], pts[0], pts[pts.length - 1]);
+    if (d > maxD) { maxD = d; maxI = i; }
+  }
+  if (maxD > tol) {
+    const left  = rdp(pts.slice(0, maxI + 1), tol);
+    const right = rdp(pts.slice(maxI), tol);
+    return [...left.slice(0, -1), ...right];
+  }
+  return [pts[0], pts[pts.length - 1]];
+}
+
+/** Round then simplify one ring; returns null if result is degenerate (< 4 pts). */
+function simplifyRing(ring) {
+  const rounded    = ring.map(([x, y]) => [round(x), round(y)]);
+  const simplified = rdp(rounded, SIMPLIFY_TOL);
+  return simplified.length >= 4 ? simplified : null;
+}
+
+/** Round + simplify all rings in a geometry. Returns null for empty results. */
 function simplifyGeom(geom) {
-  if (!geom) return geom;
+  if (!geom) return null;
   switch (geom.type) {
-    case 'Polygon':
-      return { type: 'Polygon', coordinates: geom.coordinates.map(ring => ring.map(([x, y]) => [round(x), round(y)])) };
-    case 'MultiPolygon':
-      return { type: 'MultiPolygon', coordinates: geom.coordinates.map(poly => poly.map(ring => ring.map(([x, y]) => [round(x), round(y)]))) };
+    case 'Polygon': {
+      const rings = geom.coordinates.map(simplifyRing).filter(Boolean);
+      return rings.length ? { type: 'Polygon', coordinates: rings } : null;
+    }
+    case 'MultiPolygon': {
+      const polys = geom.coordinates
+        .map(poly => poly.map(simplifyRing).filter(Boolean))
+        .filter(p => p.length);
+      return polys.length ? { type: 'MultiPolygon', coordinates: polys } : null;
+    }
     default:
       return geom;
   }
@@ -190,6 +231,9 @@ for (const feat of features) {
   }
   if (!intersectsBbox(feat.geometry)) continue;
 
+  const geom = simplifyGeom(feat.geometry);
+  if (!geom) continue;
+
   counts[region] = (counts[region] || 0) + 1;
 
   output.push({
@@ -200,7 +244,7 @@ for (const feat of features) {
       l3code:  code,
       l3name:  props.US_L3NAME || props.NA_L3NAME || '',
     },
-    geometry: simplifyGeom(feat.geometry),
+    geometry: geom,
   });
 }
 

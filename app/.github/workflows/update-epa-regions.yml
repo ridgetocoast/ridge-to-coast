@@ -79,7 +79,7 @@ jobs:
             unzip -q /tmp/us_eco_l3.zip -d /tmp/us_eco_l3_shp/
             SHP=$(find /tmp/us_eco_l3_shp/ -name "*.shp" | head -1)
             echo "  Found shapefile: $SHP"
-            ogr2ogr -f GeoJSON -t_srs EPSG:4326 -simplify 0.05 /tmp/us_eco_l3.geojson "$SHP" \
+            ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson "$SHP" \
                     -select US_L3CODE,US_L3NAME
           else
             echo "  All zip URLs failed — using ArcGIS REST fallback (layer 11 = polygons)..."
