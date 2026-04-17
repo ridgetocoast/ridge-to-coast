@@ -154,10 +154,12 @@ describe('update-epa-regions.yml static lints', () => {
     );
   });
 
-  it('applies geometry simplification to keep output under size limit', () => {
+  it('does not use ogr2ogr -simplify (units are source CRS, unreliable for Albers shapefiles)', () => {
+    // Simplification is applied in extract-regions.js using Douglas-Peucker on EPSG:4326
+    // coordinates, where the tolerance unit (degrees) is always predictable.
     assert.ok(
-      yml.includes('-simplify'),
-      'ogr2ogr command must include -simplify to reduce vertex count and keep file under 2 MB'
+      !yml.includes('-simplify'),
+      'Workflow must not use ogr2ogr -simplify — use extract-regions.js rdp() instead'
     );
   });
 
@@ -185,6 +187,38 @@ describe('update-epa-regions.yml static lints', () => {
     assert.ok(
       yml.includes('git diff') && yml.includes('changed'),
       'Workflow must diff regions.geojson before committing to avoid noise commits'
+    );
+  });
+});
+
+// ── Suite 2b: extract-regions.js simplification ────────────────────────────
+
+describe('extract-regions.js Douglas-Peucker simplification', () => {
+  const src = readFile(EXTRACT);
+
+  it('defines a SIMPLIFY_TOL constant', () => {
+    assert.ok(src.includes('SIMPLIFY_TOL'), 'Must define SIMPLIFY_TOL');
+  });
+
+  it('SIMPLIFY_TOL is between 0.001 and 0.05 degrees (reasonable range for regional display)', () => {
+    const match = src.match(/SIMPLIFY_TOL\s*=\s*([\d.]+)/);
+    assert.ok(match, 'SIMPLIFY_TOL must be a numeric constant');
+    const val = parseFloat(match[1]);
+    assert.ok(val >= 0.001 && val <= 0.05, `SIMPLIFY_TOL ${val}° should be between 0.001° and 0.05°`);
+  });
+
+  it('implements rdp() (Ramer-Douglas-Peucker) function', () => {
+    assert.ok(src.includes('function rdp(') || src.includes('rdp ='), 'Must implement rdp()');
+  });
+
+  it('implements perpDist() helper for perpendicular distance', () => {
+    assert.ok(src.includes('perpDist'), 'Must implement perpDist() for rdp()');
+  });
+
+  it('drops degenerate rings (< 4 points) after simplification', () => {
+    assert.ok(
+      src.includes('>= 4') || src.includes('< 4'),
+      'simplifyRing must drop rings with fewer than 4 points'
     );
   });
 });
