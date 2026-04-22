@@ -1,0 +1,52 @@
+name: Feature Request
+description: New feature or enhancement for Ridge to Coast
+labels: ["agent:plan"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues labeled `agent:plan` will be picked up by the Planner agent (Haiku) when the Bedrock pipeline is active. For now, create the issue and run the planner locally: `git worktree add ../ridge-issue-N -b claude/issue-N-{slug}` then open Claude Code in that worktree.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should this feature do?
+      description: Describe the user-facing behavior. What does a user see or do differently?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know this is done? List specific, testable conditions.
+      placeholder: |
+        - User searches zip code and sees Seasonal Intelligence Card
+        - Card shows frost risk even when NWS API is unavailable (graceful degradation)
+        - All existing unit tests still pass
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Likely affected files
+      description: Which files will probably need changes? (Best guess is fine)
+      placeholder: |
+        - lib/geo-data.js (new fetch function)
+        - map.js (integrate into location report)
+        - index.html (CSP update)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated complexity
+      options:
+        - Simple (1-2 hours)
+        - Medium (half day)
+        - Complex (full day+)
+        - Unknown
+    validations:
+      required: true

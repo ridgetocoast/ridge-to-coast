@@ -1,0 +1,57 @@
+name: Bug Report
+description: Something isn't working correctly
+labels: ["agent:implement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues labeled `agent:implement` will be picked up by the Engineer agent (Sonnet) when the Bedrock pipeline is active.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happens? Include console errors if any.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Search "Richmond VA"
+        2. Click on James River marker
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Likely affected files
+      placeholder: |
+        - lib/geo-data.js (makeRiverDetailHTML)
+        - map.js (river click handler)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Cosmetic (visual only)
+        - Minor (workaround exists)
+        - Major (feature broken)
+        - Critical (app crashes)
+    validations:
+      required: true

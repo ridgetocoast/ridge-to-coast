@@ -1,0 +1,52 @@
+name: Data Pipeline
+description: Add, update, or fix a data source or processing script
+labels: ["agent:implement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For data pipeline work: updating GeoJSON sources, adding new static data, or modifying `scripts/` processing tools.
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Data source
+      description: Where does this data come from? Include URL if applicable.
+      placeholder: |
+        EPA Level III Ecoregions — https://www.epa.gov/eco-research/level-iii-and-iv-ecoregions-continental-united-states
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output file(s)
+      description: What file(s) should be created or updated?
+      placeholder: |
+        data/regions.geojson — 9 ecoregion polygons clipped to corridor bbox
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Update frequency
+      options:
+        - One-time / manual
+        - Daily (GitHub Actions)
+        - Weekly (GitHub Actions)
+        - On-demand (manual trigger)
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation criteria
+      description: How do we know the output is correct?
+      placeholder: |
+        - Output GeoJSON has exactly 9 features
+        - Each feature has NAME_1 matching expected ecoregion names
+        - File size under 2 MB
+    validations:
+      required: false
