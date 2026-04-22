@@ -4,20 +4,20 @@ resource "cloudflare_pages_project" "frontend" {
   name              = "ridgetocoast"
   production_branch = "main"
 
-  source {
+  source = {
     type = "github"
-    config {
-      owner                         = "ridgetocoast"
-      repo_name                     = "ridge-to-coast"
-      production_branch             = "main"
-      pr_comments_enabled           = true
-      deployments_enabled           = true
-      preview_deployment_setting    = "custom"
-      preview_branch_includes       = ["feature/*", "claude/*"]
+    config = {
+      owner                       = "ridgetocoast"
+      repo_name                   = "ridge-to-coast"
+      production_branch           = "main"
+      pr_comments_enabled         = true
+      deployments_enabled         = true
+      preview_deployment_setting  = "custom"
+      preview_branch_includes     = ["feature/*", "claude/*"]
     }
   }
 
-  build_config {
+  build_config = {
     build_command   = ""
     destination_dir = "app"
     root_dir        = ""
@@ -37,7 +37,7 @@ resource "cloudflare_pages_domain" "www" {
   name         = "www.ridgetocoast.com"
 }
 
-# DNS: www → apex redirect (proxied through Cloudflare)
+# DNS: www → apex (proxied)
 resource "cloudflare_dns_record" "www" {
   zone_id = var.cloudflare_zone_id
   name    = "www"
