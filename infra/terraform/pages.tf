@@ -7,7 +7,7 @@ resource "cloudflare_pages_project" "frontend" {
   source = {
     type = "github"
     config = {
-      owner                       = "ridgetocoast"
+      owner                       = "loobo07"
       repo_name                   = "ridge-to-coast"
       production_branch           = "main"
       pr_comments_enabled                = true
