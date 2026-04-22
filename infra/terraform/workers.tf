@@ -5,7 +5,7 @@
 resource "cloudflare_dns_record" "api" {
   zone_id = var.cloudflare_zone_id
   name    = "api"
-  content = "ridgetocoast.com"
+  content = "ridgetocoast-api.loboedwin01.workers.dev"
   type    = "CNAME"
   ttl     = 1
   proxied = true
