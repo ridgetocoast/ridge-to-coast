@@ -1,0 +1,26 @@
+name: Update EPA Ecoregions
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # 05:00 EST daily
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch EPA Level III ecoregions
+        run: node app/scripts/fetch-epa-ecoregions.js
+      - name: Extract and simplify regions
+        run: node app/scripts/extract-regions.js /tmp/us_eco_l3.geojson app/data/regions.geojson
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/data/regions.geojson
+          git diff --staged --quiet || git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))"
+          git push

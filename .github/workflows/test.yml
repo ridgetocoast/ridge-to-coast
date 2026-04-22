@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    name: Unit tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test app/tests/geo.test.js
+
+  e2e:
+    name: E2E tests (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r app/tests/e2e/requirements.txt
+      - run: playwright install chromium --with-deps
+      - name: Serve app
+        run: python -m http.server 8000 --directory app &
+      - run: python -m pytest app/tests/e2e/ --base-url http://localhost:8000 -v
