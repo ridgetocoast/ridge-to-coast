@@ -34,6 +34,7 @@ const {
   makeFallLineDetailHTML,
   makeZoneDetailHTML,
   makeCityDetailHTML,
+  makeGardenDetailHTML,
   classifyLocation,
   makeLocationReport,
   haversineKm,
@@ -54,6 +55,7 @@ const {
   buildSearchQuery,
   NE_FALL_ZONE_GEOJSON,
   MAJOR_RIVERS_GEOJSON,
+  REGION_INATURALIST_PLACE_IDS,
   makeRiverDetailHTML,
   INVASIVE_SPECIES,
   makeInvasivesSection,
@@ -1494,6 +1496,24 @@ describe('Detail page HTML generators', () => {
     assert.ok(html.includes('border-left'), 'should have a left-border accent');
   });
 
+  it('REGION_INATURALIST_PLACE_IDS includes the expected mapped regions', () => {
+    assert.deepEqual(REGION_INATURALIST_PLACE_IDS, {
+      coastal: 97394,
+      piedmont: 97395,
+      blueRidge: 97393,
+      valleyRidge: 97396,
+      gulfCoastal: 97392,
+    });
+  });
+
+  it('makeRegionDetailHTML("piedmont") includes iNaturalist badge placeholder', () => {
+    const html = makeRegionDetailHTML('piedmont');
+    assert.ok(html.includes('Recent plant observations (90 days):'),
+      'should include iNaturalist badge label');
+    assert.ok(html.includes('id="inat-count"'),
+      'should include async observation-count placeholder');
+  });
+
   it('makeRegionDetailHTML("coastal") includes coastal blue color accent', () => {
     const html = makeRegionDetailHTML('coastal');
     assert.ok(html.includes('#4682dc'), 'Coastal detail should have blue accent');
@@ -1537,6 +1557,19 @@ describe('Detail page HTML generators', () => {
     assert.ok(html.includes('frost'), 'should include frost information');
   });
 
+  it('makeZoneDetailHTML stays valid without live advisory coordinates', () => {
+    const html = makeZoneDetailHTML('7b');
+    assert.ok(!html.includes('zone-frost-advisory'),
+      'legacy zone detail should not require a live advisory placeholder');
+  });
+
+  it('makeZoneDetailHTML adds a live advisory placeholder when coordinates are provided', () => {
+    const html = makeZoneDetailHTML('7b', 38.9, -77.0);
+    assert.ok(html.includes('Plant now?'), 'should include plant-now label with coordinates');
+    assert.ok(html.includes('id="zone-frost-advisory"'),
+      'coord-aware zone detail should include the advisory placeholder');
+  });
+
   it('makeZoneDetailHTML uses correct zone color in inline style', () => {
     const html = makeZoneDetailHTML('7b');
     const color = getZoneColor('7b');
@@ -1577,6 +1610,26 @@ describe('Detail page HTML generators', () => {
   it('makeCityDetailHTML() returns empty string for unknown slug', () => {
     const html = makeCityDetailHTML('nowhere-xx');
     assert.equal(html, '', 'unknown slug should return empty string');
+  });
+});
+
+describe('makeGardenDetailHTML', () => {
+  it('renders garden details and escapes untrusted HTML', () => {
+    const html = makeGardenDetailHTML({
+      osmId: 'node-101',
+      name: 'Oak & Elm <Garden>',
+      type: 'Community <plot>',
+      address: '123 River Rd <Suite 5>',
+    });
+
+    assert.ok(html.includes('node-101'), 'should include the OSM id');
+    assert.ok(html.includes('Oak &amp; Elm &lt;Garden&gt;'), 'should escape the name');
+    assert.ok(html.includes('Community &lt;plot&gt;'), 'should escape the type');
+    assert.ok(html.includes('123 River Rd &lt;Suite 5&gt;'), 'should escape the address');
+  });
+
+  it('returns empty string when osmId is missing', () => {
+    assert.equal(makeGardenDetailHTML({ name: 'Garden' }), '');
   });
 });
 
@@ -1634,6 +1687,17 @@ describe('classifyLocation and makeLocationReport', () => {
     // Coordinates very close to Richmond VA (37.527, -77.464)
     const html = makeLocationReport(37.53, -77.46);
     assert.ok(html.includes('Richmond'), 'nearest city near Richmond should be Richmond');
+  });
+
+  it('makeLocationReport for Piedmont location includes Piedmont ecoregion and soil series', () => {
+    const html = makeLocationReport(38.03, -78.48);
+    assert.ok(html.includes('Piedmont'), 'report should include the Piedmont ecoregion label');
+    assert.ok(html.includes('Cecil'), 'report should include a Piedmont soil series');
+  });
+
+  it('makeLocationReport includes invasive species guidance', () => {
+    const html = makeLocationReport(38.03, -78.48);
+    assert.ok(html.includes('watch &amp; remove'), 'report should include invasives section');
   });
 
   it('makeLocationReport includes region color accent', () => {
@@ -1713,8 +1777,8 @@ describe('MAJOR_RIVERS_GEOJSON structure', () => {
     }
   });
 
-  it('each feature has required properties: name, slug, length_km, states, source, mouth, note', () => {
-    const requiredProps = ['name', 'slug', 'length_km', 'states', 'source', 'mouth', 'note'];
+  it('each feature has required properties: name, slug, usgsGaugeId, length_km, states, source, mouth, note', () => {
+    const requiredProps = ['name', 'slug', 'usgsGaugeId', 'length_km', 'states', 'source', 'mouth', 'note'];
     for (const f of MAJOR_RIVERS_GEOJSON.features) {
       for (const prop of requiredProps) {
         assert.ok(prop in f.properties, `River ${f.properties?.name} missing property: ${prop}`);
@@ -1789,6 +1853,12 @@ describe('makeRiverDetailHTML()', () => {
   it('includes the states the river flows through', () => {
     const html = makeRiverDetailHTML('james');
     assert.ok(html.includes('Virginia') || html.includes('VA'), 'James River detail should mention Virginia');
+  });
+
+  it('includes a live flow placeholder for the river detail page', () => {
+    const html = makeRiverDetailHTML('james');
+    assert.ok(html.includes('id="flow-james"'), 'should include the USGS flow placeholder span');
+    assert.ok(html.includes('Loading'), 'should include loading placeholder text');
   });
 
   it('returns a "not found" string for an unknown slug', () => {

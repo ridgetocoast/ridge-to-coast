@@ -145,6 +145,11 @@ html, body {
   height: 9px;
 }
 
+.swatch.gardens {
+  background: #2d6a4f;
+  border-color: rgba(183, 228, 199, 0.5);
+}
+
 #legend hr {
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.08);

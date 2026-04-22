@@ -1,0 +1,18 @@
+{
+  "name": "Ridge to Coast",
+  "short_name": "RidgeCoast",
+  "description": "Interactive corridor map for geology, hardiness zones, rivers, and location detail pages from ridge to coast.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0e1318",
+  "theme_color": "#12171f",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

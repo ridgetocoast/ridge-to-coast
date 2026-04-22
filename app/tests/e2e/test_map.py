@@ -6,8 +6,10 @@ Each test gets a fresh page; uncaught JS errors cause automatic failure
 via the conftest.py page fixture.
 """
 
+import json
+
 import pytest
-from playwright.sync_api import expect
+from playwright.sync_api import Route, expect
 
 
 # ---------------------------------------------------------------------------
@@ -17,6 +19,9 @@ from playwright.sync_api import expect
 LAYER_TIMEOUT   = 10_000   # ms — Leaflet SVG paths (local data, no network needed)
 FETCH_TIMEOUT   = 90_000   # ms — hardiness.geojson fetch (22 states / ~4 MB; slow parse)
 REGIONS_TIMEOUT = 15_000   # ms — data/regions.geojson async fetch
+INAT_PATTERN    = "**/v1/observations?*"
+USGS_PATTERN    = "**/waterservices.usgs.gov/**"
+NWS_PATTERN     = "**/api.weather.gov/**"
 
 
 def wait_for_map(page):
@@ -37,6 +42,29 @@ def wait_for_map(page):
     page.wait_for_selector("[data-regions-loaded]", timeout=REGIONS_TIMEOUT)
 
 
+def mock_nws_frost(route: Route) -> None:
+    """Fulfill NWS points + forecast requests with a frost-risk example."""
+    if "/points/" in route.request.url:
+        route.fulfill(
+            status=200,
+            content_type="application/json",
+            body='{"properties":{"forecast":"https://api.weather.gov/gridpoints/LWX/97,71/forecast"}}',
+        )
+        return
+
+    route.fulfill(
+        status=200,
+        content_type="application/json",
+        body=(
+            '{"properties":{"periods":['
+            '{"name":"Tonight","isDaytime":false,"temperature":34,"shortForecast":"Areas of Frost","detailedForecast":"Areas of frost after midnight."},'
+            '{"name":"Tuesday","isDaytime":true,"temperature":61,"shortForecast":"Sunny","detailedForecast":"Sunny."},'
+            '{"name":"Tuesday Night","isDaytime":false,"temperature":42,"shortForecast":"Partly Cloudy","detailedForecast":"Partly cloudy."}'
+            ']}}'
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Suite 1 — Page load
 # ---------------------------------------------------------------------------
@@ -45,6 +73,36 @@ def test_page_title(page):
     """App title is 'Ridge to Coast'."""
     page.goto("/")
     expect(page).to_have_title("Ridge to Coast")
+
+
+def test_manifest_link_and_theme_color_present(page):
+    """Document wires up the web app manifest and theme color metadata."""
+    page.goto("/")
+    manifest = page.locator('link[rel="manifest"]')
+    expect(manifest).to_have_attribute("href", "manifest.json")
+    theme_color = page.locator('meta[name="theme-color"]')
+    expect(theme_color).to_have_attribute("content", "#12171f")
+
+
+def test_manifest_fetch_returns_200(page):
+    """manifest.json is served successfully for install surfaces."""
+    response = page.goto("/manifest.json")
+    assert response is not None
+    assert response.status == 200, (
+        f"Expected HTTP 200 for manifest.json, got {response.status}"
+    )
+
+
+def test_service_worker_registers(page):
+    """A service worker registration is created on secure local origins."""
+    page.goto("/")
+    page.wait_for_function(
+        "() => navigator.serviceWorker && navigator.serviceWorker.getRegistration().then(Boolean)",
+        timeout=10_000,
+    )
+    assert page.evaluate(
+        "() => navigator.serviceWorker.getRegistration().then(function (reg) { return !!reg; })"
+    )
 
 
 def test_map_container_visible(page):
@@ -66,6 +124,7 @@ def test_all_toggles_present(page):
     assert page.locator("#toggle-fallline").count() == 1
     assert page.locator("#toggle-cities").count() == 1
     assert page.locator("#toggle-hardiness").count() == 1
+    assert page.locator("#toggle-gardens").count() == 1
     # Rivers toggle removed — rivers layer is always-on with invisible styling
     assert page.locator("#toggle-rivers").count() == 0
 
@@ -221,6 +280,59 @@ def test_hardiness_second_toggle_uses_cache(page):
     )
 
 
+def test_gardens_toggle_present(page):
+    """Community gardens toggle and swatch are present in the legend."""
+    page.goto("/")
+    assert page.locator("#toggle-gardens").count() == 1
+    expect(page.locator(".swatch.gardens")).to_be_attached(timeout=LAYER_TIMEOUT)
+
+
+def test_gardens_toggle_loads_and_routes_to_detail(page):
+    """Mocked Overpass data renders garden markers and supports garden detail routing."""
+    payload = {
+        "elements": [
+            {
+                "type": "node",
+                "id": 101,
+                "lat": 37.54,
+                "lon": -77.44,
+                "tags": {
+                    "name": "Oak & Elm <Garden>",
+                    "leisure": "garden",
+                    "addr:housenumber": "123",
+                    "addr:street": "River Rd",
+                    "addr:city": "Richmond",
+                    "addr:state": "VA",
+                    "addr:postcode": "23219",
+                },
+            }
+        ]
+    }
+
+    page.route(
+        "https://overpass-api.de/api/interpreter",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps(payload),
+        ),
+    )
+
+    wait_for_map(page)
+    before = page.locator(".leaflet-overlay-pane path").count()
+    page.locator("#toggle-gardens").check()
+    page.wait_for_timeout(600)
+    after = page.locator(".leaflet-overlay-pane path").count()
+    assert after > before, "Garden toggle should add at least one marker path"
+
+    page.evaluate("location.hash = '#detail/garden/node-101'")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Oak & Elm <Garden>")
+    expect(content).to_contain_text("Community garden")
+    expect(content).to_contain_text("123 River Rd, Richmond, VA, 23219")
+
+
 # ---------------------------------------------------------------------------
 # Suite 4 — Mobile viewport
 # ---------------------------------------------------------------------------
@@ -287,6 +399,21 @@ def test_region_detail_page_loads(page):
     expect(content).to_contain_text("Piedmont")
 
 
+def test_region_detail_page_populates_inat_badge(page):
+    """Region detail view renders and hydrates the iNaturalist badge."""
+    page.route(
+        INAT_PATTERN,
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body='{"total_results": 42}',
+        ),
+    )
+    page.goto("/#detail/region/piedmont")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    expect(page.locator("#inat-count")).to_have_text("42")
+
+
 def test_region_detail_page_back_button(page):
     """Back button on detail page returns to map view."""
     # Load map first, then navigate to detail — creates back-history entry
@@ -317,6 +444,48 @@ def test_zone_detail_page_loads(page):
     expect(content).to_contain_text("frost")
 
 
+def test_zone_detail_page_with_coords_hydrates_frost_advisory(page):
+    """Coord-bearing zone routes fetch NWS data and render a plant-now advisory."""
+    page.route(NWS_PATTERN, mock_nws_frost)
+    page.goto("/#detail/zone/7b/38.9000/-77.0000")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Zone 7b")
+    expect(content).to_contain_text("Plant now?")
+    expect(content).to_contain_text("Hold off", timeout=DETAIL_TIMEOUT)
+
+
+def test_zone_detail_page_legacy_hash_still_loads_without_advisory(page):
+    """Legacy zone hashes still render without requiring live coordinates."""
+    page.goto("/#detail/zone/7b")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    expect(page.locator("#zone-frost-advisory")).to_have_count(0)
+
+
+def test_location_detail_page_loads(page):
+    """Navigating to /#detail/location/37.5/-77.0 shows the location report."""
+    page.goto("/#detail/location/37.5/-77.0")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    content = page.locator("#detail-content")
+    expect(content).to_contain_text("Location Report")
+    expect(content).to_contain_text("Coastal Plain")
+
+
+def test_map_background_click_navigates_to_location_detail(page):
+    """Clicking the map background routes to a location detail page."""
+    wait_for_map(page)
+    page.evaluate("""
+        () => {
+            window.ridgeMap.fire('click', {
+                latlng: L.latLng(37.5, -77.0)
+            });
+        }
+    """)
+    page.wait_for_function("() => location.hash.startsWith('#detail/location/37.5000/-77.0000')", timeout=DETAIL_TIMEOUT)
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    expect(page.locator("#detail-content")).to_contain_text("Location Report")
+
+
 # ---------------------------------------------------------------------------
 # Suite 7 — Rivers layer
 # ---------------------------------------------------------------------------
@@ -327,6 +496,39 @@ def test_river_detail_page_loads(page):
     page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
     content = page.locator("#detail-content")
     expect(content).to_contain_text("James")
+
+
+def test_river_detail_page_populates_flow_status(page):
+    """River detail pages render a flow placeholder and hydrate it from USGS."""
+    def mock_usgs(route: Route) -> None:
+        route.fulfill(
+            status=200,
+            content_type="application/json",
+            body="""
+            {
+              "value": {
+                "timeSeries": [
+                  {
+                    "values": [
+                      {
+                        "value": [
+                          { "value": "2340" }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """,
+        )
+
+    page.route(USGS_PATTERN, mock_usgs)
+    page.goto("/#detail/river/james")
+    page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
+    flow = page.locator("#flow-james")
+    expect(flow).to_be_visible(timeout=DETAIL_TIMEOUT)
+    expect(flow).to_contain_text("2,340 cfs")
 
 
 def test_blue_ridge_click_navigates_to_detail(page):

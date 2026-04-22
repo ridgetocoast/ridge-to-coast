@@ -21,13 +21,16 @@
          lib/leaflet.js:  sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=
          lib/leaflet.css: sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=
   -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; connect-src 'self' https://nominatim.openstreetmap.org; base-uri 'self'; form-action 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.basemaps.cartocdn.com data: blob:; connect-src 'self' https://nominatim.openstreetmap.org https://api.weather.gov https://api.inaturalist.org https://waterservices.usgs.gov https://overpass-api.de; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'none';">
 
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
 
   <title>Ridge to Coast</title>
   <meta name="description" content="Interactive map of the Appalachian watershed corridor — from the mountain ridge through the Piedmont and Fall Line to the Atlantic Coast. Covers geology, USDA Plant Hardiness Zones, native plants, and soil profiles for gardeners, farmers, arborists, and conservationists.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <link rel="stylesheet" href="lib/leaflet.css">
@@ -104,6 +107,10 @@
         <span class="swatch citymarker"></span>
         <span>Corridor cities</span>
       </div>
+      <div class="legend-item">
+        <span class="swatch gardens"></span>
+        <span>Community gardens</span>
+      </div>
 
       <!-- Hardiness zone swatches — shown only when the layer is active -->
       <div id="hardiness-legend" class="hardiness-legend" hidden>
@@ -131,6 +138,10 @@
             Hardiness zones
             <span class="loading-spinner" id="hardiness-spinner" hidden aria-hidden="true"></span>
           </span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-gardens">
+          Community gardens
         </label>
         <p class="layer-hint" id="hardiness-hint" hidden>Region fills switch to outlines when zones are active.</p>
         <p id="hardiness-error" class="hardiness-error" hidden></p>

@@ -1590,6 +1590,29 @@ var REGION_LABELS = {
   interiorLowlands: 'Interior Lowlands / Ohio Valley',
 };
 
+var REGION_INATURALIST_PLACE_IDS = {
+  coastal: 97394,
+  piedmont: 97395,
+  blueRidge: 97393,
+  valleyRidge: 97396,
+  gulfCoastal: 97392,
+};
+
+/**
+ * Escape untrusted text before injecting it into HTML strings.
+ * Intended for external data such as OpenStreetMap / Overpass properties.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function escapeHTML(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /**
  * Returns full-page HTML for a region detail view.
  * @param {'piedmont'|'coastal'|'blueRidge'} region
@@ -1628,6 +1651,7 @@ function makeRegionDetailHTML(region) {
         '<h2 class="detail-title" style="margin-bottom:0">' + props.name + '</h2>' +
       '</div>' +
       '<p class="detail-description">' + props.description + '</p>' +
+      '<p class="inat-badge">Recent plant observations (90 days): <span id="inat-count">\u2026</span></p>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
       makeInvasivesSection(region) +
@@ -1703,11 +1727,14 @@ function makeCalendarSection(zone) {
 /**
  * Returns full-page HTML for a hardiness zone detail view.
  * @param {string} zone  e.g. "7b"
+ * @param {number} [lat] optional latitude for live frost advisory hydration
+ * @param {number} [lon] optional longitude for live frost advisory hydration
  * @returns {string}
  */
-function makeZoneDetailHTML(zone) {
+function makeZoneDetailHTML(zone, lat, lon) {
   var info  = getZoneInfo(zone);
   var color = getZoneColor(zone);
+  var hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
   var row = function (label, value) {
     return (
       '<div class="detail-fact">' +
@@ -1728,6 +1755,7 @@ function makeZoneDetailHTML(zone) {
         row('First frost',      info.firstFrost) +
         row('Last frost',       info.lastFrost) +
         row('Growing season',   info.growingSeason) +
+        (hasCoords ? row('Plant now?', '<span id="zone-frost-advisory">Checking 7-day forecast…</span>') : '') +
         row('Thrives here',     info.plants) +
       '</div>' +
       makeCalendarSection(zone) +
@@ -1776,6 +1804,45 @@ function makeCityDetailHTML(slug) {
         row('Zone',      '<span class="zone-badge" style="background:' + zoneColor + ';color:#1a1a2e">Zone ' + city.zone + '</span>') +
       '</div>' +
       makeNativePlantsSection(city.region) +
+    '</article>'
+  );
+}
+
+/**
+ * Returns full-page detail HTML for an external OpenStreetMap garden feature.
+ * All fields are escaped because the source data is untrusted.
+ * @param {{ osmId?: string, name?: string, type?: string, address?: string }} props
+ * @returns {string}
+ */
+function makeGardenDetailHTML(props) {
+  if (!props || !props.osmId) return '';
+
+  var gardenName = escapeHTML(props.name || 'Community garden');
+  var gardenType = escapeHTML(props.type || 'Community garden');
+  var gardenAddress = escapeHTML(props.address || 'Address not listed');
+  var osmId = escapeHTML(props.osmId);
+
+  var row = function (label, value) {
+    return (
+      '<div class="detail-fact">' +
+        '<span class="detail-fact-label">' + label + '</span>' +
+        '<span class="detail-fact-value">' + value + '</span>' +
+      '</div>'
+    );
+  };
+
+  return (
+    '<article class="detail-page">' +
+      '<div class="detail-region-header" style="border-left:4px solid #2d6a4f;padding-left:12px;margin-bottom:0.75rem">' +
+        '<h2 class="detail-title" style="margin-bottom:0.25rem">' + gardenName + '</h2>' +
+        '<p class="detail-river" style="margin:0;color:#9fd3b8">OpenStreetMap garden listing</p>' +
+      '</div>' +
+      '<p class="detail-description">Community growing space or native plant source from OpenStreetMap.</p>' +
+      '<div class="detail-facts">' +
+        row('Type', gardenType) +
+        row('Address', gardenAddress) +
+        row('OSM ID', osmId) +
+      '</div>' +
     '</article>'
   );
 }
@@ -1844,9 +1911,21 @@ function classifyLocation(lat, lon) {
  */
 function makeLocationReport(lat, lon) {
   var region = classifyLocation(lat, lon);
-  var geojsonMap = { piedmont: PIEDMONT_GEOJSON, coastal: COASTAL_PLAIN_GEOJSON, blueRidge: BLUE_RIDGE_GEOJSON, valleyRidge: VALLEY_RIDGE_GEOJSON, gulfCoastal: GULF_COASTAL_GEOJSON };
+  var geojsonMap = {
+    piedmont:         PIEDMONT_GEOJSON,
+    coastal:          COASTAL_PLAIN_GEOJSON,
+    blueRidge:        BLUE_RIDGE_GEOJSON,
+    valleyRidge:      VALLEY_RIDGE_GEOJSON,
+    gulfCoastal:      GULF_COASTAL_GEOJSON,
+    neUpland:         NE_UPLAND_GEOJSON,
+    neCoastal:        NE_COASTAL_GEOJSON,
+    greatLakes:       GREAT_LAKES_GEOJSON,
+    interiorLowlands: INTERIOR_LOWLANDS_GEOJSON,
+  };
   var geojson = geojsonMap[region];
   var props   = geojson.properties;
+  var soil    = SOIL_TYPES[region];
+  var regionLabel = REGION_LABELS[region] || props.name;
 
   // Find nearest city by haversine distance
   var nearest  = CORRIDOR_CITIES[0];
@@ -1859,10 +1938,19 @@ function makeLocationReport(lat, lon) {
   var nearestText = nearest.name + ', ' + nearest.state + ' (' + Math.round(minDistKm) + '\u00a0km)';
   var nearestZone = nearest.zone || 'unknown';
   var zoneInfo    = getZoneInfo(nearestZone);
-  var zoneLabel   = zoneInfo ? zoneInfo.label : ('Zone\u00a0' + nearestZone);
-  var zoneSummary = zoneInfo ? zoneInfo.avgLowF + '\u00b0F\u00a0avg\u00a0min\u00b7' + zoneInfo.frostFree + '\u00a0frost-free\u00a0days' : '';
+  var zoneSummary = zoneInfo ? zoneInfo.tempRange + '\u2002\u00b7\u2002' + zoneInfo.growingSeason : '';
 
-  var REGION_COLORS = { piedmont: '#c88232', coastal: '#4682dc', gulfCoastal: '#4682dc', blueRidge: '#4a7c59', valleyRidge: '#9b7aad' };
+  var REGION_COLORS = {
+    piedmont:         '#c88232',
+    coastal:          '#4682dc',
+    gulfCoastal:      '#4682dc',
+    blueRidge:        '#4a7c59',
+    valleyRidge:      '#9b7aad',
+    neUpland:         '#4a9a8a',
+    neCoastal:        '#6baed6',
+    greatLakes:       '#4a7ab5',
+    interiorLowlands: '#8a7d4a',
+  };
   var accentColor = REGION_COLORS[region] || '#888888';
 
   return (
@@ -1877,6 +1965,10 @@ function makeLocationReport(lat, lon) {
       '<p class="detail-description">' + props.description + '</p>' +
       '<div class="detail-facts">' +
         '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Ecoregion</span>' +
+          '<span class="detail-fact-value">' + regionLabel + '</span>' +
+        '</div>' +
+        '<div class="detail-fact">' +
           '<span class="detail-fact-label">Nearest city</span>' +
           '<span class="detail-fact-value">' + nearestText + '</span>' +
         '</div>' +
@@ -1888,9 +1980,18 @@ function makeLocationReport(lat, lon) {
             '<br><small class="detail-fact-meta">Approximate \u2014 based on nearest city. Enable the zone layer for map-wide precision.</small>' +
           '</span>' +
         '</div>' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Soil series</span>' +
+          '<span class="detail-fact-value">' + soil.series + '</span>' +
+        '</div>' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Primary texture</span>' +
+          '<span class="detail-fact-value">' + soil.texture + '</span>' +
+        '</div>' +
       '</div>' +
       makeNativePlantsSection(region) +
       makeSoilSection(region) +
+      makeInvasivesSection(region) +
     '</article>'
   );
 }
@@ -3721,6 +3822,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'kennebec', name: 'Kennebec River',
+        usgsGaugeId: null,
         length_km: 257, states: 'ME',
         source: 'Moosehead Lake, ME', mouth: 'Atlantic Ocean at Popham Beach, ME',
         note: 'The Kennebec was the lifeline of colonial Maine — fur trade, shipbuilding, and ice harvesting defined its banks. The falls at Augusta mark the head of tidal navigation and the geological fall zone.',
@@ -3733,6 +3835,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'merrimack', name: 'Merrimack River',
+        usgsGaugeId: null,
         length_km: 180, states: 'NH, MA',
         source: 'Franklin NH (confluence of Pemigewasset and Winnisquam)', mouth: 'Atlantic Ocean at Newburyport, MA',
         note: 'The Merrimack powered America\'s first industrial cities. Lowell\'s Pawtucket Falls drop 32 feet — enough to drive 40 mills — while Amoskeag Falls at Manchester once ran the world\'s largest textile complex.',
@@ -3746,6 +3849,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'connecticut', name: 'Connecticut River',
+        usgsGaugeId: null,
         length_km: 655, states: 'NH, VT, MA, CT',
         source: 'Third Connecticut Lake, NH (US-Canada border)', mouth: 'Long Island Sound at Old Saybrook, CT',
         note: 'New England\'s longest river cuts through the Connecticut Valley Lowland — a Mesozoic rift basin filled with sandstone and basalt. The river\'s floodplain produced some of the most fertile farmland in colonial New England.',
@@ -3759,6 +3863,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'hudson', name: 'Hudson River',
+        usgsGaugeId: null,
         length_km: 507, states: 'NY, NJ',
         source: 'Lake Tear of the Clouds, Adirondack Mountains NY', mouth: 'Upper New York Bay / Atlantic Ocean',
         note: 'The Hudson was the axis of westward expansion. The Erie Canal (1825) connected it to the Great Lakes, making New York City the commercial capital of North America. The Peekskill Highlands mark the geological fall zone.',
@@ -3772,6 +3877,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'delaware', name: 'Delaware River',
+        usgsGaugeId: null,
         length_km: 579, states: 'NY, NJ, PA, DE',
         source: 'Catskill Mountains NY (East and West Branch confluence at Hancock)', mouth: 'Delaware Bay / Atlantic Ocean',
         note: 'Washington crossed the Delaware on Christmas 1776. The Delaware Water Gap cuts through Kittatinny Ridge — the river predates the Appalachian ridges it flows through, carving its gorge as the mountains rose around it.',
@@ -3786,6 +3892,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'susquehanna', name: 'Susquehanna River',
+        usgsGaugeId: null,
         length_km: 715, states: 'NY, PA, MD',
         source: 'Otsego Lake (Cooperstown NY)', mouth: 'Chesapeake Bay at Havre de Grace, MD',
         note: 'The Susquehanna drains nearly half of the Chesapeake Bay watershed. Its Conowingo Dam (1928) traps millions of tons of sediment that once fed the Bay\'s oyster reefs. The Susquehanna Flats were once the world\'s most productive wild-celery beds.',
@@ -3799,6 +3906,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'potomac', name: 'Potomac River',
+        usgsGaugeId: '01646500',
         length_km: 652, states: 'WV, MD, VA, DC',
         source: 'Fairfax Stone, WV (Backbone Mountain)', mouth: 'Chesapeake Bay at Point Lookout, MD',
         note: 'Great Falls of the Potomac drop 76 feet in less than a mile — the most dramatic fall line in the eastern US. George Washington\'s Patowmack Canal (1802) attempted to bypass the falls; today the C&O Canal towpath follows the Maryland shore.',
@@ -3812,6 +3920,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'shenandoah', name: 'Shenandoah River',
+        usgsGaugeId: '01636500',
         length_km: 286, states: 'VA, WV',
         source: 'South Fork: Augusta County VA; North Fork: Rockingham County VA', mouth: 'Potomac River at Harpers Ferry, WV',
         note: 'The Shenandoah Valley — the Great Appalachian Valley — is underlain by limestone that weathers to the rich, well-drained soils that made it the "breadbasket of the Confederacy." At Harpers Ferry it meets the Potomac in a spectacular water gap.',
@@ -3824,6 +3933,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'rappahannock', name: 'Rappahannock River',
+        usgsGaugeId: '01668000',
         length_km: 273, states: 'VA',
         source: 'Chester Gap, Blue Ridge Mountains VA', mouth: 'Chesapeake Bay (Rappahannock River mouth)',
         note: 'The Rappahannock\'s fall at Fredericksburg was the commercial anchor of colonial Virginia. George Washington\'s childhood home was across the river. The Battle of Fredericksburg (1862) was fought along its banks.',
@@ -3837,6 +3947,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'james', name: 'James River',
+        usgsGaugeId: '02037500',
         length_km: 560, states: 'VA',
         source: 'Iron Gate VA (confluence of Jackson and Cowpasture Rivers)', mouth: 'Hampton Roads / Chesapeake Bay',
         note: 'The James was the artery of English America — Jamestown (1607) sat at its tidal mouth. Belle Isle rapids at Richmond mark the fall line; the river powered antebellum tobacco mills and today feeds hydroelectric turbines through the same granite gorge.',
@@ -3850,6 +3961,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'new-river', name: 'New River',
+        usgsGaugeId: '03184500',
         length_km: 518, states: 'NC, VA, WV',
         source: 'Watauga County NC (confluence of forks near Boone)', mouth: 'Ohio River at Point Pleasant, WV (as the Kanawha)',
         note: 'One of the oldest rivers in North America — the New River predates the Appalachian Mountains and flows through them rather than around them. It becomes the Kanawha after merging with the Gauley at Gauley Bridge WV, draining into the Ohio.',
@@ -3863,6 +3975,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'roanoke', name: 'Roanoke River',
+        usgsGaugeId: '02080500',
         length_km: 660, states: 'VA, NC',
         source: 'Near Roanoke VA (confluence of Roanoke and Blackwater Rivers)', mouth: 'Albemarle Sound, NC',
         note: 'The Roanoke cuts through the Blue Ridge at the Roanoke Narrows — a critical Atlantic flyway corridor for migratory birds and American shad. Roanoke Rapids NC sits at the fall line where the river drops from the Piedmont to the coastal plain.',
@@ -3876,6 +3989,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'french-broad', name: 'French Broad River',
+        usgsGaugeId: '03451500',
         length_km: 298, states: 'NC, TN',
         source: 'Transylvania County NC (near Brevard)', mouth: 'Tennessee River at Knoxville, TN (via confluence with Holston)',
         note: 'One of the few rivers that flow northwest through the Blue Ridge — the French Broad predates the mountain uplift. Its unusual name comes from early English settlers who called land beyond the Blue Ridge "French territory." Near Asheville it drains the largest watershed in the Southern Appalachians.',
@@ -3889,6 +4003,7 @@ const MAJOR_RIVERS_GEOJSON = {
       type: 'Feature',
       properties: {
         slug: 'savannah', name: 'Savannah River',
+        usgsGaugeId: '02197000',
         length_km: 505, states: 'GA, SC',
         source: 'NE Georgia (confluence of Tugaloo and Seneca Rivers at Lake Hartwell)', mouth: 'Atlantic Ocean at Savannah, GA',
         note: 'The Savannah formed the colonial boundary between British Georgia and the Carolinas. Augusta GA was founded in 1736 by James Oglethorpe at the fall line — the furthest inland point accessible by flatboat from the coast. The river still marks the GA-SC state line.',
@@ -3934,6 +4049,7 @@ function makeRiverDetailHTML(slug) {
         row('States',     river.states) +
         row('Source',     river.source) +
         row('Mouth',      river.mouth) +
+        row('Current flow', '<span id="flow-' + river.slug + '">Loading…</span>') +
       '</div>' +
     '</article>'
   );
@@ -4017,6 +4133,7 @@ const GeoData = {
   makeFallLineDetailHTML,
   makeZoneDetailHTML,
   makeCityDetailHTML,
+  makeGardenDetailHTML,
   classifyLocation,
   makeLocationReport,
   haversineKm,
@@ -4033,6 +4150,7 @@ const GeoData = {
   buildSearchQuery,
   NE_FALL_ZONE_GEOJSON,
   MAJOR_RIVERS_GEOJSON,
+  REGION_INATURALIST_PLACE_IDS,
   makeRiverDetailHTML,
 };
 
