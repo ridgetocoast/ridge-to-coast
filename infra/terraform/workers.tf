@@ -12,8 +12,9 @@ resource "cloudflare_dns_record" "api" {
 }
 
 # Route: api.ridgetocoast.com/* → ridgetocoast-api worker script
-resource "cloudflare_workers_route" "api" {
-  zone_id = var.cloudflare_zone_id
-  pattern = "api.ridgetocoast.com/*"
-  script  = "ridgetocoast-api"
-}
+# Uncomment after first `wrangler deploy` — the Worker must exist before the route can be created
+# resource "cloudflare_workers_route" "api" {
+#   zone_id = var.cloudflare_zone_id
+#   pattern = "api.ridgetocoast.com/*"
+#   script  = "ridgetocoast-api"
+# }
