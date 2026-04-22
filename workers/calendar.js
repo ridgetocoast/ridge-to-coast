@@ -13,16 +13,16 @@ export async function handleCalendar(params) {
     return Response.json({ error: 'month must be 1–12' }, { status: 400 });
   }
 
-  // Stub — replace with PLANTING_CALENDAR lookup
+  // Hello world — replace with PLANTING_CALENDAR lookup (P3 #20)
   return Response.json({
     zone,
     month,
     monthName: new Date(2000, month - 1).toLocaleString('en-US', { month: 'long' }),
-    startIndoors: [],
-    directSow: [],
-    transplant: [],
-    harvest: [],
-    notes: null,
-    _status: 'not implemented — see P3 issue #20',
-  }, { status: 501 });
+    startIndoors: ['Basil', 'Sweet potatoes'],
+    directSow: ['Beans', 'Cucumber', 'Squash'],
+    transplant: ['Tomatoes', 'Peppers', 'Eggplant'],
+    harvest: ['Lettuce', 'Peas', 'Spinach'],
+    notes: 'Last frost typically mid-March. Safe to plant warm-season crops.',
+    _note: 'hello world — static response, real lookup coming in P3 #20',
+  });
 }

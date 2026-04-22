@@ -27,6 +27,14 @@ export default {
       response = await handleCalendar(url.searchParams);
     } else if (path.startsWith('/v1/plants')) {
       response = await handlePlants(url.searchParams);
+    } else if (path === '/' || path === '') {
+      response = Response.json({
+        api: 'Ridge to Coast',
+        version: '1.0.0',
+        status: 'ok',
+        docs: 'https://github.com/ridgetocoast/ridge-to-coast/blob/main/api/openapi.yaml',
+        endpoints: ['/v1/ecoregion', '/v1/calendar', '/v1/plants'],
+      });
     } else {
       response = Response.json({ error: 'Not found' }, { status: 404 });
     }
