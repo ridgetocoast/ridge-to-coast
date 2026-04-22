@@ -23,6 +23,7 @@ var gardensCache = null;
 var gardensIndex = Object.create(null);
 var gardensLayer = null;
 var gardensRequest = null;
+var watershedHighlightLayer = null;
 
 function markInteractiveLayerClick() {
   lastInteractiveLayerClickAt = Date.now();
@@ -54,6 +55,30 @@ function showDetailView(html) {
   detailViewEl.hidden = false;
   mapViewEl.hidden = true;
   window.scrollTo(0, 0);
+}
+
+function clearWatershedHighlight() {
+  if (watershedHighlightLayer) {
+    map.removeLayer(watershedHighlightLayer);
+    watershedHighlightLayer = null;
+  }
+}
+
+function highlightWatershedForLocation(lat, lon) {
+  var watershed = gd.lookupWatershed(lat, lon);
+  clearWatershedHighlight();
+  if (!watershed || !watershed.feature) return;
+  watershedHighlightLayer = L.geoJSON(watershed.feature, {
+    style: {
+      color: '#f4d35e',
+      weight: 3,
+      opacity: 0.95,
+      fillColor: '#f4d35e',
+      fillOpacity: 0.12,
+      interactive: false,
+    },
+  }).addTo(map);
+  watershedHighlightLayer.bringToFront();
 }
 
 function formatDateYYYYMMDD(date) {
@@ -263,6 +288,9 @@ function navigate(hash) {
   var type = parts[1];
   var html = '';
   var zoneRoute = null;
+  if (type !== 'location') {
+    clearWatershedHighlight();
+  }
   if (type === 'region') {
     html = gd.makeRegionDetailHTML(parts[2]);
   } else if (type === 'zone') {
@@ -280,9 +308,13 @@ function navigate(hash) {
     var lat = parseFloat(parts[2]);
     var lon = parseFloat(parts[3]);
     if (!isNaN(lat) && !isNaN(lon)) {
+      highlightWatershedForLocation(lat, lon);
       html = gd.makeLocationReport(lat, lon);
+    } else {
+      clearWatershedHighlight();
     }
   } else if (type === 'garden') {
+    clearWatershedHighlight();
     var osmId = decodeURIComponent(parts[2] || '');
     if (osmId && gardensIndex[osmId]) {
       html = gd.makeGardenDetailHTML(gardensIndex[osmId]);
@@ -320,6 +352,7 @@ function navigate(hash) {
       hydrateZoneFrostAdvisory(zoneRoute.lat, zoneRoute.lon, renderToken, hash);
     }
   } else {
+    clearWatershedHighlight();
     showMapView();
   }
 }

@@ -1,0 +1,67 @@
+/**
+ * scripts/fetch-watersheds.js
+ * ---------------------------
+ * Writes the phase-2 static HUC8 watershed lookup used by the location
+ * report and map highlight. The polygons are intentionally simplified
+ * corridor-focused shapes, not authoritative survey boundaries.
+ *
+ * Usage:
+ *   node scripts/fetch-watersheds.js
+ */
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const watersheds = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { huc8: '02080206', name: 'Lower James', areaKm2: 3730 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.4, 37.95], [-76.05, 37.95], [-76.05, 36.95], [-78.4, 36.95], [-78.4, 37.95],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '02070010', name: 'Middle Potomac-Anacostia-Occoquan', areaKm2: 3315 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.7, 39.3], [-76.5, 39.3], [-76.5, 38.45], [-78.7, 38.45], [-78.7, 39.3],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '02080104', name: 'Lower Rappahannock', areaKm2: 3004 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.3, 38.35], [-76.65, 38.35], [-76.65, 37.65], [-78.3, 37.65], [-78.3, 38.35],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '06010105', name: 'Upper French Broad', areaKm2: 4843 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-83.35, 36.15], [-81.95, 36.15], [-81.95, 35.0], [-83.35, 35.0], [-83.35, 36.15],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '03060109', name: 'Lower Savannah', areaKm2: 2372 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-82.6, 33.75], [-80.75, 33.75], [-80.75, 31.85], [-82.6, 31.85], [-82.6, 33.75],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '03010101', name: 'Upper Roanoke', areaKm2: 5646 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-80.6, 37.65], [-78.25, 37.65], [-78.25, 36.7], [-80.6, 36.7], [-80.6, 37.65],
+      ]] },
+    },
+  ],
+};
+
+const outputPath = path.join(__dirname, '..', 'data', 'watersheds.geojson');
+fs.writeFileSync(outputPath, JSON.stringify(watersheds, null, 2) + '\n');
+console.log('Wrote %s', outputPath);

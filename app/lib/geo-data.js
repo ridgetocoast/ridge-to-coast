@@ -1911,6 +1911,7 @@ function classifyLocation(lat, lon) {
  */
 function makeLocationReport(lat, lon) {
   var region = classifyLocation(lat, lon);
+  var watershed = lookupWatershed(lat, lon);
   var geojsonMap = {
     piedmont:         PIEDMONT_GEOJSON,
     coastal:          COASTAL_PLAIN_GEOJSON,
@@ -1987,6 +1988,16 @@ function makeLocationReport(lat, lon) {
         '<div class="detail-fact">' +
           '<span class="detail-fact-label">Primary texture</span>' +
           '<span class="detail-fact-value">' + soil.texture + '</span>' +
+        '</div>' +
+        '<div class="detail-fact">' +
+          '<span class="detail-fact-label">Watershed</span>' +
+          '<span class="detail-fact-value">' +
+            (watershed
+              ? watershed.name +
+                ' <small class="detail-fact-meta">HUC8 ' + watershed.huc8 +
+                ' • ' + watershed.areaKm2.toLocaleString('en-US') + ' km²</small>'
+              : '<small class="detail-fact-meta">No precomputed watershed available for this point yet.</small>') +
+          '</span>' +
         '</div>' +
       '</div>' +
       makeNativePlantsSection(region) +
@@ -3778,6 +3789,98 @@ const GULF_COASTAL_GEOJSON = {
   },
 };
 
+/* ─── Watersheds (phase 2 static lookup) ────────────────────────
+   Precomputed HUC8 corridor polygons used for location reports and
+   temporary map highlighting. These are simplified, approximate
+   polygons for phase-appropriate watershed context.
+   ────────────────────────────────────────────────────────────── */
+const WATERSHEDS_GEOJSON = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { huc8: '02080206', name: 'Lower James', areaKm2: 3730 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.400, 37.950], [-76.050, 37.950], [-76.050, 36.950], [-78.400, 36.950], [-78.400, 37.950],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '02070010', name: 'Middle Potomac-Anacostia-Occoquan', areaKm2: 3315 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.700, 39.300], [-76.500, 39.300], [-76.500, 38.450], [-78.700, 38.450], [-78.700, 39.300],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '02080104', name: 'Lower Rappahannock', areaKm2: 3004 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-78.300, 38.350], [-76.650, 38.350], [-76.650, 37.650], [-78.300, 37.650], [-78.300, 38.350],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '06010105', name: 'Upper French Broad', areaKm2: 4843 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-83.350, 36.150], [-81.950, 36.150], [-81.950, 35.000], [-83.350, 35.000], [-83.350, 36.150],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '03060109', name: 'Lower Savannah', areaKm2: 2372 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-82.600, 33.750], [-80.750, 33.750], [-80.750, 31.850], [-82.600, 31.850], [-82.600, 33.750],
+      ]] },
+    },
+    {
+      type: 'Feature',
+      properties: { huc8: '03010101', name: 'Upper Roanoke', areaKm2: 5646 },
+      geometry: { type: 'Polygon', coordinates: [[
+        [-80.600, 37.650], [-78.250, 37.650], [-78.250, 36.700], [-80.600, 36.700], [-80.600, 37.650],
+      ]] },
+    },
+  ],
+};
+
+function pointInRing(point, ring) {
+  var inside = false;
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    var xi = ring[i][0];
+    var yi = ring[i][1];
+    var xj = ring[j][0];
+    var yj = ring[j][1];
+    var intersects = ((yi > point[1]) !== (yj > point[1])) &&
+      (point[0] < ((xj - xi) * (point[1] - yi)) / ((yj - yi) || Number.EPSILON) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInPolygon(point, polygonCoords) {
+  if (!polygonCoords || polygonCoords.length === 0) return false;
+  if (!pointInRing(point, polygonCoords[0])) return false;
+  for (var i = 1; i < polygonCoords.length; i++) {
+    if (pointInRing(point, polygonCoords[i])) return false;
+  }
+  return true;
+}
+
+function lookupWatershed(lat, lon) {
+  var point = [lon, lat];
+  for (var i = 0; i < WATERSHEDS_GEOJSON.features.length; i++) {
+    var feature = WATERSHEDS_GEOJSON.features[i];
+    if (pointInPolygon(point, feature.geometry.coordinates)) {
+      return {
+        huc8: feature.properties.huc8,
+        name: feature.properties.name,
+        areaKm2: feature.properties.areaKm2,
+        feature: feature,
+      };
+    }
+  }
+  return null;
+}
+
 
 /* ─── New England Fall Zone ─────────────────────────────────────
    Separate LineString for the New England mill-city fall zone
@@ -4114,6 +4217,7 @@ const GeoData = {
   GREAT_LAKES_GEOJSON,
   INTERIOR_LOWLANDS_GEOJSON,
   GULF_COASTAL_GEOJSON,
+  WATERSHEDS_GEOJSON,
   REGION_LABELS,
   BLUE_RIDGE_EAST_ESCARPMENT,
   BLUE_RIDGE_WEST_ESCARPMENT,
@@ -4135,6 +4239,7 @@ const GeoData = {
   makeCityDetailHTML,
   makeGardenDetailHTML,
   classifyLocation,
+  lookupWatershed,
   makeLocationReport,
   haversineKm,
   minDistanceToFallLine,

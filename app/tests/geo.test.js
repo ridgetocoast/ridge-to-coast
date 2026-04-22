@@ -36,6 +36,7 @@ const {
   makeCityDetailHTML,
   makeGardenDetailHTML,
   classifyLocation,
+  lookupWatershed,
   makeLocationReport,
   haversineKm,
   minDistanceToFallLine,
@@ -1689,10 +1690,24 @@ describe('classifyLocation and makeLocationReport', () => {
     assert.ok(html.includes('Richmond'), 'nearest city near Richmond should be Richmond');
   });
 
+  it('lookupWatershed returns Lower James for Richmond coordinates', () => {
+    const watershed = lookupWatershed(37.53, -77.46);
+    assert.ok(watershed, 'Richmond coordinates should match a static watershed');
+    assert.equal(watershed.huc8, '02080206');
+    assert.equal(watershed.name, 'Lower James');
+  });
+
   it('makeLocationReport for Piedmont location includes Piedmont ecoregion and soil series', () => {
     const html = makeLocationReport(38.03, -78.48);
     assert.ok(html.includes('Piedmont'), 'report should include the Piedmont ecoregion label');
     assert.ok(html.includes('Cecil'), 'report should include a Piedmont soil series');
+  });
+
+  it('makeLocationReport includes a watershed fact for Richmond corridor points', () => {
+    const html = makeLocationReport(37.53, -77.46);
+    assert.ok(html.includes('Watershed'), 'report should include watershed label');
+    assert.ok(html.includes('Lower James'), 'report should include watershed name');
+    assert.ok(html.includes('HUC8 02080206'), 'report should include HUC8 code');
   });
 
   it('makeLocationReport includes invasive species guidance', () => {

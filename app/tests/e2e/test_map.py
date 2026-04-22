@@ -469,11 +469,14 @@ def test_location_detail_page_loads(page):
     content = page.locator("#detail-content")
     expect(content).to_contain_text("Location Report")
     expect(content).to_contain_text("Coastal Plain")
+    expect(content).to_contain_text("Watershed")
+    expect(content).to_contain_text("Lower James")
 
 
 def test_map_background_click_navigates_to_location_detail(page):
     """Clicking the map background routes to a location detail page."""
     wait_for_map(page)
+    before = page.locator(".leaflet-overlay-pane path").count()
     page.evaluate("""
         () => {
             window.ridgeMap.fire('click', {
@@ -484,6 +487,7 @@ def test_map_background_click_navigates_to_location_detail(page):
     page.wait_for_function("() => location.hash.startsWith('#detail/location/37.5000/-77.0000')", timeout=DETAIL_TIMEOUT)
     page.wait_for_selector("#detail-view:not([hidden])", timeout=DETAIL_TIMEOUT)
     expect(page.locator("#detail-content")).to_contain_text("Location Report")
+    assert page.locator(".leaflet-overlay-pane path").count() > before
 
 
 # ---------------------------------------------------------------------------
