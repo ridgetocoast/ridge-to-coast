@@ -32,11 +32,13 @@ variable "cloudflare_api_token" {
 }
 
 variable "cloudflare_account_id" {
-  description = "Cloudflare Account ID (dashboard homepage → right sidebar)"
+  description = "Cloudflare Account ID — not sensitive, safe to commit"
   type        = string
+  default     = "c378aeb8ad614074b3a5e541a4788993"
 }
 
 variable "cloudflare_zone_id" {
-  description = "Zone ID for ridgetocoast.com (domain overview page → right sidebar)"
+  description = "Zone ID for ridgetocoast.com — not sensitive, safe to commit"
   type        = string
+  default     = "77d12978a2a1395b87a12be147f3b5e9"
 }
