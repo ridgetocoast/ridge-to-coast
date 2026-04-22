@@ -14,7 +14,6 @@ resource "cloudflare_pages_project" "frontend" {
       deployments_enabled           = true
       preview_deployment_setting    = "custom"
       preview_branch_includes       = ["feature/*", "claude/*"]
-      preview_branch_excludes       = []
     }
   }
 
@@ -29,20 +28,21 @@ resource "cloudflare_pages_project" "frontend" {
 resource "cloudflare_pages_domain" "apex" {
   account_id   = var.cloudflare_account_id
   project_name = cloudflare_pages_project.frontend.name
-  domain       = "ridgetocoast.com"
+  name         = "ridgetocoast.com"
 }
 
 resource "cloudflare_pages_domain" "www" {
   account_id   = var.cloudflare_account_id
   project_name = cloudflare_pages_project.frontend.name
-  domain       = "www.ridgetocoast.com"
+  name         = "www.ridgetocoast.com"
 }
 
-# DNS: www → apex redirect
-resource "cloudflare_record" "www" {
+# DNS: www → apex redirect (proxied through Cloudflare)
+resource "cloudflare_dns_record" "www" {
   zone_id = var.cloudflare_zone_id
   name    = "www"
-  value   = "ridgetocoast.com"
+  content = "ridgetocoast.com"
   type    = "CNAME"
+  ttl     = 1
   proxied = true
 }
