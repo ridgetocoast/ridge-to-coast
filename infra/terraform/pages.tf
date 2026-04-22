@@ -10,10 +10,10 @@ resource "cloudflare_pages_project" "frontend" {
       owner                       = "ridgetocoast"
       repo_name                   = "ridge-to-coast"
       production_branch           = "main"
-      pr_comments_enabled         = true
-      deployments_enabled         = true
-      preview_deployment_setting  = "custom"
-      preview_branch_includes     = ["feature/*", "claude/*"]
+      pr_comments_enabled                = true
+      production_deployments_enabled     = true
+      preview_deployment_setting         = "custom"
+      preview_branch_includes            = ["feature/*", "claude/*"]
     }
   }
 
