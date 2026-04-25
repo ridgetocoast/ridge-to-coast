@@ -1,0 +1,12 @@
+name = "ridgetocoast-api"
+main = "workers/index.js"
+compatibility_date = "2024-01-01"
+account_id = "c378aeb8ad614074b3a5e541a4788993"
+
+[env.production]
+routes = [
+  { pattern = "api.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
+]
+
+[env.preview]
+# Deployed to workers.dev subdomain for PRs

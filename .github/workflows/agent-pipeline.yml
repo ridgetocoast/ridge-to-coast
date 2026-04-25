@@ -1,0 +1,56 @@
+name: Multi-Agent Pipeline
+
+# Triggered when an issue is labeled with agent:*
+# CURRENT STATUS: Stub — Bedrock integration pending
+#
+# To activate:
+# 1. AWS Console → Bedrock → request model access (us-east-1):
+#    anthropic.claude-haiku-4-5-20251001
+#    anthropic.claude-sonnet-4-6-20251001
+#    anthropic.claude-opus-4-7-20251101
+#
+# 2. Create IAM role with bedrock:InvokeModel, trust GitHub OIDC:
+#    token.actions.githubusercontent.com → repo:ridgetocoast/ridge-to-coast:*
+#
+# 3. Add AWS_ROLE_ARN to repo variables (Settings → Variables)
+#
+# Cost estimate per full feature PR:
+#   Haiku planner:   ~$0.003
+#   Opus architect:  ~$0.75
+#   Sonnet engineer: ~$0.24
+#   Total:           ~$1.00
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  plan:
+    if: github.event.label.name == 'agent:plan'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bedrock integration pending
+        run: |
+          echo "Planner pipeline pending Bedrock setup."
+          echo "Run locally: git worktree add ../ridge-issue-${{ github.event.issue.number }} -b claude/issue-${{ github.event.issue.number }}-plan"
+          echo "Then: claude (Haiku model, reference app/.claude/agents/planner.md)"
+
+  architect:
+    if: github.event.label.name == 'agent:architect'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bedrock integration pending
+        run: echo "Architect pipeline pending Bedrock setup."
+
+  implement:
+    if: |
+      github.event.label.name == 'agent:implement' ||
+      github.event.label.name == 'agent:implement-hard' ||
+      github.event.label.name == 'agent:design'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bedrock integration pending
+        run: echo "Engineer pipeline pending Bedrock setup."

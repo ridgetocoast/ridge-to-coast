@@ -1,0 +1,13 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is gitignored — never commit it.
+#
+# Where to find each value:
+#   cloudflare_api_token  → dash.cloudflare.com/profile/api-tokens
+#                           Permissions needed: Workers Scripts:Edit, Pages:Edit,
+#                           Zone:Edit, R2:Edit, DNS:Edit
+#   cloudflare_account_id → dash.cloudflare.com (homepage, right sidebar)
+#   cloudflare_zone_id    → dash.cloudflare.com → ridgetocoast.com → Overview (right sidebar)
+
+cloudflare_api_token  = "your_api_token_here"
+cloudflare_account_id = "c378aeb8ad614074b3a5e541a4788993"
+cloudflare_zone_id    = "77d12978a2a1395b87a12be147f3b5e9"

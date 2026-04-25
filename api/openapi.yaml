@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: Ridge to Coast API
+  version: 1.0.0
+  description: |
+    Free REST API for Appalachian watershed ecoregion data.
+    No API key required. All data sourced from public datasets.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: https://api.ridgetocoast.com/v1
+    description: Production
+  - url: https://ridgetocoast-api.YOUR_CF_SUBDOMAIN.workers.dev/v1
+    description: Preview (workers.dev)
+
+paths:
+  /ecoregion:
+    get:
+      summary: Ecoregion, hardiness zone, soil, and plants for a coordinate
+      operationId: getEcoregion
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number, example: 37.54 }
+        - name: lon
+          in: query
+          required: true
+          schema: { type: number, example: -77.43 }
+      responses:
+        '200':
+          description: Ecoregion data for the given coordinate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EcoregionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /calendar:
+    get:
+      summary: Monthly planting tasks for a hardiness zone
+      operationId: getCalendar
+      parameters:
+        - name: zone
+          in: query
+          required: true
+          schema: { type: string, example: '7b' }
+        - name: month
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 12, example: 4 }
+      responses:
+        '200':
+          description: Planting calendar for the given zone and month
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /plants:
+    get:
+      summary: Native plants for a region, optionally filtered by type
+      operationId: getPlants
+      parameters:
+        - name: region
+          in: query
+          required: true
+          schema: { type: string, example: 'piedmont' }
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [tree, shrub, herbaceous, vine, graminoid, wildflower]
+      responses:
+        '200':
+          description: Native plants list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    EcoregionResponse:
+      type: object
+      properties:
+        region: { type: string, example: 'piedmont' }
+        name: { type: string, example: 'Piedmont' }
+        zone: { type: string, example: '7b' }
+        soilSeries: { type: string, example: 'Cecil–Appling clay loam' }
+        nativePlants:
+          type: array
+          items: { type: string }
+        invasives:
+          type: array
+          items: { type: string }
+        watershedName: { type: string, example: 'Upper James River' }
+
+    CalendarResponse:
+      type: object
+      properties:
+        zone: { type: string }
+        month: { type: integer }
+        monthName: { type: string }
+        startIndoors: { type: array, items: { type: string } }
+        directSow: { type: array, items: { type: string } }
+        transplant: { type: array, items: { type: string } }
+        harvest: { type: array, items: { type: string } }
+        notes: { type: string, nullable: true }
+
+    PlantsResponse:
+      type: object
+      properties:
+        region: { type: string }
+        type: { type: string, nullable: true }
+        plants:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              latin: { type: string }
+              type: { type: string }
+              note: { type: string }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+  responses:
+    BadRequest:
+      description: Missing or invalid parameters
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: No data found for the given parameters
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
