@@ -1919,8 +1919,9 @@ function getCurrentPlantingActivities(zone) {
   };
 }
 
-function makeSeasonalCardShell(zone, region) {
+function makeSeasonalCardShell(zone, region) { // region forwarded to hydrateSeasonalCard
   var activities = getCurrentPlantingActivities(zone);
+  var safeZone = String(zone).replace(/[<>"'&]/g, '');
   var plantItems = [].concat(
     activities.startIndoors.map(function (p) { return p + ' (indoors)'; }),
     activities.directSow.map(function (p) { return p + ' (sow)'; }),
@@ -1932,7 +1933,7 @@ function makeSeasonalCardShell(zone, region) {
 
   return (
     '<section class="seasonal-card">' +
-      '<h3 class="seasonal-title">Growing Season \u00b7 Zone ' + zone + '</h3>' +
+      '<h3 class="seasonal-title">Growing Season \u00b7 Zone ' + safeZone + '</h3>' +
       '<div class="seasonal-grid">' +
         '<div class="seasonal-panel">' +
           '<span class="seasonal-label">FROST RISK</span>' +
