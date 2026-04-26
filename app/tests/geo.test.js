@@ -2405,3 +2405,35 @@ describe('makeCalendarSection()', () => {
     );
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — getCurrentPlantingActivities
+   ═══════════════════════════════════════════════════════════════ */
+
+const { getCurrentPlantingActivities } = require('../lib/geo-data.js');
+
+describe('getCurrentPlantingActivities', () => {
+  it('returns arrays for a valid zone', () => {
+    const result = getCurrentPlantingActivities('7b');
+    assert.ok(Array.isArray(result.startIndoors), 'startIndoors should be array');
+    assert.ok(Array.isArray(result.directSow),    'directSow should be array');
+    assert.ok(Array.isArray(result.transplant),   'transplant should be array');
+    assert.ok(Array.isArray(result.harvest),      'harvest should be array');
+  });
+
+  it('returns empty arrays for an unknown zone', () => {
+    const result = getCurrentPlantingActivities('99z');
+    assert.deepEqual(result.startIndoors, []);
+    assert.deepEqual(result.directSow,    []);
+    assert.deepEqual(result.transplant,   []);
+    assert.deepEqual(result.harvest,      []);
+  });
+
+  it('monthName matches a month name string', () => {
+    const result = getCurrentPlantingActivities('7b');
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    assert.ok(months.includes(result.monthName),
+      `monthName "${result.monthName}" not in month list`);
+  });
+});

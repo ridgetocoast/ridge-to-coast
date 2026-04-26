@@ -1902,6 +1902,23 @@ function classifyLocation(lat, lon) {
   return 'piedmont';
 }
 
+function getCurrentPlantingActivities(zone) {
+  var monthKeys = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var monthLabels = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+  var idx = new Date().getMonth();
+  var key = monthKeys[idx];
+  var monthName = monthLabels[idx];
+  var entry = PLANTING_CALENDAR[zone] && PLANTING_CALENDAR[zone][key];
+  return {
+    startIndoors: (entry && entry.startIndoors) || [],
+    directSow:    (entry && entry.directSow)    || [],
+    transplant:   (entry && entry.transplant)   || [],
+    harvest:      (entry && entry.harvest)      || [],
+    monthName:    monthName,
+  };
+}
+
 /**
  * Returns full-page HTML for a location report (search / GPS result).
  * Includes approximate ecoregion, soil, and native plants for the location.
@@ -4231,6 +4248,7 @@ const GeoData = {
   makeInvasivesSection,
   PLANTING_CALENDAR,
   makeCalendarSection,
+  getCurrentPlantingActivities,
   makeRegionPopup,
   makeFallLinePopup,
   makeRegionDetailHTML,
