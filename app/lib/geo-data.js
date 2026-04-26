@@ -1919,6 +1919,42 @@ function getCurrentPlantingActivities(zone) {
   };
 }
 
+function makeSeasonalCardShell(zone, region) {
+  var activities = getCurrentPlantingActivities(zone);
+  var plantItems = [].concat(
+    activities.startIndoors.map(function (p) { return p + ' (indoors)'; }),
+    activities.directSow.map(function (p) { return p + ' (sow)'; }),
+    activities.transplant.map(function (p) { return p + ' (transplant)'; })
+  );
+  var plantText = plantItems.length
+    ? plantItems.join(', ')
+    : 'Nothing scheduled for ' + activities.monthName;
+
+  return (
+    '<section class="seasonal-card">' +
+      '<h3 class="seasonal-title">Growing Season \u00b7 Zone ' + zone + '</h3>' +
+      '<div class="seasonal-grid">' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">FROST RISK</span>' +
+          '<span id="seasonal-frost" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">PLANT NOW</span>' +
+          '<span class="seasonal-value">' + plantText + '</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">IN YOUR REGION</span>' +
+          '<span id="seasonal-inat" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">RIVERS</span>' +
+          '<span id="seasonal-rivers" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+      '</div>' +
+    '</section>'
+  );
+}
+
 /**
  * Returns full-page HTML for a location report (search / GPS result).
  * Includes approximate ecoregion, soil, and native plants for the location.
@@ -4249,6 +4285,7 @@ const GeoData = {
   PLANTING_CALENDAR,
   makeCalendarSection,
   getCurrentPlantingActivities,
+  makeSeasonalCardShell,
   makeRegionPopup,
   makeFallLinePopup,
   makeRegionDetailHTML,

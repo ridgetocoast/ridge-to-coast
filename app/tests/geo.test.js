@@ -2437,3 +2437,47 @@ describe('getCurrentPlantingActivities', () => {
       `monthName "${result.monthName}" not in month list`);
   });
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   SUITE — makeSeasonalCardShell
+   ═══════════════════════════════════════════════════════════════ */
+
+const { makeSeasonalCardShell } = require('../lib/geo-data.js');
+
+describe('makeSeasonalCardShell', () => {
+  it('contains #seasonal-frost placeholder', () => {
+    const html = makeSeasonalCardShell('7b', 'piedmont');
+    assert.ok(html.includes('id="seasonal-frost"'),
+      'expected id="seasonal-frost" in HTML');
+  });
+
+  it('contains #seasonal-inat placeholder', () => {
+    const html = makeSeasonalCardShell('7b', 'piedmont');
+    assert.ok(html.includes('id="seasonal-inat"'),
+      'expected id="seasonal-inat" in HTML');
+  });
+
+  it('contains #seasonal-rivers placeholder', () => {
+    const html = makeSeasonalCardShell('7b', 'piedmont');
+    assert.ok(html.includes('id="seasonal-rivers"'),
+      'expected id="seasonal-rivers" in HTML');
+  });
+
+  it('planting panel renders sync data (no Loading text)', () => {
+    const html = makeSeasonalCardShell('7b', 'piedmont');
+    // The PLANT NOW panel should not say "Loading"
+    // It uses getCurrentPlantingActivities which is sync
+    const plantPanel = html.match(/PLANT NOW[\s\S]*?<\/div>/);
+    assert.ok(plantPanel, 'PLANT NOW panel not found');
+    assert.ok(!plantPanel[0].includes('Loading'),
+      'PLANT NOW panel should not show Loading state');
+  });
+
+  it('renders safely when PLANTING_CALENDAR has no entry for zone', () => {
+    const html = makeSeasonalCardShell('99z', 'piedmont');
+    assert.ok(typeof html === 'string' && html.length > 0,
+      'should return non-empty HTML string for unknown zone');
+    assert.ok(html.includes('seasonal-card'),
+      'should still render the card container');
+  });
+});
