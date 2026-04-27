@@ -267,6 +267,90 @@ function hydrateZoneFrostAdvisory(lat, lon, token, expectedHash) {
     });
 }
 
+function nearestRiverWithGauge(lat, lon) {
+  var best = null;
+  var bestDist = Infinity;
+  var features = gd.MAJOR_RIVERS_GEOJSON.features;
+  for (var i = 0; i < features.length; i++) {
+    var f = features[i];
+    if (!f.properties.usgsGaugeId) continue;
+    var coords = f.geometry.coordinates;
+    for (var j = 0; j < coords.length; j++) {
+      var d = gd.haversineKm([lon, lat], coords[j]);
+      if (d < bestDist) { bestDist = d; best = f.properties; }
+    }
+  }
+  return best;
+}
+
+async function hydrateSeasonalCard(lat, lon, region, zone, token) {
+  var placeId = gd.REGION_INATURALIST_PLACE_IDS[region];
+  var river = nearestRiverWithGauge(lat, lon);
+
+  var d30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  var d1 = d30.toISOString().slice(0, 10);
+
+  var nwsPromise = fetch('https://api.weather.gov/points/' + lat.toFixed(4) + ',' + lon.toFixed(4))
+    .then(function (r) { if (!r.ok) throw new Error('NWS points failed'); return r.json(); })
+    .then(function (pts) {
+      return fetch(pts.properties.forecastHourly);
+    })
+    .then(function (r) { if (!r.ok) throw new Error('NWS forecast failed'); return r.json(); })
+    .then(function (fc) { return describePlantingWindow(fc.properties.periods); });
+
+  var inatPromise = placeId
+    ? fetch('https://api.inaturalist.org/v1/observations?place_id=' + placeId +
+        '&taxon_id=47126&d1=' + d1 + '&quality_grade=research&per_page=5&order_by=observed_on')
+        .then(function (r) { if (!r.ok) throw new Error('iNat failed'); return r.json(); })
+        .then(function (data) {
+          var species = (data.results || [])
+            .map(function (obs) { return obs.taxon && (obs.taxon.preferred_common_name || obs.taxon.name); })
+            .filter(Boolean);
+          var unique = species.filter(function (s, i) { return species.indexOf(s) === i; });
+          return unique.length
+            ? data.total_results + ' obs \u00b7 ' + unique.slice(0, 3).join(', ')
+            : data.total_results + ' observations';
+        })
+    : Promise.reject(new Error('No place ID for region'));
+
+  var usgsPromise = river
+    ? fetch('https://waterservices.usgs.gov/nwis/iv/?format=json&sites=' + river.usgsGaugeId + '&parameterCd=00060')
+        .then(function (r) { if (!r.ok) throw new Error('USGS failed'); return r.json(); })
+        .then(function (data) {
+          var cfs = extractDischargeCfs(data);
+          if (cfs === null) throw new Error('USGS missing discharge');
+          return river.name + ': ' + Math.round(cfs).toLocaleString('en-US') + ' cfs \u00b7 ' + classifyRiverFlow(cfs);
+        })
+    : Promise.reject(new Error('No river with gauge near location'));
+
+  var results = await Promise.allSettled([nwsPromise, inatPromise, usgsPromise]);
+
+  if (token !== detailRenderToken) return;
+
+  var frostEl   = document.getElementById('seasonal-frost');
+  var inatEl    = document.getElementById('seasonal-inat');
+  var riversEl  = document.getElementById('seasonal-rivers');
+
+  if (frostEl) {
+    frostEl.classList.remove('seasonal-loading');
+    frostEl.textContent = results[0].status === 'fulfilled'
+      ? (results[0].value || 'No frost risk in 7-day forecast')
+      : 'Forecast unavailable';
+  }
+  if (inatEl) {
+    inatEl.classList.remove('seasonal-loading');
+    inatEl.textContent = results[1].status === 'fulfilled'
+      ? results[1].value
+      : 'Observation data unavailable';
+  }
+  if (riversEl) {
+    riversEl.classList.remove('seasonal-loading');
+    riversEl.textContent = results[2].status === 'fulfilled'
+      ? results[2].value
+      : 'Flow data unavailable';
+  }
+}
+
 /**
  * Parse location.hash and render the appropriate view.
  * Hash format: #detail/<type>/<key>
@@ -313,6 +397,15 @@ function navigate(hash) {
     } else {
       clearWatershedHighlight();
     }
+    var locationRegion = !isNaN(lat) && !isNaN(lon) ? gd.classifyLocation(lat, lon) : null;
+    var locationZone = null;
+    if (!isNaN(lat) && !isNaN(lon)) {
+      var nearestForZone = gd.CORRIDOR_CITIES.reduce(function (best, c) {
+        var d = gd.haversineKm([lon, lat], [c.lon, c.lat]);
+        return d < best.d ? { c: c, d: d } : best;
+      }, { c: gd.CORRIDOR_CITIES[0], d: Infinity }).c;
+      locationZone = nearestForZone.zone || '7b';
+    }
   } else if (type === 'garden') {
     clearWatershedHighlight();
     var osmId = decodeURIComponent(parts[2] || '');
@@ -350,6 +443,8 @@ function navigate(hash) {
       populateRiverFlow(parts[2], renderToken);
     } else if (type === 'zone' && zoneRoute && zoneRoute.lat !== null && zoneRoute.lon !== null) {
       hydrateZoneFrostAdvisory(zoneRoute.lat, zoneRoute.lon, renderToken, hash);
+    } else if (type === 'location' && locationRegion && locationZone) {
+      hydrateSeasonalCard(lat, lon, locationRegion, locationZone, renderToken);
     }
   } else {
     clearWatershedHighlight();
