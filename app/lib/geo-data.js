@@ -1994,6 +1994,7 @@ function makeLocationReport(lat, lon) {
   var nearestZone = nearest.zone || 'unknown';
   var zoneInfo    = getZoneInfo(nearestZone);
   var zoneSummary = zoneInfo ? zoneInfo.tempRange + '\u2002\u00b7\u2002' + zoneInfo.growingSeason : '';
+  var seasonalShell = makeSeasonalCardShell(nearestZone, region);
 
   var REGION_COLORS = {
     piedmont:         '#c88232',
@@ -2009,6 +2010,7 @@ function makeLocationReport(lat, lon) {
   var accentColor = REGION_COLORS[region] || '#888888';
 
   return (
+    seasonalShell +
     '<article class="detail-page">' +
       '<h2 class="detail-title">Location Report</h2>' +
       '<p class="detail-coords">' +
