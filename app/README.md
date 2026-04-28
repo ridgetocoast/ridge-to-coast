@@ -4,7 +4,7 @@ An interactive web map of the **Appalachian watershed corridor** — from the mo
 
 The map covers the full eastern corridor across **22 states**, from the Blue Ridge highlands and Great Appalachian Valley through the Piedmont, Fall Line, and Atlantic/Gulf Coastal Plains — including **10 ecological regions**, **51 corridor cities**, USDA plant hardiness zones 3b–10a, native plants, and soil profiles from Maine to the Gulf Coast and Great Lakes.
 
-Live at **[loobo07.github.io](https://loobo07.github.io)**
+Live at **[ridgetocoast.com](https://ridgetocoast.com)**
 
 ---
 
@@ -52,7 +52,7 @@ Peekskill NY, Paterson NJ, New Brunswick NJ, Philadelphia, DC, Richmond, Raleigh
 | Fall line / region data | Hand-crafted GeoJSON based on USGS geological surveys |
 | Hardiness zone data | [kgjenkins/ophz](https://github.com/kgjenkins/ophz) (USDA PHZM via PRISM Oregon State), clipped and processed |
 | Geocoding | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap) — free, no API key |
-| Hosting | GitHub Pages (static, no backend, no build step) |
+| Hosting | [Cloudflare Pages](https://pages.cloudflare.com) (static, auto-deploys from `app/` on push to `main`) |
 | Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
 | E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest (85 tests across 5 files) |
 | CI | GitHub Actions — unit tests (Node 20 + 22) and E2E (Python 3.12 + Chromium) run in parallel |
@@ -109,7 +109,7 @@ No `npm install` needed. Requires Node.js 18+.
 node --test tests/geo.test.js
 ```
 
-**308 tests across 37 suites:**
+**327 tests across 39 suites:**
 
 | Suite | What it covers |
 |---|---|
@@ -240,7 +240,7 @@ CEC (North America): `cec.org/north-american-environmental-atlas/terrestrial-eco
 
 ## Security
 
-- **Content Security Policy** — enforced via `<meta>` tag (GitHub Pages cannot set HTTP headers). Locks scripts to `'self'`, tiles to CARTO, geocoding to `nominatim.openstreetmap.org`, no eval, no inline scripts.
+- **Content Security Policy** — enforced via `<meta>` tag in `index.html` and Cloudflare Pages `_headers` file. Locks scripts to `'self'`, tiles to CARTO, live data to NWS/iNat/USGS, no eval, no inline scripts.
 - **Vendored Leaflet** — `lib/leaflet.js` and `lib/leaflet.css` are copied directly from the npm package. No CDN trust required.
 - **No API keys** — CARTO `dark_all` tiles and Nominatim geocoding are free and keyless. All map data is static and same-origin.
 - **No backend** — fully static; no server-side code surface.
@@ -329,6 +329,6 @@ The algorithm collects all coastline points within the corridor bounding box fro
 - [x] Seasonal planting calendar per hardiness zone (14 zones × 12 months)
 - [x] City marker expansion — 51 corridor cities across all 9 regions
 - [ ] EPA Level III authoritative region polygons — pipeline and corrected ArcGIS endpoint in place; trigger via Actions → "Update EPA Level III region data"
-- [ ] Phase 2: Live data integrations — NWS frost advisories, USGS streamflow, iNaturalist observations, watershed delineation, location report pages (see [open issues](../../issues))
+- [x] Phase 2: Live data integrations — NWS frost risk, USGS streamflow, iNaturalist observations, location report pages with Seasonal Intelligence Card
 - [ ] Phase 3: Open REST API — `/api/v1/ecoregion`, `/api/v1/calendar`, `/api/v1/plants` endpoints via Cloudflare Workers (see [open issues](../../issues))
 - [ ] Phase 4: Mobile PWA, watershed education module, custom org layers, sustainable funding
