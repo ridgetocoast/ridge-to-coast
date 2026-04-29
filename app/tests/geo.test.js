@@ -972,8 +972,8 @@ describe('CORRIDOR_CITIES and makeMarkerPopup()', () => {
   it('all city longitudes are within the eastern US corridor BBOX', () => {
     for (const city of CORRIDOR_CITIES) {
       assert.ok(
-        city.lon >= -92.0 && city.lon <= -66.5,
-        `${city.name} lon ${city.lon} outside [-92, -66.5]`
+        city.lon >= -92.2 && city.lon <= -66.5,
+        `${city.name} lon ${city.lon} outside [-92.2, -66.5]`
       );
     }
   });
@@ -1019,11 +1019,11 @@ describe('CORRIDOR_CITIES and makeMarkerPopup()', () => {
     assert.strictEqual(peekskill.state, 'NY');
   });
 
-  it('Marquette MI is the northernmost city (Great Lakes expansion)', () => {
-    const marquette = CORRIDOR_CITIES.find(c => c.name === 'Marquette' && c.state === 'MI');
-    assert.ok(marquette, 'Marquette MI not found');
+  it('Duluth MN is the northernmost city (Great Lakes expansion)', () => {
+    const duluth = CORRIDOR_CITIES.find(c => c.name === 'Duluth' && c.state === 'MN');
+    assert.ok(duluth, 'Duluth MN not found');
     const maxLat = Math.max(...CORRIDOR_CITIES.map(c => c.lat));
-    assert.strictEqual(marquette.lat, maxLat, 'Marquette MI should have the highest latitude');
+    assert.strictEqual(duluth.lat, maxLat, 'Duluth MN should have the highest latitude');
   });
 
   it('makeMarkerPopup() returns a non-empty string', () => {
