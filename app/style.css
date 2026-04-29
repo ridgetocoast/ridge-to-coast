@@ -976,3 +976,60 @@ article.detail-page {
 body:has(#detail-view:not([hidden])) {
   overflow: auto;
 }
+
+/* ── Seasonal Intelligence Card ─────────────────────────── */
+.seasonal-card {
+  border-top: 3px solid #4a7c59;
+  margin-bottom: 1.5rem;
+  padding-top: 1rem;
+}
+
+.seasonal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b8d4c0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem;
+}
+
+.seasonal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .seasonal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.seasonal-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.seasonal-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.seasonal-value {
+  font-size: 0.85rem;
+  color: #ddd;
+  line-height: 1.4;
+}
+
+.seasonal-loading {
+  color: #555;
+  font-style: italic;
+}

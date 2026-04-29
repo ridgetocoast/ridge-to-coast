@@ -1902,6 +1902,60 @@ function classifyLocation(lat, lon) {
   return 'piedmont';
 }
 
+function getCurrentPlantingActivities(zone) {
+  var monthKeys = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var monthLabels = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+  var idx = new Date().getMonth();
+  var key = monthKeys[idx];
+  var monthName = monthLabels[idx];
+  var entry = PLANTING_CALENDAR[zone] && PLANTING_CALENDAR[zone][key];
+  return {
+    startIndoors: (entry && entry.startIndoors) || [],
+    directSow:    (entry && entry.directSow)    || [],
+    transplant:   (entry && entry.transplant)   || [],
+    harvest:      (entry && entry.harvest)      || [],
+    monthName:    monthName,
+  };
+}
+
+function makeSeasonalCardShell(zone, region) { // region forwarded to hydrateSeasonalCard
+  var activities = getCurrentPlantingActivities(zone);
+  var safeZone = String(zone).replace(/[<>"'&]/g, '');
+  var plantItems = [].concat(
+    activities.startIndoors.map(function (p) { return p + ' (indoors)'; }),
+    activities.directSow.map(function (p) { return p + ' (sow)'; }),
+    activities.transplant.map(function (p) { return p + ' (transplant)'; })
+  );
+  var plantText = plantItems.length
+    ? plantItems.join(', ')
+    : 'Nothing scheduled for ' + activities.monthName;
+
+  return (
+    '<section class="seasonal-card">' +
+      '<h3 class="seasonal-title">Growing Season \u00b7 Zone ' + safeZone + '</h3>' +
+      '<div class="seasonal-grid">' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">FROST RISK</span>' +
+          '<span id="seasonal-frost" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">PLANT NOW</span>' +
+          '<span class="seasonal-value">' + plantText + '</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">IN YOUR REGION</span>' +
+          '<span id="seasonal-inat" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+        '<div class="seasonal-panel">' +
+          '<span class="seasonal-label">RIVERS</span>' +
+          '<span id="seasonal-rivers" class="seasonal-value seasonal-loading">Loading\u2026</span>' +
+        '</div>' +
+      '</div>' +
+    '</section>'
+  );
+}
+
 /**
  * Returns full-page HTML for a location report (search / GPS result).
  * Includes approximate ecoregion, soil, and native plants for the location.
@@ -1940,6 +1994,7 @@ function makeLocationReport(lat, lon) {
   var nearestZone = nearest.zone || 'unknown';
   var zoneInfo    = getZoneInfo(nearestZone);
   var zoneSummary = zoneInfo ? zoneInfo.tempRange + '\u2002\u00b7\u2002' + zoneInfo.growingSeason : '';
+  var seasonalShell = makeSeasonalCardShell(nearestZone, region);
 
   var REGION_COLORS = {
     piedmont:         '#c88232',
@@ -1955,6 +2010,7 @@ function makeLocationReport(lat, lon) {
   var accentColor = REGION_COLORS[region] || '#888888';
 
   return (
+    seasonalShell +
     '<article class="detail-page">' +
       '<h2 class="detail-title">Location Report</h2>' +
       '<p class="detail-coords">' +
@@ -4231,6 +4287,8 @@ const GeoData = {
   makeInvasivesSection,
   PLANTING_CALENDAR,
   makeCalendarSection,
+  getCurrentPlantingActivities,
+  makeSeasonalCardShell,
   makeRegionPopup,
   makeFallLinePopup,
   makeRegionDetailHTML,
