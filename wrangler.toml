@@ -1,4 +1,4 @@
-name = "ridgetocoast-api"
+name = "ridge-to-coast"
 main = "workers/index.js"
 compatibility_date = "2024-01-01"
 account_id = "c378aeb8ad614074b3a5e541a4788993"
