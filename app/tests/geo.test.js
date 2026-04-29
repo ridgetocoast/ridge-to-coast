@@ -859,8 +859,8 @@ describe('isInCorridor()', () => {
     assert.equal(isInCorridor(25.77, -80.19), true);
   });
 
-  it('returns false for Montreal, QC (45.5, -73.57) — north of corridor at 48°N', () => {
-    assert.equal(isInCorridor(49.0, -73.57), false);
+  it('returns false for Montreal, QC (45.5, -73.57) — north of corridor at 49°N', () => {
+    assert.equal(isInCorridor(50.0, -73.57), false);
   });
 
   it('returns false for Denver, CO (39.74, -104.99) — west of corridor', () => {

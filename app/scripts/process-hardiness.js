@@ -45,7 +45,7 @@ const BBOX = {
   west:  -92.00,
   east:  -66.50,
   south:  24.00,
-  north:  47.50,
+  north:  49.00,
 };
 
 // Expand slightly so zone polygons crossing the edge aren't clipped mid-feature

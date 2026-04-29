@@ -156,7 +156,7 @@ const FALL_LINE_GEOJSON = {
    ────────────────────────────────────────────────────────────── */
 
 // BBOX: corridor bounding box — used by isInCorridor() for search relevance
-const BBOX_NORTH =  47.500;   // northern Maine / Presque Isle
+const BBOX_NORTH =  49.000;   // Canada border — Lake Superior north shore
 const BBOX_SOUTH =  24.000;   // Florida Keys
 const BBOX_EAST  = -66.500;   // Quoddy Head ME — easternmost US point
 const BBOX_WEST  = -92.000;   // western Mississippi / New Orleans area
