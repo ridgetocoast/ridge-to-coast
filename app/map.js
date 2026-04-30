@@ -1118,11 +1118,25 @@ map.on('click', function (e) {
 });
 
 
-/* ─── Initial viewport — fit full fall line corridor ─────────── */
-map.fitBounds([
-  [32.30, -85.40],   // SW — NW Georgia / Chattanooga area
-  [44.40, -69.70],   // NE — Augusta ME (Kennebec River falls)
-]);
+/* ─── Initial viewport — geolocate → nearest city, else random corridor window ── */
+(function initMapView() {
+  function useFallback() {
+    var view = gd.pickFallbackView();
+    map.setView(view.center, view.zoom);
+  }
+  if (!navigator.geolocation) {
+    useFallback();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      var city = gd.nearestCorridorCity(pos.coords.latitude, pos.coords.longitude);
+      map.flyTo([city.lat, city.lon], 10, { duration: 1.5 });
+    },
+    useFallback,
+    { timeout: 3000, maximumAge: 60000 }
+  );
+}());
 
 // Run router on initial load (handles direct-load to /#detail/...)
 navigate(location.hash);
