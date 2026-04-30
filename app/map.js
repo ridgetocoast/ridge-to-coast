@@ -915,6 +915,25 @@ function onEachHardinessFeature(feature, layer) {
   });
 }
 
+function prefetchHardiness() {
+  if (hardinessCache) return;
+  fetch('data/hardiness.geojson')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
+    .then(function (data) {
+      if (hardinessCache) return;   // toggle was clicked first — already handled
+      hardinessCache = data;
+      hardinessLayer = L.geoJSON(data, {
+        style:         styleHardinessFeature,
+        onEachFeature: onEachHardinessFeature,
+      });
+      var zones = data._meta && data._meta.zones
+        ? data._meta.zones
+        : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
+      buildHardinessLegend(zones);
+    })
+    .catch(function () { /* silent — toggle will retry with user-visible error handling */ });
+}
+
 function loadAndShowHardinessLayer() {
   // Already cached — just add to map
   if (hardinessCache) {
@@ -1152,6 +1171,7 @@ map.on('click', function (e) {
 
 // Run router on initial load (handles direct-load to /#detail/...)
 navigate(location.hash);
+prefetchHardiness();
 
 if ('serviceWorker' in navigator && window.isSecureContext) {
   window.addEventListener('load', function () {
