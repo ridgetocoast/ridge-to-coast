@@ -1,8 +1,6 @@
 name: Update EPA Ecoregions
 
 on:
-  schedule:
-    - cron: '0 10 * * *'  # 05:00 EST daily
   workflow_dispatch:
 
 jobs:
