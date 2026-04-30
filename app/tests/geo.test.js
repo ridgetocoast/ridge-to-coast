@@ -15,6 +15,8 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 
+const GeoData = require('../lib/geo-data.js');
+
 const {
   FALL_LINE_COORDS,
   FALL_LINE_GEOJSON,
@@ -2479,5 +2481,51 @@ describe('makeSeasonalCardShell', () => {
       'should return non-empty HTML string for unknown zone');
     assert.ok(html.includes('seasonal-card'),
       'should still render the card container');
+  });
+});
+
+describe('FALLBACK_VIEWS', () => {
+  it('has exactly 4 entries', () => {
+    assert.strictEqual(GeoData.FALLBACK_VIEWS.length, 4);
+  });
+  it('each entry has center [lat, lon] within corridor BBOX and zoom 7', () => {
+    for (const v of GeoData.FALLBACK_VIEWS) {
+      assert.ok(Array.isArray(v.center) && v.center.length === 2, 'center is [lat, lon]');
+      assert.ok(v.center[0] >= 24 && v.center[0] <= 49, `lat ${v.center[0]} in BBOX`);
+      assert.ok(v.center[1] >= -92.2 && v.center[1] <= -66.5, `lon ${v.center[1]} in BBOX`);
+      assert.strictEqual(v.zoom, 7);
+      assert.ok(typeof v.label === 'string' && v.label.length > 0, 'label is non-empty string');
+    }
+  });
+});
+
+describe('pickFallbackView()', () => {
+  it('returns an object from FALLBACK_VIEWS', () => {
+    const view = GeoData.pickFallbackView();
+    assert.ok(GeoData.FALLBACK_VIEWS.includes(view));
+  });
+  it('returns different views across 20 calls', () => {
+    const seen = new Set();
+    for (let i = 0; i < 20; i++) seen.add(GeoData.pickFallbackView().label);
+    assert.ok(seen.size > 1, 'should see more than one view across 20 calls');
+  });
+});
+
+describe('nearestCorridorCity()', () => {
+  it('returns a city from CORRIDOR_CITIES', () => {
+    const city = GeoData.nearestCorridorCity(38.9, -77.0);
+    assert.ok(GeoData.CORRIDOR_CITIES.includes(city));
+  });
+  it('returns Miami for coords near Miami FL', () => {
+    const city = GeoData.nearestCorridorCity(25.775, -80.208);
+    assert.strictEqual(city.name, 'Miami');
+  });
+  it('returns Duluth for coords near Duluth MN', () => {
+    const city = GeoData.nearestCorridorCity(46.782, -92.107);
+    assert.strictEqual(city.name, 'Duluth');
+  });
+  it('never returns null even for a point outside the corridor', () => {
+    const city = GeoData.nearestCorridorCity(50.0, -73.0);
+    assert.ok(city !== null && typeof city.name === 'string');
   });
 });
