@@ -14,13 +14,20 @@ jobs:
         with:
           node-version: 20
       - name: Fetch EPA Level III ecoregions
-        run: node app/scripts/fetch-epa-ecoregions.js
+        id: fetch
+        run: |
+          node app/scripts/fetch-epa-ecoregions.js && echo "ok=true" >> $GITHUB_OUTPUT || echo "ok=false" >> $GITHUB_OUTPUT
       - name: Extract and simplify regions
+        if: steps.fetch.outputs.ok == 'true'
         run: node app/scripts/extract-regions.js /tmp/us_eco_l3.geojson app/data/regions.geojson
       - name: Commit if changed
+        if: steps.fetch.outputs.ok == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app/data/regions.geojson
           git diff --staged --quiet || git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))"
           git push
+      - name: Skip notice
+        if: steps.fetch.outputs.ok != 'true'
+        run: echo "EPA API unreachable — existing regions.geojson unchanged. Re-run when the API recovers."
