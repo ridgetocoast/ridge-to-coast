@@ -19,6 +19,7 @@ if (typeof window.GeoData === 'undefined') {
 var gd = window.GeoData;
 var detailRenderToken = 0;
 var lastInteractiveLayerClickAt = 0;
+var mapDragEndAt = 0;
 var gardensCache = null;
 var gardensIndex = Object.create(null);
 var gardensLayer = null;
@@ -27,6 +28,10 @@ var watershedHighlightLayer = null;
 
 function markInteractiveLayerClick() {
   lastInteractiveLayerClickAt = Date.now();
+}
+
+function wasDragging() {
+  return Date.now() - mapDragEndAt < 200;
 }
 
 function escapeHTML(value) {
@@ -514,6 +519,7 @@ function buildRegionsLayer(geojson) {
     onEachFeature: function (feature, layer) {
       var region = feature.properties.region;
       layer.on('click', function () {
+        if (wasDragging()) return;
         markInteractiveLayerClick();
         location.hash = '#detail/region/' + region;
       });
@@ -560,6 +566,7 @@ var fallLineLayer = L.geoJSON(fallLineFeatureCollection, {
   style: gd.STYLES.fallLine,
   onEachFeature: function (feature, layer) {
     layer.on('click', function () {
+      if (wasDragging()) return;
       markInteractiveLayerClick();
       location.hash = '#detail/fallline';
     });
@@ -579,6 +586,7 @@ var riversLayer = L.geoJSON(gd.MAJOR_RIVERS_GEOJSON, {
     var slug = feature.properties.slug;
     var name = feature.properties.name;
     layer.on('click', function () {
+      if (wasDragging()) return;
       markInteractiveLayerClick();
       location.hash = '#detail/river/' + slug;
     });
@@ -626,6 +634,7 @@ gd.CORRIDOR_CITIES.forEach(function (city) {
   var marker = L.circleMarker([city.lat, city.lon], CITY_MARKER_STYLE);
   var slug = (city.name + '-' + city.state).toLowerCase().replace(/\s+/g, '-');
   marker.on('click', function () {
+    if (wasDragging()) return;
     markInteractiveLayerClick();
     location.hash = '#detail/city/' + slug;
   });
@@ -723,6 +732,7 @@ function buildGardensLayer(gardens) {
     var marker = L.circleMarker([garden.lat, garden.lon], GARDEN_MARKER_STYLE);
 
     marker.on('click', function () {
+      if (wasDragging()) return;
       markInteractiveLayerClick();
       location.hash = '#detail/garden/' + encodeURIComponent(garden.osmId);
     });
@@ -885,6 +895,7 @@ function styleHardinessFeature(feature) {
 function onEachHardinessFeature(feature, layer) {
   var zone = feature.properties.zone || 'unknown';
   layer.on('click', function (event) {
+    if (wasDragging()) return;
     markInteractiveLayerClick();
     var lat = event && event.latlng ? formatCoordForHash(event.latlng.lat) : null;
     var lon = event && event.latlng ? formatCoordForHash(event.latlng.lng) : null;
@@ -902,6 +913,25 @@ function onEachHardinessFeature(feature, layer) {
     className:   'zone-label',
     interactive: false,
   });
+}
+
+function prefetchHardiness() {
+  if (hardinessCache) return;
+  fetch('data/hardiness.geojson')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
+    .then(function (data) {
+      if (hardinessCache) return;   // toggle was clicked first — already handled
+      hardinessCache = data;
+      hardinessLayer = L.geoJSON(data, {
+        style:         styleHardinessFeature,
+        onEachFeature: onEachHardinessFeature,
+      });
+      var zones = data._meta && data._meta.zones
+        ? data._meta.zones
+        : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
+      buildHardinessLegend(zones);
+    })
+    .catch(function () { /* silent — toggle will retry with user-visible error handling */ });
 }
 
 function loadAndShowHardinessLayer() {
@@ -1110,6 +1140,7 @@ document.getElementById('locate-btn').addEventListener('click', function () {
   );
 });
 
+map.on('dragend', function () { mapDragEndAt = Date.now(); });
 map.on('click', function (e) {
   if (Date.now() - lastInteractiveLayerClickAt < 250) {
     return;
@@ -1118,14 +1149,29 @@ map.on('click', function (e) {
 });
 
 
-/* ─── Initial viewport — fit full fall line corridor ─────────── */
-map.fitBounds([
-  [32.30, -85.40],   // SW — NW Georgia / Chattanooga area
-  [44.40, -69.70],   // NE — Augusta ME (Kennebec River falls)
-]);
+/* ─── Initial viewport — geolocate → nearest city, else random corridor window ── */
+(function initMapView() {
+  function useFallback() {
+    var view = gd.pickFallbackView();
+    map.setView(view.center, view.zoom);
+  }
+  if (!navigator.geolocation) {
+    useFallback();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      var city = gd.nearestCorridorCity(pos.coords.latitude, pos.coords.longitude);
+      map.flyTo([city.lat, city.lon], 10, { duration: 1.5 });
+    },
+    useFallback,
+    { timeout: 3000, maximumAge: 60000 }
+  );
+}());
 
 // Run router on initial load (handles direct-load to /#detail/...)
 navigate(location.hash);
+prefetchHardiness();
 
 if ('serviceWorker' in navigator && window.isSecureContext) {
   window.addEventListener('load', function () {

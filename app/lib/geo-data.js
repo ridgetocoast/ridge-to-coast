@@ -4548,6 +4548,30 @@ function buildSearchQuery(input) {
   return base + '&q=' + encodeURIComponent(q);
 }
 
+/* ─── Corridor fallback views ──────────────────────────────────
+   Used by map.js when geolocation is unavailable or times out.
+   ────────────────────────────────────────────────────────────── */
+var FALLBACK_VIEWS = [
+  { center: [39.5, -77.8], zoom: 7, label: 'Mid-Atlantic' },
+  { center: [36.5, -79.5], zoom: 7, label: 'Virginia/Carolinas' },
+  { center: [34.5, -84.5], zoom: 7, label: 'Georgia/Tennessee' },
+  { center: [42.0, -83.5], zoom: 7, label: 'Great Lakes/Ohio' },
+];
+
+function pickFallbackView() {
+  return FALLBACK_VIEWS[Math.floor(Math.random() * FALLBACK_VIEWS.length)];
+}
+
+function nearestCorridorCity(lat, lon) {
+  var best = null;
+  var bestDist = Infinity;
+  CORRIDOR_CITIES.forEach(function (city) {
+    var d = haversineKm([lon, lat], [city.lon, city.lat]);
+    if (d < bestDist) { bestDist = d; best = city; }
+  });
+  return best;
+}
+
 
 /* ─── Export ─────────────────────────────────────────────────── */
 const GeoData = {
@@ -4590,6 +4614,9 @@ const GeoData = {
   lookupWatershed,
   makeLocationReport,
   haversineKm,
+  FALLBACK_VIEWS,
+  pickFallbackView,
+  nearestCorridorCity,
   minDistanceToFallLine,
   HARDINESS_ZONE_COLORS,
   HARDINESS_ZONE_INFO,
