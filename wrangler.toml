@@ -9,4 +9,11 @@ routes = [
 ]
 
 [env.preview]
-# Deployed to workers.dev subdomain for PRs
+routes = [
+  { pattern = "preprod.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
+]
+
+[env.alpha]
+routes = [
+  { pattern = "alpha.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
+]
