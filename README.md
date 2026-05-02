@@ -43,7 +43,7 @@ Live at **[ridgetocoast.com](https://ridgetocoast.com)**
 | Geocoding | [Nominatim](https://nominatim.openstreetmap.org) (OpenStreetMap) — free, no API key |
 | Live data | NWS api.weather.gov · iNaturalist API v1 · USGS Water Services |
 | Frontend hosting | [Cloudflare Pages](https://pages.cloudflare.com) — auto-deploys from `app/` on push to `main` |
-| API (P3) | [Cloudflare Workers](https://workers.cloudflare.com) — `api.ridgetocoast.com` (stub, see `workers/`) |
+| API (P3) | [Cloudflare Workers](https://workers.cloudflare.com) — `api.ridgetocoast.com` (prod) · `preprod.ridgetocoast.com` (preview) · `alpha.ridgetocoast.com` (alpha) — see `workers/` and `app/docs/environments.md` |
 | Unit tests | Node.js built-in test runner (`node:test`) — zero npm dependencies |
 | E2E tests | [Python Playwright](https://playwright.dev/python/) + pytest |
 | CI | GitHub Actions — unit tests (Node 20 + 22) and E2E (Python 3.12 + Chromium) run in parallel |
@@ -89,8 +89,9 @@ ridge-to-coast/
 │   └── workflows/
 │       ├── test.yml              # Unit tests — Node 20 and 22, every push and PR
 │       ├── deploy-pages.yml      # Deploy frontend to Cloudflare Pages on push to main
-│       ├── deploy-workers.yml    # Deploy Workers on push to main
-│       └── update-epa-regions.yml  # Daily EPA data fetch (05:00 EST) — auto-commits to main
+│       ├── deploy-workers.yml    # Stage/deploy Workers — prod stages via versions upload, preview/alpha deploy directly
+│       ├── promote-workers.yml   # Manual promote (goes live) or rollback for any environment
+│       └── update-epa-regions.yml  # Manual EPA data fetch — commits updated regions.geojson to main
 ├── CLAUDE.md                     # Agent roles, model assignments, project conventions
 └── wrangler.toml                 # Cloudflare Workers deploy config
 ```
@@ -162,7 +163,7 @@ node app/scripts/extract-regions.js /tmp/us_eco_l3.geojson app/data/regions.geoj
 node --test app/tests/geo.test.js
 ```
 
-**Automated:** `.github/workflows/update-epa-regions.yml` runs daily at 05:00 EST and commits any changed `app/data/regions.geojson` directly to `main`. Trigger manually via **Actions → "Update EPA Level III region data" → Run workflow**.
+**Manual only:** `.github/workflows/update-epa-regions.yml` is triggered via **Actions → "Update EPA Ecoregions" → Run workflow**. EPA ecoregion boundaries change ~once per decade; on-demand is sufficient.
 
 ArcGIS endpoint: `geodata.epa.gov/arcgis/rest/services/ORD/USEPA_Ecoregions_Level_III_and_IV/MapServer/2`
 
