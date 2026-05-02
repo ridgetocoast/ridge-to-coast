@@ -17,6 +17,14 @@ if (typeof window.GeoData === 'undefined') {
 }
 
 var gd = window.GeoData;
+
+var API_BASE = (function () {
+  var h = window.location.hostname;
+  if (h === 'ridgetocoast.com' || h === 'www.ridgetocoast.com') return 'https://api.ridgetocoast.com';
+  if (h === 'alpha.ridgetocoast.com') return 'https://alpha.ridgetocoast.com';
+  return 'https://preprod.ridgetocoast.com';
+}());
+
 var detailRenderToken = 0;
 var lastInteractiveLayerClickAt = 0;
 var mapDragEndAt = 0;
