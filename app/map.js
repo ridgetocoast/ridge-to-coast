@@ -17,6 +17,14 @@ if (typeof window.GeoData === 'undefined') {
 }
 
 var gd = window.GeoData;
+
+var API_BASE = (function () {
+  var h = window.location.hostname;
+  if (h === 'ridgetocoast.com' || h === 'www.ridgetocoast.com') return 'https://api.ridgetocoast.com';
+  if (h === 'alpha.ridgetocoast.com') return 'https://alpha.ridgetocoast.com';
+  return 'https://preprod.ridgetocoast.com';
+}());
+
 var detailRenderToken = 0;
 var lastInteractiveLayerClickAt = 0;
 var mapDragEndAt = 0;
@@ -926,18 +934,21 @@ function prefetchHardiness() {
         style:         styleHardinessFeature,
         onEachFeature: onEachHardinessFeature,
       });
-      var zones = data._meta && data._meta.zones
-        ? data._meta.zones
-        : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
-      buildHardinessLegend(zones);
     })
     .catch(function () { /* silent — toggle will retry with user-visible error handling */ });
 }
 
 function loadAndShowHardinessLayer() {
-  // Already cached — just add to map
+  // Already cached — build legend and add to map
   if (hardinessCache) {
-    map.addLayer(hardinessLayer);
+    var cachedZones = hardinessCache._meta && hardinessCache._meta.zones
+      ? hardinessCache._meta.zones
+      : [...new Set(hardinessCache.features.map(function (f) { return f.properties.zone; }))];
+    buildHardinessLegend(cachedZones);
+    hardinessLayer.addTo(map);
+    fallLineLayer.bringToFront();
+    if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
+    updateZoneLabels();
     return;
   }
 
