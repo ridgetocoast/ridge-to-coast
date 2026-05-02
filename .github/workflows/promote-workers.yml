@@ -9,7 +9,7 @@ on:
         type: choice
         options: [promote, rollback]
       environment:
-        description: 'Target environment'
+        description: 'Target environment (promote: production only; rollback: any)'
         required: true
         default: 'production'
         type: choice
@@ -17,19 +17,20 @@ on:
 
 jobs:
   promote:
-    if: inputs.action == 'promote'
+    # Only production uses `versions upload` staging — preview/alpha deploy directly
+    if: inputs.action == 'promote' && inputs.environment == 'production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Deploy staged version to ${{ inputs.environment }}
+      - name: Deploy staged version to production
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions deploy --env ${{ inputs.environment }} --yes
+          command: versions deploy --env production --yes
 
   rollback:
     if: inputs.action == 'rollback'
