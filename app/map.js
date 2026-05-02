@@ -934,18 +934,21 @@ function prefetchHardiness() {
         style:         styleHardinessFeature,
         onEachFeature: onEachHardinessFeature,
       });
-      var zones = data._meta && data._meta.zones
-        ? data._meta.zones
-        : [...new Set(data.features.map(function (f) { return f.properties.zone; }))];
-      buildHardinessLegend(zones);
     })
     .catch(function () { /* silent — toggle will retry with user-visible error handling */ });
 }
 
 function loadAndShowHardinessLayer() {
-  // Already cached — just add to map
+  // Already cached — build legend and add to map
   if (hardinessCache) {
-    map.addLayer(hardinessLayer);
+    var cachedZones = hardinessCache._meta && hardinessCache._meta.zones
+      ? hardinessCache._meta.zones
+      : [...new Set(hardinessCache.features.map(function (f) { return f.properties.zone; }))];
+    buildHardinessLegend(cachedZones);
+    hardinessLayer.addTo(map);
+    fallLineLayer.bringToFront();
+    if (map.hasLayer(cityMarkersLayer)) cityMarkersLayer.bringToFront();
+    updateZoneLabels();
     return;
   }
 

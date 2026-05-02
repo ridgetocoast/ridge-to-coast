@@ -211,33 +211,29 @@ def test_hardiness_legend_hidden_by_default(page):
 
 
 def test_hardiness_fetch_returns_200(page):
-    """Clicking the hardiness toggle fetches data/hardiness.geojson with HTTP 200."""
-    wait_for_map(page)
+    """Map load prefetches data/hardiness.geojson; the response is HTTP 200."""
     with page.expect_response("**/data/hardiness.geojson", timeout=FETCH_TIMEOUT) as resp_info:
-        page.locator("#toggle-hardiness").check()
-    response = resp_info.value
-    assert response.status == 200, (
-        f"Expected HTTP 200 for hardiness.geojson, got {response.status}"
+        page.goto("/")
+    assert resp_info.value.status == 200, (
+        f"Expected HTTP 200 for hardiness.geojson prefetch, got {resp_info.value.status}"
     )
 
 
 def test_hardiness_legend_populates(page):
     """After toggling on, zone swatches appear in the legend."""
     wait_for_map(page)
-    with page.expect_response("**/data/hardiness.geojson", timeout=FETCH_TIMEOUT):
-        page.locator("#toggle-hardiness").check()
-    # Wait for legend items to be created by JS
+    page.locator("#toggle-hardiness").check()
     page.wait_for_selector(".zone-swatches .legend-item", timeout=FETCH_TIMEOUT)
-    swatches = page.locator(".zone-swatches .legend-item")
-    assert swatches.count() > 0, "Expected at least one hardiness zone swatch in legend"
+    assert page.locator(".zone-swatches .legend-item").count() > 0, (
+        "Expected at least one hardiness zone swatch in legend"
+    )
 
 
 def test_hardiness_layer_adds_paths(page):
     """After loading, hardiness zone polygons appear as SVG paths."""
     wait_for_map(page)
     before = page.locator(".leaflet-overlay-pane path").count()
-    with page.expect_response("**/data/hardiness.geojson", timeout=FETCH_TIMEOUT):
-        page.locator("#toggle-hardiness").check()
+    page.locator("#toggle-hardiness").check()
     page.wait_for_selector(".zone-swatches .legend-item", timeout=FETCH_TIMEOUT)
     page.wait_for_timeout(500)  # allow Leaflet to render polygons
     after = page.locator(".leaflet-overlay-pane path").count()
@@ -247,10 +243,8 @@ def test_hardiness_layer_adds_paths(page):
 def test_hardiness_toggle_off_hides_legend(page):
     """Unchecking hardiness toggle hides the legend section."""
     wait_for_map(page)
-    with page.expect_response("**/data/hardiness.geojson", timeout=FETCH_TIMEOUT):
-        page.locator("#toggle-hardiness").check()
+    page.locator("#toggle-hardiness").check()
     page.wait_for_selector(".zone-swatches .legend-item", timeout=FETCH_TIMEOUT)
-    # Now turn it off
     page.locator("#toggle-hardiness").uncheck()
     page.wait_for_timeout(300)
     assert page.locator("#hardiness-legend").get_attribute("hidden") is not None, (
@@ -261,12 +255,13 @@ def test_hardiness_toggle_off_hides_legend(page):
 def test_hardiness_second_toggle_uses_cache(page):
     """Toggling hardiness off then on again does NOT fire a second network request."""
     wait_for_map(page)
+    # Set up listener after page load so the prefetch (already fired) is not counted
     fetch_count = {"n": 0}
     page.on("response", lambda r: fetch_count.update({"n": fetch_count["n"] + 1})
             if "hardiness.geojson" in r.url else None)
 
-    with page.expect_response("**/data/hardiness.geojson", timeout=FETCH_TIMEOUT):
-        page.locator("#toggle-hardiness").check()
+    # First toggle on — should hit cache (prefetch completed during map load)
+    page.locator("#toggle-hardiness").check()
     page.wait_for_selector(".zone-swatches .legend-item", timeout=FETCH_TIMEOUT)
 
     page.locator("#toggle-hardiness").uncheck()
@@ -276,7 +271,7 @@ def test_hardiness_second_toggle_uses_cache(page):
     page.locator("#toggle-hardiness").check()
     page.wait_for_timeout(500)
     assert fetch_count["n"] == before, (
-        "Second toggle-on should use the in-memory cache, not fire a new fetch"
+        "Both toggle-ons should use the in-memory cache, not fire a new fetch"
     )
 
 
