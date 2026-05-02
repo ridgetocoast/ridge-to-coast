@@ -13,14 +13,60 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Fetch EPA Level III ecoregions
-        run: node app/scripts/fetch-epa-ecoregions.js
+      - name: Install GDAL
+        run: sudo apt-get install -y --no-install-recommends gdal-bin
+      - name: Download EPA ecoregion shapefile and convert to GeoJSON
+        id: fetch
+        run: |
+          set -e
+
+          URLS=(
+            "https://dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/ORD/Ecoregions/us/us_eco_l3_state.zip"
+            "https://dmap-prod-oms-edc.s3.us-east-1.amazonaws.com/ORD/Ecoregions/us/us_eco_l3.zip"
+            "https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3_state.zip"
+            "https://gaftp.epa.gov/EPADataCommons/ORD/Ecoregions/us/us_eco_l3.zip"
+          )
+
+          DOWNLOADED=false
+          for URL in "${URLS[@]}"; do
+            echo "Trying: $URL"
+            if curl -sL --fail --connect-timeout 20 --max-time 180 "$URL" -o /tmp/us_eco_l3.zip 2>/dev/null; then
+              echo "Downloaded from: $URL"
+              DOWNLOADED=true
+              break
+            fi
+          done
+
+          if [ "$DOWNLOADED" = "true" ]; then
+            unzip -q /tmp/us_eco_l3.zip -d /tmp/us_eco_l3_shp/
+            SHP=$(find /tmp/us_eco_l3_shp/ -name "*.shp" | head -1)
+            echo "Shapefile: $SHP"
+            ogr2ogr -f GeoJSON -t_srs EPSG:4326 /tmp/us_eco_l3.geojson "$SHP" \
+                    -select US_L3CODE,US_L3NAME
+          else
+            echo "All zip URLs failed — falling back to ArcGIS REST API"
+            node app/scripts/fetch-epa-ecoregions.js /tmp/us_eco_l3.geojson || true
+          fi
+
+          FEAT=$(node -e "const fs=require('fs'); try { const f=JSON.parse(fs.readFileSync('/tmp/us_eco_l3.geojson','utf8')); console.log(f.features.length); } catch(e) { console.log(0); }")
+          if [ "$FEAT" -eq 0 ]; then
+            echo "ok=false" >> $GITHUB_OUTPUT
+            echo "ERROR: 0 features — all sources failed. Leaving regions.geojson unchanged."
+          else
+            echo "ok=true" >> $GITHUB_OUTPUT
+            echo "$FEAT EPA features ready"
+          fi
       - name: Extract and simplify regions
+        if: steps.fetch.outputs.ok == 'true'
         run: node app/scripts/extract-regions.js /tmp/us_eco_l3.geojson app/data/regions.geojson
       - name: Commit if changed
+        if: steps.fetch.outputs.ok == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app/data/regions.geojson
           git diff --staged --quiet || git commit -m "data: update regions.geojson from EPA Level III ecoregions ($(date +%Y-%m-%d))"
           git push
+      - name: Skip notice
+        if: steps.fetch.outputs.ok != 'true'
+        run: echo "EPA API unreachable — existing regions.geojson unchanged."
