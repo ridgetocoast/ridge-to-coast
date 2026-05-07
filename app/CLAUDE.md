@@ -1,5 +1,11 @@
 # Ridge to Coast — Claude Code Guide
 
+## Current Session Handoff
+
+- The current plan snapshot lives in `../docs/session-handoff.md`.
+- Keep the frontend stable while working toward the next API/platform slice.
+- Preserve the no-dependency, no-build-step constraints for the static app shell.
+
 ## Project Overview
 
 **Ridge to Coast** is a fully-static GitHub Pages map app helping people in the eastern US understand the land they live on — ecological regions, hardiness zones, growing seasons, rivers, and what's happening in nature right now.

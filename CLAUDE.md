@@ -1,5 +1,11 @@
 # Ridge to Coast — Monorepo
 
+## Current Session Handoff
+
+- The current plan snapshot lives in `docs/session-handoff.md`.
+- The repo is stable at the live map stage; next work should follow the Phase 3 platform roadmap.
+- Keep the zero-dependency frontend rules intact when changing anything in `app/`.
+
 **Live site:** https://ridgetocoast.com  
 **API:** https://api.ridgetocoast.com  
 **Org:** https://github.com/ridgetocoast
