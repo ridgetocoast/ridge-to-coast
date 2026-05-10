@@ -169,7 +169,10 @@
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <script src="lib/leaflet.js"></script>
 
-  <!-- Pure geographic data — no DOM or Leaflet dependency; also used by unit tests -->
+  <!-- Pure geographic data core — shared between browser and Workers; no DOM, no Leaflet -->
+  <script src="lib/geo-data-core.js"></script>
+
+  <!-- Geographic data + HTML generators — depends on geo-data-core.js; also used by unit tests -->
   <script src="lib/geo-data.js"></script>
 
   <script src="map.js"></script>
