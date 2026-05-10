@@ -1,12 +1,21 @@
 /**
- * geo-data.js — Pure geographic data and helper functions
- * --------------------------------------------------------
- * This file has ZERO dependencies (no Leaflet, no DOM).
- * It is shared between:
- *   - The browser (loaded as a <script> tag; exposes window.GeoData)
- *   - Node.js unit tests (loaded via require(); exports GeoData)
+ * geo-data.js — HTML generators + map-only constants + public surface
+ * --------------------------------------------------------------------
+ * Depends on: ./geo-data-core.js (loaded via <script> tag in the browser
+ * BEFORE this file, or required at the top of the IIFE in Node).
  *
- * Nothing in here may reference `L`, `document`, `window`, or `fetch`.
+ * Holds:
+ *   - HTML/popup generators (make*Section, make*Popup, make*DetailHTML)
+ *   - Map-only constants (STYLES, NE_FALL_ZONE_GEOJSON, MAJOR_RIVERS_GEOJSON)
+ *   - The combined public surface re-exported through window.GeoData /
+ *     module.exports — pulls the pure shared data + helpers from
+ *     geo-data-core.js (kept byte-compatible with the pre-split shape).
+ *
+ * Pure data + helpers (NATIVE_PLANTS, classifyLocation, etc.) live in
+ * geo-data-core.js so Cloudflare Workers can bundle the same source.
+ *
+ * Constraints at module-load time: no `L`, `document`, `window` access,
+ * no `fetch`. (HTML generators return strings — they don't touch the DOM.)
  *
  * Wrapped in an IIFE so internal const/let declarations stay scoped
  * to this file and do not leak into the browser's global scope —
@@ -67,24 +76,6 @@ var getZoneInfo                   = __core.getZoneInfo;
 var isValidUSZipCode              = __core.isValidUSZipCode;
 var isInCorridor                  = __core.isInCorridor;
 var buildSearchQuery              = __core.buildSearchQuery;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ─── Map styles ────────────────────────────────────────────── */
 const STYLES = {
