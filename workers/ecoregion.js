@@ -1,27 +1,57 @@
-// P3 #19 — /v1/ecoregion?lat=&lon=
-// Point-in-polygon lookup: returns ecoregion, zone, soil, plants, invasives
-// TODO: implement using geo-data.js constants bundled at build time
+// workers/ecoregion.js — /v1/ecoregion?lat=&lon=
+import core from '../app/lib/geo-data-core.js';
+
+const BBOX = {
+  NORTH: 49,
+  SOUTH: 24,
+  EAST: -66.5,
+  WEST: -92.2,
+};
 
 export async function handleEcoregion(request) {
-  const params = new URL(request.url).searchParams;
-  const lat = parseFloat(params.get('lat'));
-  const lon = parseFloat(params.get('lon'));
+  try {
+    const params = new URL(request.url).searchParams;
+    const lat = parseFloat(params.get('lat'));
+    const lon = parseFloat(params.get('lon'));
 
-  if (isNaN(lat) || isNaN(lon)) {
-    return Response.json({ error: 'lat and lon are required' }, { status: 400 });
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return Response.json({ error: 'lat and lon are required and must be numeric' }, { status: 400 });
+    }
+
+    if (lat < BBOX.SOUTH || lat > BBOX.NORTH || lon < BBOX.WEST || lon > BBOX.EAST) {
+      return Response.json({ error: 'Coordinate outside coverage area' }, { status: 404 });
+    }
+
+    const region = core.classifyLocation(lat, lon);
+    if (!region || !core.REGION_LABELS[region]) {
+      return Response.json({ error: 'Coordinate outside coverage area' }, { status: 404 });
+    }
+
+    const nearestCity = core.nearestCorridorCity(lat, lon);
+    const zone = (nearestCity && nearestCity.zone) || '7b';
+
+    const watershed = core.lookupWatershed(lat, lon);
+    const watershedName = watershed && watershed.name ? watershed.name : null;
+
+    const soilEntry = core.SOIL_TYPES[region];
+    const soilSeries = soilEntry && soilEntry.series ? soilEntry.series : null;
+
+    const nativePlants = (core.NATIVE_PLANTS[region] || []).slice(0, 3).map(p => p.name);
+    const invasives = (core.INVASIVE_SPECIES[region] || []).map(s => s.name);
+
+    return Response.json({
+      lat,
+      lon,
+      region,
+      name: core.REGION_LABELS[region],
+      zone,
+      soilSeries,
+      nativePlants,
+      invasives,
+      watershedName,
+    });
+  } catch (err) {
+    console.error('handleEcoregion error', err);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
-
-  // Hello world — replace with point-in-polygon against bundled geo-data constants (P3 #19)
-  return Response.json({
-    lat,
-    lon,
-    region: 'piedmont',
-    name: 'Piedmont',
-    zone: '7b',
-    soilSeries: 'Cecil–Appling clay loam',
-    nativePlants: ['Eastern Redbud', 'Virginia Bluebells', 'Spicebush'],
-    invasives: ['Tree of Heaven', 'Japanese Honeysuckle'],
-    watershedName: 'Upper James River',
-    _note: 'hello world — static response, real lookup coming in P3 #19',
-  });
 }
