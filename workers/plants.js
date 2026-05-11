@@ -4,7 +4,8 @@
 
 const VALID_TYPES = ['tree', 'shrub', 'herbaceous', 'vine', 'graminoid', 'wildflower'];
 
-export async function handlePlants(params) {
+export async function handlePlants(request) {
+  const params = new URL(request.url).searchParams;
   const region = params.get('region');
   const type = params.get('type');
 

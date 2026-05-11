@@ -2,7 +2,8 @@
 // Point-in-polygon lookup: returns ecoregion, zone, soil, plants, invasives
 // TODO: implement using geo-data.js constants bundled at build time
 
-export async function handleEcoregion(params) {
+export async function handleEcoregion(request) {
+  const params = new URL(request.url).searchParams;
   const lat = parseFloat(params.get('lat'));
   const lon = parseFloat(params.get('lon'));
 

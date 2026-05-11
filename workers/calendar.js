@@ -2,7 +2,8 @@
 // Returns monthly planting tasks for a hardiness zone
 // TODO: bundle PLANTING_CALENDAR from app/lib/geo-data.js at build time
 
-export async function handleCalendar(params) {
+export async function handleCalendar(request) {
+  const params = new URL(request.url).searchParams;
   const zone = params.get('zone');
   const month = parseInt(params.get('month'), 10);
 
