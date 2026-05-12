@@ -1,13 +1,6 @@
 // workers/ecoregion.js — /v1/ecoregion?lat=&lon=
 import core from '../app/lib/geo-data-core.js';
 
-const BBOX = {
-  NORTH: 49,
-  SOUTH: 24,
-  EAST: -66.5,
-  WEST: -92.2,
-};
-
 export async function handleEcoregion(request) {
   try {
     const params = new URL(request.url).searchParams;
@@ -18,7 +11,7 @@ export async function handleEcoregion(request) {
       return Response.json({ error: 'lat and lon are required and must be numeric' }, { status: 400 });
     }
 
-    if (lat < BBOX.SOUTH || lat > BBOX.NORTH || lon < BBOX.WEST || lon > BBOX.EAST) {
+    if (!core.isInCorridor(lat, lon)) {
       return Response.json({ error: 'Coordinate outside coverage area' }, { status: 404 });
     }
 
