@@ -1,29 +1,38 @@
-// P3 #20 — /v1/calendar?zone=&month=
-// Returns monthly planting tasks for a hardiness zone
-// TODO: bundle PLANTING_CALENDAR from app/lib/geo-data.js at build time
+// workers/calendar.js — /v1/calendar?zone=&month=
+import core from '../app/lib/geo-data-core.js';
+
+const MONTH_ABBREV = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const MONTH_NAME = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 export async function handleCalendar(request) {
-  const params = new URL(request.url).searchParams;
-  const zone = params.get('zone');
-  const month = parseInt(params.get('month'), 10);
+  try {
+    const params = new URL(request.url).searchParams;
+    const zone = params.get('zone');
+    const monthRaw = params.get('month');
+    const month = parseInt(monthRaw, 10);
 
-  if (!zone) {
-    return Response.json({ error: 'zone is required' }, { status: 400 });
-  }
-  if (isNaN(month) || month < 1 || month > 12) {
-    return Response.json({ error: 'month must be 1–12' }, { status: 400 });
-  }
+    if (!zone) {
+      return Response.json({ error: 'zone is required' }, { status: 400 });
+    }
+    if (!Number.isInteger(month) || month < 1 || month > 12) {
+      return Response.json({ error: 'month must be an integer 1–12' }, { status: 400 });
+    }
+    const zoneCalendar = core.PLANTING_CALENDAR[zone];
+    if (!zoneCalendar) {
+      return Response.json({ error: 'Unknown hardiness zone' }, { status: 404 });
+    }
 
-  // Hello world — replace with PLANTING_CALENDAR lookup (P3 #20)
-  return Response.json({
-    zone,
-    month,
-    monthName: new Date(2000, month - 1).toLocaleString('en-US', { month: 'long' }),
-    startIndoors: ['Basil', 'Sweet potatoes'],
-    directSow: ['Beans', 'Cucumber', 'Squash'],
-    transplant: ['Tomatoes', 'Peppers', 'Eggplant'],
-    harvest: ['Lettuce', 'Peas', 'Spinach'],
-    notes: 'Last frost typically mid-March. Safe to plant warm-season crops.',
-    _note: 'hello world — static response, real lookup coming in P3 #20',
-  });
+    const entry = zoneCalendar[MONTH_ABBREV[month - 1]] || {};
+    return Response.json({
+      zone,
+      month,
+      monthName: MONTH_NAME[month - 1],
+      startIndoors: entry.startIndoors || [],
+      directSow:   entry.directSow   || [],
+      transplant:  entry.transplant  || [],
+    });
+  } catch (err) {
+    console.error('handleCalendar error', err);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
+  }
 }
