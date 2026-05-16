@@ -283,33 +283,28 @@ def test_gardens_toggle_present(page):
 
 
 def test_gardens_toggle_loads_and_routes_to_detail(page):
-    """Mocked Overpass data renders garden markers and supports garden detail routing."""
-    payload = {
-        "elements": [
+    """Mocked /v1/gardens data renders garden markers and supports garden detail routing."""
+    mocked = {
+        "bbox": {"south": 24, "west": -92.2, "north": 49, "east": -66.5},
+        "count": 1,
+        "gardens": [
             {
-                "type": "node",
-                "id": 101,
+                "osmId": "node-101",
                 "lat": 37.54,
                 "lon": -77.44,
-                "tags": {
-                    "name": "Oak & Elm <Garden>",
-                    "leisure": "garden",
-                    "addr:housenumber": "123",
-                    "addr:street": "River Rd",
-                    "addr:city": "Richmond",
-                    "addr:state": "VA",
-                    "addr:postcode": "23219",
-                },
+                "name": "Oak & Elm <Garden>",
+                "type": "Community garden",
+                "address": "123 River Rd, Richmond, VA, 23219",
             }
-        ]
+        ],
     }
 
     page.route(
-        "https://overpass-api.de/api/interpreter",
+        "**/v1/gardens",
         lambda route: route.fulfill(
             status=200,
             content_type="application/json",
-            body=json.dumps(payload),
+            body=json.dumps(mocked),
         ),
     )
 
