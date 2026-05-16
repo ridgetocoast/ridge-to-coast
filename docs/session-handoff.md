@@ -67,21 +67,24 @@ Frontend Pages goes live on merge; Workers stay on the old version until the **p
 
 The PR description must call this out. Alternative: split into two PRs — Workers first (promote, verify), then frontend wiring + CSP.
 
-## Next session — start here
+## Status: implemented (2026-05-16)
 
-1. Read `app/docs/superpowers/specs/2026-05-03-workers-api-impl-design.md` end-to-end.
-2. Confirm you're on branch `claude/workers-api-impl` (or check it out).
-3. Invoke `/superpowers:writing-plans` against the spec to produce a step-by-step implementation plan with checkpoints.
-4. Then `/superpowers:executing-plans` (or `/superpowers:subagent-driven-development`) to implement.
-5. Before opening the PR, run:
-   - `node --test app/tests/geo.test.js` (308 existing tests — must still pass after the geo-data-core extraction)
-   - `node --test workers/tests/` (new tests)
-   - `pytest app/tests/e2e/` (85 E2E — gardens-layer test should still pass)
-   - `wrangler deploy --dry-run --env preview` to verify the Worker bundle size.
+Plan: `app/docs/superpowers/plans/2026-05-06-workers-api-impl.md`. All 15 tasks complete on branch `claude/workers-api-impl`; ready for PR.
 
-## Open risks (per spec §10)
+Final test sweep:
+- `node --test app/tests/geo.test.js` → 335 pass (test count was 335, not 308 as guessed)
+- `node --test workers/tests/*.test.js` → 27 pass
+- `pytest app/tests/e2e/test_map.py` → 42 pass (gardens-layer test now mocks `/v1/gardens`)
+- `wrangler deploy --dry-run --env preview` → 42.41 KiB gzip (well under 3 MB limit)
 
-- Wrangler bundle exceeds 3 MB compressed → verify via dry-run during PR review.
-- `geo-data-core` extraction breaks the 308 existing unit tests → re-export every name through `geo-data.js`; run tests locally before pushing.
-- CSP change breaks gardens layer in preprod/alpha → all three API hosts must be in `connect-src`.
-- Promote-then-frontend ordering missed → call out in PR description; assign a single owner.
+Note: `app/tests/pipeline.test.js` fails identically on `main` — pre-existing bug, not gated by CI (test.yml only runs `geo.test.js`).
+
+## Reminder for merger
+
+**Promote-then-frontend ordering** is load-bearing for the gardens layer:
+
+1. Merge PR.
+2. Immediately run Actions → "Promote / Rollback Workers API" → `promote` + `production`.
+3. Confirm `https://ridgetocoast.com` gardens layer works.
+
+If promote is delayed, the new frontend's `/v1/gardens` call hits the old Worker (which doesn't serve that route) until promote completes.
