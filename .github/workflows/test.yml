@@ -18,6 +18,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node --test app/tests/geo.test.js
+      - run: node --test workers/tests/*.test.js
 
   e2e:
     name: E2E tests (Chromium)
