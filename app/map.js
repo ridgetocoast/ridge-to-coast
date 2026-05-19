@@ -678,61 +678,6 @@ var GARDEN_MARKER_STYLE = {
   fillOpacity: 0.9,
 };
 
-function gardenTypeLabel(tags) {
-  if (tags.shop === 'garden_centre' && tags['plant:native'] === 'yes') {
-    return 'Native plant nursery';
-  }
-  if (tags.landuse === 'allotments') {
-    return 'Allotment garden';
-  }
-  return 'Community garden';
-}
-
-function gardenDisplayName(tags) {
-  if (tags.name) return tags.name;
-  if (tags.operator) return tags.operator;
-  return gardenTypeLabel(tags);
-}
-
-function joinAddress(parts) {
-  return parts.filter(function (part) { return part; }).join(', ');
-}
-
-function gardenAddress(tags) {
-  var streetLine = [tags['addr:housenumber'], tags['addr:street']]
-    .filter(function (part) { return part; })
-    .join(' ');
-  var locality = tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || tags['addr:hamlet'] || '';
-  var region = tags['addr:state'] || '';
-  var postcode = tags['addr:postcode'] || '';
-  return joinAddress([streetLine, locality, joinAddress([region, postcode])]) || 'Address not listed';
-}
-
-function normalizeGardenElement(element) {
-  var tags = element.tags || {};
-  var lat = typeof element.lat === 'number'
-    ? element.lat
-    : element.center && typeof element.center.lat === 'number'
-      ? element.center.lat
-      : null;
-  var lon = typeof element.lon === 'number'
-    ? element.lon
-    : element.center && typeof element.center.lon === 'number'
-      ? element.center.lon
-      : null;
-
-  if (lat == null || lon == null) return null;
-
-  return {
-    osmId: element.type + '-' + element.id,
-    lat: lat,
-    lon: lon,
-    name: gardenDisplayName(tags),
-    type: gardenTypeLabel(tags),
-    address: gardenAddress(tags),
-  };
-}
-
 function buildGardensLayer(gardens) {
   var layer = L.featureGroup();
 
@@ -763,67 +708,27 @@ function buildGardensLayer(gardens) {
   return layer;
 }
 
-function buildGardenQuery() {
-  var bbox = [
-    gd.BBOX.SOUTH.toFixed(4),
-    gd.BBOX.WEST.toFixed(4),
-    gd.BBOX.NORTH.toFixed(4),
-    gd.BBOX.EAST.toFixed(4)
-  ].join(',');
-
-  return (
-    '[out:json][timeout:25];' +
-    '(' +
-      'node["leisure"="garden"](' + bbox + ');' +
-      'way["landuse"="allotments"](' + bbox + ');' +
-      'node["shop"="garden_centre"]["plant:native"="yes"](' + bbox + ');' +
-    ');' +
-    'out center;'
-  );
-}
-
 function ensureGardensLoaded() {
   if (gardensCache) return Promise.resolve(gardensCache);
   if (gardensRequest) return gardensRequest;
 
-  gardensRequest = fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'text/plain;charset=UTF-8',
-    },
-    body: buildGardenQuery(),
-  })
+  gardensRequest = fetch(API_BASE + '/v1/gardens')
     .then(function (response) {
       if (!response.ok) {
-        throw new Error('HTTP ' + response.status + ' loading Overpass garden data');
+        throw new Error('HTTP ' + response.status + ' loading /v1/gardens');
       }
       return response.json();
     })
     .then(function (data) {
-      var gardens = [];
+      var gardens = (data && Array.isArray(data.gardens)) ? data.gardens : [];
       var nextIndex = Object.create(null);
-      var elements = data && Array.isArray(data.elements) ? data.elements : [];
-
-      elements.forEach(function (element) {
-        var garden = normalizeGardenElement(element);
-        if (!garden || nextIndex[garden.osmId]) return;
-        nextIndex[garden.osmId] = garden;
-        gardens.push(garden);
-      });
-
-      gardens.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
+      gardens.forEach(function (g) { nextIndex[g.osmId] = g; });
       gardensCache = gardens;
       gardensIndex = nextIndex;
       gardensLayer = buildGardensLayer(gardens);
       return gardens;
     })
-    .finally(function () {
-      gardensRequest = null;
-    });
+    .finally(function () { gardensRequest = null; });
 
   return gardensRequest;
 }

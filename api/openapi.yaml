@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ridge to Coast API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Free REST API for Appalachian watershed ecoregion data.
     No API key required. All data sourced from public datasets.
@@ -38,6 +38,8 @@ paths:
                 $ref: '#/components/schemas/EcoregionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /calendar:
     get:
@@ -78,7 +80,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [tree, shrub, herbaceous, vine, graminoid, wildflower]
+            enum: [tree, shrub, perennial, grass, fern, vine]
       responses:
         '200':
           description: Native plants list
@@ -91,11 +93,33 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /gardens:
+    get:
+      summary: Community gardens, allotments, and native plant nurseries in the corridor
+      operationId: getGardens
+      description: |
+        Cached for 24 hours via Cloudflare's edge cache. Data sourced from
+        OpenStreetMap via the Overpass API. BBOX is fixed (eastern US corridor).
+      responses:
+        '200':
+          description: Garden listings (normalized)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GardensResponse'
+        '502':
+          description: Upstream Overpass API unavailable
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
 components:
   schemas:
     EcoregionResponse:
       type: object
       properties:
+        lat: { type: number, example: 37.54 }
+        lon: { type: number, example: -77.43 }
         region: { type: string, example: 'piedmont' }
         name: { type: string, example: 'Piedmont' }
         zone: { type: string, example: '7b' }
@@ -117,8 +141,6 @@ components:
         startIndoors: { type: array, items: { type: string } }
         directSow: { type: array, items: { type: string } }
         transplant: { type: array, items: { type: string } }
-        harvest: { type: array, items: { type: string } }
-        notes: { type: string, nullable: true }
 
     PlantsResponse:
       type: object
@@ -134,6 +156,29 @@ components:
               latin: { type: string }
               type: { type: string }
               note: { type: string }
+
+    GardensResponse:
+      type: object
+      properties:
+        bbox:
+          type: object
+          properties:
+            south: { type: number }
+            west:  { type: number }
+            north: { type: number }
+            east:  { type: number }
+        count: { type: integer, example: 487 }
+        gardens:
+          type: array
+          items:
+            type: object
+            properties:
+              osmId:   { type: string, example: 'node-12345' }
+              lat:     { type: number, example: 37.54 }
+              lon:     { type: number, example: -77.43 }
+              name:    { type: string, example: 'Maymont Community Garden' }
+              type:    { type: string, example: 'Community garden' }
+              address: { type: string, example: '1700 Hampton St' }
 
     Error:
       type: object
