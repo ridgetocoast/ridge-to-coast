@@ -72,7 +72,7 @@ Authoritative spec: `app/docs/superpowers/specs/2026-05-18-cloudflare-infra-terr
 **Constants used across tasks (do not vary):**
 - account id: `c378aeb8ad614074b3a5e541a4788993`
 - zone id (`ridgetocoast.com`): `77d12978a2a1395b87a12be147f3b5e9`
-- GitHub repo: owner `loobo07`, name `ridge-to-coast` (full `loobo07/ridge-to-coast`)
+- GitHub repo: owner `ridgetocoast`, name `ridge-to-coast` (full `ridgetocoast/ridge-to-coast`). The `pages.tf` GitHub-source `owner = "loobo07"` is a separate Cloudflare-Pages-to-GitHub connection that reflects the live Pages source and is intentionally left alone (changing it would force a Pages recreation = outage).
 - Worker `*.workers.dev` target (current live `api` record content): `ridgetocoast-api.loboedwin01.workers.dev`
 - R2 state bucket: `ridgetocoast-tfstate`; state key `terraform.tfstate`
 
@@ -145,7 +145,7 @@ provider "cloudflare" {
 }
 
 provider "github" {
-  owner = "loobo07"
+  owner = "ridgetocoast"
   token = var.github_token
 }
 

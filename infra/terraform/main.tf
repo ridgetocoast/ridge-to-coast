@@ -45,7 +45,7 @@ provider "cloudflare" {
 }
 
 provider "github" {
-  owner = "loobo07"
+  owner = "ridgetocoast"
   token = var.github_token
 }
 
