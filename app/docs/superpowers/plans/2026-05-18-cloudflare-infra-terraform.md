@@ -235,8 +235,8 @@ locals {
   acct_scope = "com.cloudflare.api.account"
   zone_scope = "com.cloudflare.api.account.zone"
 
-  res_account = jsonencode({ "com.cloudflare.api.account.${var.cloudflare_account_id}" = "*" })
-  res_zone    = jsonencode({ "com.cloudflare.api.account.zone.${var.cloudflare_zone_id}" = "*" })
+  res_account = jsonencode({ "${local.acct_scope}.${var.cloudflare_account_id}" = "*" })
+  res_zone    = jsonencode({ "${local.zone_scope}.${var.cloudflare_zone_id}" = "*" })
 }
 
 data "cloudflare_account_api_token_permission_groups_list" "workers_scripts_write" {
@@ -274,6 +274,19 @@ data "cloudflare_account_api_token_permission_groups_list" "dns_read" {
   name       = "DNS%20Read"
 }
 
+# Exact-name match per permission group. The data source name filter is substring-based,
+# so `result[0].id` can silently pick the wrong group (e.g. "DNS Read" vs "DNS Firewall Read").
+# `one(filter)` returns the single id or errors at plan time on 0/multiple matches.
+locals {
+  pg_workers_scripts_write = one([for g in data.cloudflare_account_api_token_permission_groups_list.workers_scripts_write.result : g.id if g.name == "Workers Scripts Write"])
+  pg_workers_routes_write  = one([for g in data.cloudflare_account_api_token_permission_groups_list.workers_routes_write.result : g.id if g.name == "Workers Routes Write"])
+  pg_pages_write           = one([for g in data.cloudflare_account_api_token_permission_groups_list.pages_write.result : g.id if g.name == "Pages Write"])
+  pg_workers_scripts_read  = one([for g in data.cloudflare_account_api_token_permission_groups_list.workers_scripts_read.result : g.id if g.name == "Workers Scripts Read"])
+  pg_workers_routes_read   = one([for g in data.cloudflare_account_api_token_permission_groups_list.workers_routes_read.result : g.id if g.name == "Workers Routes Read"])
+  pg_pages_read            = one([for g in data.cloudflare_account_api_token_permission_groups_list.pages_read.result : g.id if g.name == "Pages Read"])
+  pg_dns_read              = one([for g in data.cloudflare_account_api_token_permission_groups_list.dns_read.result : g.id if g.name == "DNS Read"])
+}
+
 # ---- Rotation clock (spec §4) ----
 resource "time_static" "tokens_start" {}
 
@@ -298,9 +311,9 @@ resource "cloudflare_account_token" "production_deploy" {
   policies = [{
     effect = "allow"
     permission_groups = [
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_scripts_write.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_routes_write.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.pages_write.result[0].id },
+      { id = local.pg_workers_scripts_write },
+      { id = local.pg_workers_routes_write },
+      { id = local.pg_pages_write },
     ]
     resources = local.res_account
   }]
@@ -321,8 +334,8 @@ resource "cloudflare_account_token" "nonprod_deploy" {
   policies = [{
     effect = "allow"
     permission_groups = [
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_scripts_write.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_routes_write.result[0].id },
+      { id = local.pg_workers_scripts_write },
+      { id = local.pg_workers_routes_write },
     ]
     resources = local.res_account
   }]
@@ -343,10 +356,10 @@ resource "cloudflare_account_token" "audit_readonly" {
   policies = [{
     effect = "allow"
     permission_groups = [
-      { id = data.cloudflare_account_api_token_permission_groups_list.dns_read.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_routes_read.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.workers_scripts_read.result[0].id },
-      { id = data.cloudflare_account_api_token_permission_groups_list.pages_read.result[0].id },
+      { id = local.pg_dns_read },
+      { id = local.pg_workers_routes_read },
+      { id = local.pg_workers_scripts_read },
+      { id = local.pg_pages_read },
     ]
     resources = local.res_account
   }]
