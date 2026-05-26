@@ -457,28 +457,28 @@ resource "github_actions_environment_secret" "production_cf_token" {
   repository      = local.github_repo
   environment     = github_repository_environment.production.environment
   secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.production_deploy.value
+  value       = cloudflare_account_token.production_deploy.value
 }
 
 resource "github_actions_environment_secret" "preview_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.preview.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.nonprod_deploy.value
+  repository  = local.github_repo
+  environment = github_repository_environment.preview.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.nonprod_deploy.value
 }
 
 resource "github_actions_environment_secret" "alpha_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.alpha.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.nonprod_deploy.value
+  repository  = local.github_repo
+  environment = github_repository_environment.alpha.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.nonprod_deploy.value
 }
 
 resource "github_actions_environment_secret" "audit_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.audit.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.audit_readonly.value
+  repository  = local.github_repo
+  environment = github_repository_environment.audit.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.audit_readonly.value
 }
 ```
 
@@ -1163,6 +1163,6 @@ git commit -m "docs: environment-scoped secrets model + infra handoff + §11 con
 
 **Open risks surfaced (not silently resolved):**
 1. **Worker-route ownership** (`workers.tf` TODO) — Wrangler vs Terraform; deferred to Sub-project 2; route left Wrangler-managed and uncommented-as-before to avoid an outage. Flag for final review.
-2. **`github_actions_environment_secret` argument name** — confirmed as `plaintext_value` (provider also accepts `encrypted_value`; this plan uses plaintext from the token `value`). If `terraform validate` rejects `plaintext_value` against the installed `~> 6`, the implementer must check the installed provider's schema and adjust — flagged as the most likely validate failure point.
+2. **`github_actions_environment_secret` attribute name** — code uses `value` (the current canonical form per the `integrations/github ~> 6` provider docs). The provider also still accepts `plaintext_value` (deprecated) and `encrypted_value` (deprecated, prefer `value_encrypted`); we use `value` for forward-compatibility.
 3. **`cloudflare_account_dns_settings` `zone_defaults` shape** — written as a single nested attribute object per the v5 docs; if the installed provider expects a block, the implementer adjusts and notes it.
 ```

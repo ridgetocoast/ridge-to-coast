@@ -57,29 +57,29 @@ resource "github_repository_environment" "audit" {
 
 # ---- One secret name, value per environment (spec §5 table) ----
 resource "github_actions_environment_secret" "production_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.production.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.production_deploy.value
+  repository  = local.github_repo
+  environment = github_repository_environment.production.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.production_deploy.value
 }
 
 resource "github_actions_environment_secret" "preview_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.preview.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.nonprod_deploy.value
+  repository  = local.github_repo
+  environment = github_repository_environment.preview.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.nonprod_deploy.value
 }
 
 resource "github_actions_environment_secret" "alpha_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.alpha.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.nonprod_deploy.value
+  repository  = local.github_repo
+  environment = github_repository_environment.alpha.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.nonprod_deploy.value
 }
 
 resource "github_actions_environment_secret" "audit_cf_token" {
-  repository      = local.github_repo
-  environment     = github_repository_environment.audit.environment
-  secret_name     = "CLOUDFLARE_API_TOKEN"
-  plaintext_value = cloudflare_account_token.audit_readonly.value
+  repository  = local.github_repo
+  environment = github_repository_environment.audit.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = cloudflare_account_token.audit_readonly.value
 }
