@@ -1,5 +1,6 @@
-# Credentials — never commit
-terraform.tfvars
+# Credentials — never commit (example file is intentionally tracked)
+*.tfvars
+!terraform.tfvars.example
 
 # Terraform working directory
 .terraform/
