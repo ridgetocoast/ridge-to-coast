@@ -14,6 +14,7 @@ Interactive ecological map of the eastern US corridor (Ridge to Coast). Helps re
 | Geo helpers | Pure JS, no DOM/Leaflet dependency | `app/lib/geo-data.js` |
 | Unit tests | Node built-in `node:test`, zero npm | `app/tests/geo.test.js` |
 | E2E tests | Python Playwright + pytest | `app/tests/e2e/` |
+| Infra | Terraform (Cloudflare, GitHub, time providers) | `infra/terraform/` |
 
 ---
 
@@ -82,12 +83,28 @@ No Anthropic API key. Multi-agent runs locally via Claude Code CLI. AWS Bedrock 
 
 ---
 
-## GitHub Secrets Required
+## GitHub Secrets — environment-scoped (Terraform-managed)
 
-| Secret | Used by |
-|---|---|
-| `CLOUDFLARE_API_TOKEN` | Pages deploy, Workers deploy, promote/rollback |
-| `CLOUDFLARE_ACCOUNT_ID` | Pages deploy, Workers deploy |
+`infra/terraform/` is the source of truth for Cloudflare config and CI tokens.
+`terraform plan` is the config-drift gate (weekly `infra.yml` run; red = drift).
+
+Each GitHub Environment exposes a single secret `CLOUDFLARE_API_TOKEN`; GitHub
+resolves the per-environment value at run time:
+
+| GH Environment | `CLOUDFLARE_API_TOKEN` source (Terraform) | Branch policy |
+|---|---|---|
+| `production` | `production-deploy` token (Workers+Pages write) | `main` only |
+| `preview` | `nonprod-deploy` token (Workers write) | none |
+| `alpha` | `nonprod-deploy` token (Workers write) | none |
+| `audit` | `audit-readonly` token (read-only) | none |
+| `infra` | bootstrap creds, entered by hand (CF bootstrap token, GitHub PAT, R2 S3 keys) | `main` only |
+
+Tokens are account-owned and auto-rotate every 90 days with a 7-day overlap.
+The Cloudflare account id is read from `wrangler.toml` (not a secret). The old
+repo-level `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_PREVIEW_API_TOKEN`, and
+`CLOUDFLARE_ACCOUNT_ID` are retired by the Terraform apply — the workflows that
+still reference them must migrate to the environment-scoped secret in lockstep
+(pipeline sub-project). See `infra/terraform/README.md`.
 
 ---
 
