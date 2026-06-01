@@ -10,7 +10,7 @@ locals {
   zone_scope = "com.cloudflare.api.account.zone"
 
   res_account = jsonencode({ "${local.acct_scope}.${var.cloudflare_account_id}" = "*" })
-  res_zone    = jsonencode({ "${local.zone_scope}.${var.cloudflare_zone_id}" = "*" })
+  res_zone    = jsonencode({ "${local.zone_scope}.${var.cloudflare_zone_id}" = "*" }) # reserved for future zone-scoped permission policies; unused today
 }
 
 data "cloudflare_account_api_token_permission_groups_list" "workers_scripts_write" {
@@ -69,7 +69,7 @@ resource "time_rotating" "tokens" {
   rotation_days = 90
 }
 
-# not_before = creation instant; expires_on = 90-day boundary + 7-day overlap.
+# not_before = original tokens_start (intentionally pinned — after rotation #N this lives months in the past, which Cloudflare accepts: a "not valid before <past time>" token is always valid). expires_on = 90-day boundary + 7-day overlap.
 locals {
   token_not_before = time_static.tokens_start.rfc3339
   token_expires_on = timeadd(time_rotating.tokens.rotation_rfc3339, "168h")

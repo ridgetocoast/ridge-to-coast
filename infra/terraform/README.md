@@ -17,6 +17,16 @@ Three credentials are created **by hand, once**, and rotated manually ~annually
 2. **GitHub PAT/App** — repo Administration RW + Actions Secrets RW + Environments RW.
 3. **R2 S3 access key/secret** — for the state backend.
 
+These map to the following secret names in the `infra` GitHub Environment
+(reference `.github/workflows/infra.yml`); populate them by hand:
+
+| Credential | `infra` env secret name |
+|---|---|
+| CF bootstrap token | `CLOUDFLARE_BOOTSTRAP_TOKEN` |
+| GitHub PAT/App | `GH_INFRA_TOKEN` |
+| R2 S3 access key id | `R2_ACCESS_KEY_ID` |
+| R2 S3 secret access key | `R2_SECRET_ACCESS_KEY` |
+
 They live in gitignored `terraform.tfvars` (local operator) **and** in the
 branch-restricted `infra` GitHub Environment (scheduled workflow) — entered by
 hand, never written by Terraform.

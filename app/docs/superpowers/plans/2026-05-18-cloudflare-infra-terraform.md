@@ -20,7 +20,7 @@ Authoritative spec: `app/docs/superpowers/specs/2026-05-18-cloudflare-infra-terr
    `cloudflare_account_api_token_permission_groups_list`.
    Schema: `account_id` (String, required), `name` (String, optional, **URL-encoded**), `scope` (String, optional, **URL-encoded**), `max_items` (Number, optional, default 1000).
    Read-only `result` (Attributes List), each element `{ id (String), name (String), scopes (List of String) }`.
-   Filtering by `name` returns the matching group(s); index `result[0].id` for the permission-group id.
+   Filtering by `name` returns the matching group(s) (substring match — see Task 2's `one(...)` exact-name pattern for safe consumption); the raw provider attribute is `result[0].id`.
 
 2. **`cloudflare_account_token`** (resource) confirmed schema:
    Required: `account_id` (String), `name` (String), `policies` (Attributes List) where each policy = `{ effect = "allow"|"deny", permission_groups = [{ id = <string> }], resources = <JSON string> }`.

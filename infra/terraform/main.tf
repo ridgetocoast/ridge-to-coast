@@ -80,14 +80,14 @@ variable "github_token" {
 }
 
 variable "r2_access_key_id" {
-  description = "R2 S3 access key id for the state backend. Manually created. Passed to `terraform init` via -backend-config or AWS_ACCESS_KEY_ID."
+  description = "R2 S3 access key id for the state backend. Manually created. Stub variable for tfvars-example completeness — the value is NOT consumed by any HCL resource; pass it to `terraform init -backend-config` or as AWS_ACCESS_KEY_ID env var (CI uses the env path)."
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "r2_secret_access_key" {
-  description = "R2 S3 secret access key for the state backend. Manually created. Passed to `terraform init` via -backend-config or AWS_SECRET_ACCESS_KEY."
+  description = "R2 S3 secret access key for the state backend. Manually created. Stub variable for tfvars-example completeness — the value is NOT consumed by any HCL resource; pass it to `terraform init -backend-config` or as AWS_SECRET_ACCESS_KEY env var (CI uses the env path)."
   type        = string
   sensitive   = true
   default     = ""
