@@ -1,0 +1,97 @@
+name: Terraform Infra
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infra/terraform/**'
+  schedule:
+    - cron: '17 6 * * 1' # weekly Mon 06:17 UTC — drift gate + rotation apply
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'plan or apply (full, human-reviewed path)'
+        required: true
+        default: 'plan'
+        type: choice
+        options: [plan, apply]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-infra
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: infra/terraform
+
+jobs:
+  # PR: fmt + validate only. No credentials, no backend.
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.11"
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate -no-color
+
+  # Weekly: drift detection (red on drift) + targeted rotation apply.
+  drift-and-rotate:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    environment: infra
+    env:
+      TF_VAR_cloudflare_bootstrap_token: ${{ secrets.CLOUDFLARE_BOOTSTRAP_TOKEN }}
+      TF_VAR_github_token: ${{ secrets.GH_INFRA_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.11"
+      - run: terraform init -input=false
+      - name: Drift gate (exit 2 = drift = red)
+        run: terraform plan -detailed-exitcode -no-color -input=false
+      - name: Targeted rotation apply (inert except at the 90-day boundary)
+        if: success()
+        run: |
+          terraform apply -auto-approve -no-color -input=false \
+            -target=time_rotating.tokens \
+            -target=cloudflare_account_token.production_deploy \
+            -target=cloudflare_account_token.nonprod_deploy \
+            -target=cloudflare_account_token.audit_readonly \
+            -target=github_actions_environment_secret.production_cf_token \
+            -target=github_actions_environment_secret.preview_cf_token \
+            -target=github_actions_environment_secret.alpha_cf_token \
+            -target=github_actions_environment_secret.audit_cf_token
+
+  # Manual: full plan/apply — human-reviewed DNS/TLS/account/import path.
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: infra
+    env:
+      TF_VAR_cloudflare_bootstrap_token: ${{ secrets.CLOUDFLARE_BOOTSTRAP_TOKEN }}
+      TF_VAR_github_token: ${{ secrets.GH_INFRA_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.11"
+      - run: terraform init -input=false
+      - name: terraform ${{ inputs.action }}
+        run: |
+          if [ "${{ inputs.action }}" = "apply" ]; then
+            terraform apply -auto-approve -no-color -input=false
+          else
+            terraform plan -no-color -input=false
+          fi

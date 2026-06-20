@@ -1,13 +1,25 @@
-# Copy this file to terraform.tfvars and fill in your values.
-# terraform.tfvars is gitignored — never commit it.
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored —
+# never commit it. These three are the bootstrap root-of-trust (spec §6):
+# created manually once in the Cloudflare/GitHub dashboards, never
+# TF-managed, manual ~annual rotation.
 #
-# Where to find each value:
-#   cloudflare_api_token  → dash.cloudflare.com/profile/api-tokens
-#                           Permissions needed: Workers Scripts:Edit, Pages:Edit,
-#                           Zone:Edit, R2:Edit, DNS:Edit
-#   cloudflare_account_id → dash.cloudflare.com (homepage, right sidebar)
-#   cloudflare_zone_id    → dash.cloudflare.com → ridgetocoast.com → Overview (right sidebar)
+#   cloudflare_bootstrap_token → dash.cloudflare.com/profile/api-tokens
+#       Scopes: Account API Tokens:Edit, plus Edit for DNS, Pages, Workers
+#       Scripts, Workers Routes, R2, Account DNS Settings.
+#   github_token → github.com/settings/tokens (fine-grained PAT for
+#       loobo07/ridge-to-coast): Administration RW + Secrets RW + Environments RW.
+#   r2_access_key_id / r2_secret_access_key → Cloudflare dash → R2 →
+#       Manage R2 API Tokens (S3 Auth). Used by the state backend; pass to
+#       `terraform init -backend-config=...` or via AWS_ACCESS_KEY_ID /
+#       AWS_SECRET_ACCESS_KEY (see README).
+#
+# Account/zone ids are not secrets (Decision 7) and default in main.tf;
+# override here only if they change.
 
-cloudflare_api_token  = "your_api_token_here"
-cloudflare_account_id = "c378aeb8ad614074b3a5e541a4788993"
-cloudflare_zone_id    = "77d12978a2a1395b87a12be147f3b5e9"
+cloudflare_bootstrap_token = "your_cf_bootstrap_token_here"
+github_token               = "your_github_pat_here"
+r2_access_key_id           = "your_r2_access_key_id_here"
+r2_secret_access_key       = "your_r2_secret_access_key_here"
+
+# cloudflare_account_id = "c378aeb8ad614074b3a5e541a4788993"
+# cloudflare_zone_id    = "77d12978a2a1395b87a12be147f3b5e9"

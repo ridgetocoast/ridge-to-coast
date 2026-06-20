@@ -1,4 +1,4 @@
-# Cloudflare Pages — frontend (app/)
+# Cloudflare Pages — frontend (app/). DNS (www) managed in dns.tf (spec §7).
 resource "cloudflare_pages_project" "frontend" {
   account_id        = var.cloudflare_account_id
   name              = "ridgetocoast"
@@ -7,13 +7,13 @@ resource "cloudflare_pages_project" "frontend" {
   source = {
     type = "github"
     config = {
-      owner                       = "loobo07"
-      repo_name                   = "ridge-to-coast"
-      production_branch           = "main"
-      pr_comments_enabled                = true
-      production_deployments_enabled     = true
-      preview_deployment_setting         = "custom"
-      preview_branch_includes            = ["feature/*", "claude/*"]
+      owner                          = "loobo07"
+      repo_name                      = "ridge-to-coast"
+      production_branch              = "main"
+      pr_comments_enabled            = true
+      production_deployments_enabled = true
+      preview_deployment_setting     = "custom"
+      preview_branch_includes        = ["feature/*", "claude/*"]
     }
   }
 
@@ -24,7 +24,6 @@ resource "cloudflare_pages_project" "frontend" {
   }
 }
 
-# Custom domain: ridgetocoast.com → Pages
 resource "cloudflare_pages_domain" "apex" {
   account_id   = var.cloudflare_account_id
   project_name = cloudflare_pages_project.frontend.name
@@ -35,14 +34,4 @@ resource "cloudflare_pages_domain" "www" {
   account_id   = var.cloudflare_account_id
   project_name = cloudflare_pages_project.frontend.name
   name         = "www.ridgetocoast.com"
-}
-
-# DNS: www → apex (proxied)
-resource "cloudflare_dns_record" "www" {
-  zone_id = var.cloudflare_zone_id
-  name    = "www"
-  content = "ridgetocoast.com"
-  type    = "CNAME"
-  ttl     = 1
-  proxied = true
 }

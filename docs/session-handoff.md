@@ -88,3 +88,28 @@ Note: `app/tests/pipeline.test.js` fails identically on `main` — pre-existing 
 3. Confirm `https://ridgetocoast.com` gardens layer works.
 
 If promote is delayed, the new frontend's `/v1/gardens` call hits the old Worker (which doesn't serve that route) until promote completes.
+
+---
+
+## Next: Cloudflare Infra as Code — Terraform (Sub-project 1)
+
+- **Spec:** `app/docs/superpowers/specs/2026-05-18-cloudflare-infra-terraform-design.md`
+- **Plan:** `app/docs/superpowers/plans/2026-05-18-cloudflare-infra-terraform.md`
+- **Scope:** `infra/terraform/` becomes the authoritative producer of 3 rotating
+  CI tokens, 5 GitHub Environments + `CLOUDFLARE_API_TOKEN`, and managed
+  DNS/TLS/account config. `terraform plan` is the drift gate.
+
+### §11 interface contract for Sub-project 2 (the release/smoke pipeline)
+
+Sub-project 2 may assume, and must align with, exactly this:
+
+- GitHub Environments exist: `production` (branch policy = `main`), `preview`,
+  `alpha`, `audit` — each exposing secret `CLOUDFLARE_API_TOKEN`.
+- Cloudflare account id is read from `wrangler.toml`, **not** a secret.
+- Repo-level `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_PREVIEW_API_TOKEN`, and
+  `CLOUDFLARE_ACCOUNT_ID` are **deleted by Sub-project 1's apply**. The pipeline
+  PR that switches workflows to environment-scoped secrets must merge in
+  lockstep with that apply. **This ordering coupling is the top integration
+  risk.**
+- Re-scoping `scripts/audit-cloudflare-config.mjs` to runtime-only facts is
+  Sub-project 2's task (untouched here).

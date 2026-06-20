@@ -1,18 +1,13 @@
 # Cloudflare Workers — REST API (workers/)
-# Scripts are deployed via Wrangler CLI in CI; Terraform manages DNS routing only.
+# Scripts are deployed via Wrangler CLI in CI. DNS for api.ridgetocoast.com
+# is managed in dns.tf (extracted per spec §7).
 
-# DNS: api.ridgetocoast.com → Worker (proxied)
-resource "cloudflare_dns_record" "api" {
-  zone_id = var.cloudflare_zone_id
-  name    = "api"
-  content = "ridgetocoast-api.loboedwin01.workers.dev"
-  type    = "CNAME"
-  ttl     = 1
-  proxied = true
-}
-
-# Route: api.ridgetocoast.com/* → ridgetocoast-api worker script
-# Uncomment after first `wrangler deploy` — the Worker must exist before the route can be created
+# TODO(subproject-2): Worker-route ownership. wrangler.toml [env.*] `routes`
+# reasserts api/preprod/alpha routes on every Wrangler deploy. The spec's §7
+# hard import list covers only DNS/Pages/R2, not the Worker route, and a
+# Pages/route recreation is an outage. Reconciling Wrangler-vs-Terraform route
+# ownership is the pipeline sub-project's task. Until then the route below
+# stays Wrangler-managed (commented here, intentionally not TF-imported).
 # resource "cloudflare_workers_route" "api" {
 #   zone_id = var.cloudflare_zone_id
 #   pattern = "api.ridgetocoast.com/*"
