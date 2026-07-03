@@ -10,7 +10,7 @@ locals {
   zone_scope = "com.cloudflare.api.account.zone"
 
   res_account = jsonencode({ "${local.acct_scope}.${var.cloudflare_account_id}" = "*" })
-  res_zone    = jsonencode({ "${local.zone_scope}.${var.cloudflare_zone_id}" = "*" }) # reserved for future zone-scoped permission policies; unused today
+  res_zone    = jsonencode({ "${local.zone_scope}.${var.cloudflare_zone_id}" = "*" }) # zone-scoped resource; used by audit_readonly for DNS Read
 }
 
 data "cloudflare_account_api_token_permission_groups_list" "workers_scripts_write" {
@@ -127,16 +127,23 @@ resource "cloudflare_account_token" "audit_readonly" {
   not_before = local.token_not_before
   expires_on = local.token_expires_on
 
-  policies = [{
-    effect = "allow"
-    permission_groups = [
-      { id = local.pg_dns_read },
-      { id = local.pg_workers_routes_read },
-      { id = local.pg_workers_scripts_read },
-      { id = local.pg_pages_read },
-    ]
-    resources = local.res_account
-  }]
+  policies = [
+    {
+      effect = "allow"
+      permission_groups = [
+        { id = local.pg_workers_routes_read },
+        { id = local.pg_workers_scripts_read },
+        { id = local.pg_pages_read },
+      ]
+      resources = local.res_account
+    },
+    {
+      # DNS Read is zone-category — must be paired with a zone-scoped resource.
+      effect            = "allow"
+      permission_groups = [{ id = local.pg_dns_read }]
+      resources         = local.res_zone
+    },
+  ]
 
   lifecycle {
     create_before_destroy = true
