@@ -58,9 +58,18 @@ jobs:
           terraform_version: "~> 1.11"
       - run: terraform init -input=false
       - name: Drift gate (exit 2 = drift = red)
-        run: terraform plan -detailed-exitcode -no-color -input=false
+        id: drift
+        run: |
+          set +e
+          terraform plan -detailed-exitcode -no-color -input=false
+          plan_exit=$?
+          echo "plan_exit=${plan_exit}" >> "$GITHUB_OUTPUT"
+          # Exit 1 = hard error (bad config, auth failure, etc.) — fail immediately.
+          # Exit 0 = no changes (clean). Exit 2 = changes pending (drift or rotation).
+          # Both 0 and 2 let the job continue so the rotation apply can run.
+          if [ "${plan_exit}" -eq 1 ]; then exit 1; fi
       - name: Targeted rotation apply (inert except at the 90-day boundary)
-        if: success()
+        if: steps.drift.outputs.plan_exit != '1'
         run: |
           terraform apply -auto-approve -no-color -input=false \
             -target=time_rotating.tokens \
@@ -71,6 +80,11 @@ jobs:
             -target=github_actions_environment_secret.preview_cf_token \
             -target=github_actions_environment_secret.alpha_cf_token \
             -target=github_actions_environment_secret.audit_cf_token
+      - name: Fail job when drift was detected
+        if: always() && steps.drift.outputs.plan_exit == '2'
+        run: |
+          echo "::error::Terraform drift detected (plan exit 2). Review the plan output above."
+          exit 1
 
   # Manual: full plan/apply — human-reviewed DNS/TLS/account/import path.
   manual:
