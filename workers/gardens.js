@@ -5,6 +5,11 @@ const CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=86400, s-maxage=86400',
 };
 
+// Overpass's public instance rejects requests with no/generic User-Agent
+// with a bare 406 (verified against the live API) — it requires a
+// descriptive identifier per its usage policy.
+const OVERPASS_USER_AGENT = 'ridgetocoast.com gardens-layer/1.0 (+https://ridgetocoast.com)';
+
 function buildGardenQuery() {
   const bbox = [
     core.BBOX_SOUTH.toFixed(4),
@@ -66,13 +71,23 @@ function normalizeElement(element) {
 async function fetchAndNormalize() {
   const upstream = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
-    headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=UTF-8' },
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'text/plain;charset=UTF-8',
+      'User-Agent': OVERPASS_USER_AGENT,
+    },
     body: buildGardenQuery(),
   });
   if (!upstream.ok) {
     throw new Error('Overpass HTTP ' + upstream.status);
   }
   const data = await upstream.json();
+  // Overpass signals a partial/timed-out query via HTTP 200 + a `remark`
+  // string, not a non-2xx status — treat that the same as an upstream
+  // failure rather than caching a false "0 gardens found" for 24h.
+  if (data && typeof data.remark === 'string' && data.remark.length > 0) {
+    throw new Error('Overpass returned a remark (incomplete query): ' + data.remark);
+  }
   const elements = Array.isArray(data && data.elements) ? data.elements : [];
   const seen = Object.create(null);
   const gardens = [];
