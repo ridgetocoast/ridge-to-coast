@@ -71,11 +71,49 @@ test('gardens: 502 when Overpass returns non-2xx', async () => {
   }
 });
 
+test('gardens: 502 when Overpass returns 200 with a `remark` (partial/timed-out result)', async () => {
+  // Overpass signals "gave up mid-query" via HTTP 200 + an empty `elements`
+  // array + a `remark` string (e.g. "runtime error: Query timed out...").
+  // Treating that as a real "0 gardens found" answer would cache a false
+  // negative for 24h — verified this shape against the live API.
+  const restore = mockFetch(async () => Response.json({
+    elements: [],
+    remark: 'runtime error: Query timed out in "query" at line 1 after 26 seconds.',
+  }));
+  try {
+    const r = await call();
+    assert.equal(r.status, 502);
+    const body = await r.json();
+    assert.match(body.error, /overpass/i);
+  } finally {
+    restore();
+  }
+});
+
 test('gardens: 502 when fetch throws', async () => {
   const restore = mockFetch(async () => { throw new Error('network'); });
   try {
     const r = await call();
     assert.equal(r.status, 502);
+  } finally {
+    restore();
+  }
+});
+
+test('gardens: outbound Overpass request sets a descriptive User-Agent', async () => {
+  // Overpass's public instance 406s requests with no/generic User-Agent
+  // (verified against the live API) — the Worker must always identify itself.
+  let seenHeaders = null;
+  const restore = mockFetch(async (_url, init) => {
+    seenHeaders = init && init.headers;
+    return Response.json(FAKE_OVERPASS);
+  });
+  try {
+    await call();
+    assert.ok(seenHeaders, 'fetch init.headers must be provided');
+    const ua = new Headers(seenHeaders).get('User-Agent');
+    assert.ok(ua && ua.length > 0, 'User-Agent header must be set and non-empty');
+    assert.doesNotMatch(ua, /^Mozilla\/5\.0 \(compatible;? ?\)?$/i);
   } finally {
     restore();
   }
