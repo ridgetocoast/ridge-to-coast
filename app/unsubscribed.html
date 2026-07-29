@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>Unsubscribed — Ridge to Coast</title>
+  <meta name="description" content="You have been removed from the Ridge to Coast mailing list. No further email will be sent.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="legal">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Unsubscribed</p>
+      <h1>You're off the list</h1>
+      <p class="lede">
+        Done — no further email will be sent to that address. Nothing else changes; the
+        map works exactly the same without a subscription.
+      </p>
+      <p>
+        Removed by mistake? <a href="join.html">Join again</a> and you'll get a fresh
+        confirmation link.
+      </p>
+      <p class="btn-row">
+        <a class="btn" href="index.html">Open the map</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>Privacy — Ridge to Coast</title>
+  <meta name="description" content="What Ridge to Coast stores, what it does not, and how to remove yourself. Short, because there is not much to say.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="legal">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Coast · sea level</p>
+      <h1>What we keep</h1>
+      <p class="lede">
+        Short version: the map stores nothing about you, your settings live in your own
+        browser, and the only personal data we hold is an email address you typed in and
+        confirmed.
+      </p>
+
+      <h2>The map</h2>
+      <p>
+        No accounts, no analytics, no advertising, no third-party scripts. The content
+        security policy blocks them at the browser level, so this is enforced rather
+        than promised.
+      </p>
+      <p>
+        When you search a place or use “find me”, the request goes to the relevant public
+        service (OpenStreetMap Nominatim for geocoding, the National Weather Service for
+        frost, USGS for streamflow, iNaturalist for observations) to answer that one
+        question. We do not log it, and your browser is told to send no referrer.
+        Geolocation is only ever read after you grant it, and the coordinates stay in
+        the page.
+      </p>
+
+      <h2>Your settings</h2>
+      <p>
+        Layer choices, home location, hardiness zone, and units are stored in your
+        browser's local storage under the key <code>r2c.prefs.v1</code>. They never leave
+        your device. They are not cookies and they are not readable by us. You can view,
+        export, and erase every value on the
+        <a href="preferences.html">preferences page</a>, or clear site data in your
+        browser.
+      </p>
+
+      <h2>The newsletter</h2>
+      <p>If you join the list, we store:</p>
+      <dl class="facts">
+        <dt>Email</dt>
+        <dd>The address you entered. Used only to send the monthly note.</dd>
+        <dt>Zone</dt>
+        <dd>Optional. Chooses which planting window you get.</dd>
+        <dt>Status</dt>
+        <dd>Pending, confirmed, or unsubscribed, with the time each happened.</dd>
+        <dt>Consent record</dt>
+        <dd>A one-way hash of the IP address that submitted the form, plus the browser's user-agent string. Kept as evidence that consent was given, and to rate-limit abuse. The IP itself is not stored.</dd>
+      </dl>
+
+      <h3>Double opt-in</h3>
+      <p>
+        Submitting the form does not subscribe you. We send one confirmation email; if
+        you do not click the link, you get nothing further and the pending record is
+        deleted after 30 days.
+      </p>
+
+      <h3>Leaving</h3>
+      <p>
+        Every email carries a one-click unsubscribe link that works without logging in.
+        It takes effect immediately. To have your record deleted outright rather than
+        marked unsubscribed, reply to any message and ask.
+      </p>
+
+      <h3>Who else sees it</h3>
+      <p>
+        The list is stored in our own database. An email delivery provider processes
+        messages on our behalf and receives your address in order to deliver them. We do
+        not sell, rent, share, or trade the list, and there are no partner mailings.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        If this note changes in a way that affects what we collect, subscribers are told
+        in the next monthly email before it takes effect.
+      </p>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+</body>
+</html>

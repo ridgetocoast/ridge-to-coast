@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>Join — Ridge to Coast</title>
+  <meta name="description" content="One email a month: what to plant in your hardiness zone, what the rivers are doing, and what people are finding in your ecoregion.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="join">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Fall Line · head of navigation</p>
+      <h1>What to do on your land this month</h1>
+      <p class="lede">
+        One email, once a month, written for this corridor. What is safe to plant in
+        your hardiness zone, what the rivers are running, and what people are finding
+        in your ecoregion right now.
+      </p>
+
+      <h2>What arrives</h2>
+      <ul>
+        <li><strong>The planting window.</strong> What to start indoors, direct sow, and transplant this month — for your zone, not a national average.</li>
+        <li><strong>Frost risk.</strong> When the first and last frost dates are actually trending, not the ones on the seed packet.</li>
+        <li><strong>Water.</strong> What the gauges are reading on the rivers in your watershed.</li>
+        <li><strong>What is out there.</strong> A few notable observations logged in your ecoregion.</li>
+      </ul>
+
+      <p>
+        No tracking pixels, no partner lists, no “we've updated our terms” mail.
+        Unsubscribe from any message in one click. Read the
+        <a href="privacy.html">privacy note</a> — it is short.
+      </p>
+
+      <hr>
+
+      <form class="form" id="join-form" novalidate>
+        <h2 id="form-heading">Join the list</h2>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" autocomplete="email"
+                 required maxlength="254" placeholder="you@example.com"
+                 aria-describedby="email-hint">
+          <p class="field-hint" id="email-hint">
+            We send a confirmation link first. You are not on the list until you click it.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="zone">Hardiness zone <span class="field-hint-inline">— optional</span></label>
+          <select id="zone" name="zone">
+            <option value="">Not sure — I'll use the map</option>
+            <option value="3b">3b</option><option value="4a">4a</option><option value="4b">4b</option>
+            <option value="5a">5a</option><option value="5b">5b</option><option value="6a">6a</option>
+            <option value="6b">6b</option><option value="7a">7a</option><option value="7b">7b</option>
+            <option value="8a">8a</option><option value="8b">8b</option><option value="9a">9a</option>
+            <option value="9b">9b</option><option value="10a">10a</option>
+          </select>
+          <p class="field-hint">
+            Tells us which planting window to send you. Leave it blank and you'll get the
+            corridor-wide version.
+          </p>
+        </div>
+
+        <div class="field">
+          <label class="checkbox" for="consent">
+            <input type="checkbox" id="consent" name="consent" required>
+            <span>
+              Yes, send me the monthly Ridge to Coast note at this address. I can
+              unsubscribe from any message.
+            </span>
+          </label>
+        </div>
+
+        <!-- Honeypot. Hidden from people, tempting to naive bots. Never shown,
+             never focusable, never announced. -->
+        <div class="trap" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" type="submit" id="submit-btn">Send me the confirmation link</button>
+        </div>
+
+        <p class="notice notice-error" id="form-error" hidden role="alert"></p>
+        <p class="notice notice-ok" id="form-ok" hidden role="status"></p>
+      </form>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+  <script src="lib/api-base.js"></script>
+  <script src="lib/prefs.js"></script>
+  <script src="join.js"></script>
+</body>
+</html>
