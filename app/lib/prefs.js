@@ -36,7 +36,10 @@
       home: null,             // { lat, lon, label }
       zone: null,             // '7b'
       units: 'F',             // 'F' | 'C'
-      legendCollapsed: false,
+      // null means "no choice made yet", which is NOT the same as false: with no
+      // choice the map falls back to collapsing the legend on small viewports.
+      // A boolean here is an explicit decision and always wins.
+      legendCollapsed: null,
     };
   }
 
@@ -86,6 +89,7 @@
     out.home = validHome(stored.home);
     out.zone = validZone(stored.zone);
     if (stored.units !== undefined) out.units = validUnits(stored.units);
+    // Anything that is not a boolean stays null — "no choice made yet".
     if (isBool(stored.legendCollapsed)) out.legendCollapsed = stored.legendCollapsed;
     return out;
   }

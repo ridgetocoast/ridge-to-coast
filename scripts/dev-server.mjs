@@ -20,7 +20,7 @@
  */
 
 import { createServer } from 'node:http';
-import { createReadStream } from 'node:fs';
+import { createReadStream, realpathSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -168,6 +168,27 @@ async function serveStatic(req, res, opts) {
   stream.pipe(res);
 }
 
+/**
+ * Rewrite a redirect that points at the proxied API so it points at this server
+ * instead. Anything not on the API origin (or not a valid absolute URL) is
+ * returned untouched — a relative Location is already correct.
+ *
+ * @param {string} location    the upstream Location header
+ * @param {string} apiOrigin   e.g. 'http://127.0.0.1:8787'
+ * @param {string} hostHeader  this server's Host, e.g. 'localhost:8000'
+ */
+function rewriteLocation(location, apiOrigin, hostHeader) {
+  if (!hostHeader) return location;
+  let url;
+  try {
+    url = new URL(location);
+  } catch {
+    return location; // relative — already resolves against this origin
+  }
+  if (url.origin !== apiOrigin) return location;
+  return `http://${hostHeader}${url.pathname}${url.search}${url.hash}`;
+}
+
 async function readBody(req) {
   if (req.method === 'GET' || req.method === 'HEAD') return undefined;
   const chunks = [];
@@ -217,6 +238,18 @@ async function proxyToAPI(req, res, opts) {
   // fetch() has already decoded the body, so the upstream Content-Encoding and
   // Content-Length no longer describe what we are about to write.
   delete outHeaders['content-length'];
+
+  // Point redirects back at this server. The Worker builds absolute URLs from
+  // its own request origin, so /v1/subscribe/confirm would otherwise send the
+  // browser to the wrangler port, which serves no static files. Production is
+  // unaffected: those environments set SITE_ORIGIN explicitly.
+  const location = outHeaders.location ?? outHeaders.Location;
+  if (location) {
+    const rewritten = rewriteLocation(location, target.origin, req.headers.host);
+    delete outHeaders.location;
+    delete outHeaders.Location;
+    outHeaders.Location = rewritten;
+  }
 
   res.writeHead(upstream.status, outHeaders);
   if (!upstream.body) return res.end();
@@ -272,8 +305,21 @@ function main() {
 }
 
 // Only run when executed directly, so tests can import the helpers.
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+//
+// Both sides must be realpath'd. import.meta.url is already resolved through
+// symlinks but process.argv[1] is not, so on macOS — where /tmp is a symlink to
+// /private/tmp — a plain comparison silently fails and the server never starts.
+function isMain() {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMain()) {
   main();
 }
 
-export { createDevServer, parseArgs, resolveStaticPath, APP_ROOT };
+export { createDevServer, parseArgs, resolveStaticPath, rewriteLocation, APP_ROOT };

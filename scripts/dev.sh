@@ -48,12 +48,14 @@ if [[ "$WITH_API" -eq 1 ]]; then
   # Apply the D1 schema to the local SQLite store. Safe to repeat: the schema
   # uses CREATE TABLE IF NOT EXISTS.
   if [[ -f "$SCHEMA_FILE" ]]; then
-    echo "[dev] applying D1 schema to the local store…"
+    echo "[dev] applying D1 schema to the local store..."
     npx --yes "wrangler@$WRANGLER_VERSION" d1 execute "$D1_BINDING" \
       --env dev --local --file "$SCHEMA_FILE" >/dev/null
   fi
 
-  echo "[dev] starting wrangler dev on 127.0.0.1:$API_PORT…"
+  # Braces are required: a bare $API_PORT followed by the multibyte ellipsis is
+  # parsed as part of the variable name, which `set -u` then rejects.
+  echo "[dev] starting wrangler dev on 127.0.0.1:${API_PORT}..."
   npx --yes "wrangler@$WRANGLER_VERSION" dev \
     --env dev --local --ip 127.0.0.1 --port "$API_PORT" &
   API_PID=$!

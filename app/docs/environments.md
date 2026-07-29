@@ -39,6 +39,26 @@ Wrangler is run through `npx`, which caches it outside the repo — the zero-npm
 rule (no `package.json`, no `node_modules/`) still holds. `wrangler dev --local`
 keeps its D1 SQLite store in `.wrangler/`, which is gitignored.
 
+The proxy rewrites redirect `Location` headers that point at the wrangler port
+back to its own origin. Without that, `/v1/subscribe/confirm` would send the
+browser to `127.0.0.1:8787/confirmed.html`, where no static files are served.
+Deployed environments are unaffected because they set `SITE_ORIGIN` explicitly.
+
+### Inspecting the local subscriber list
+
+```bash
+npx wrangler d1 execute DB --env dev --local \
+  --command "select address, status, zone from subscribers"
+
+# start over
+npx wrangler d1 execute DB --env dev --local \
+  --command "delete from subscribers; delete from signup_attempts;"
+```
+
+With no `NEWSLETTER_API_KEY` set, `workers/mailer.js` logs the confirmation link
+to the wrangler output instead of calling a provider — that is what makes the
+whole double opt-in flow testable offline.
+
 ## Deploy flow
 
 ### Shipping to production

@@ -1077,10 +1077,12 @@ function setLegendCollapsed(collapsed) {
   legendToggle.textContent = collapsed ? '\u25B8' : '\u25BE'; // ▸ or ▾
 }
 
-// A saved choice wins; with none, collapse on mobile (≤600px) to maximise the map.
-if (prefs.get('legendCollapsed') === true) {
-  setLegendCollapsed(true);
-} else if (prefs.get('legendCollapsed') !== false && window.innerWidth <= 600) {
+// An explicit saved choice wins. With none (null), fall back to collapsing on
+// mobile (≤600px) to maximise map area.
+var savedLegendCollapsed = prefs.get('legendCollapsed');
+if (typeof savedLegendCollapsed === 'boolean') {
+  setLegendCollapsed(savedLegendCollapsed);
+} else if (window.innerWidth <= 600) {
   setLegendCollapsed(true);
 }
 

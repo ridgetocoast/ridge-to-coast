@@ -31,7 +31,7 @@ test('prefs: defaults match the checkbox defaults in index.html', () => {
   assert.equal(d.layers.gardens, false);
   assert.equal(d.home, null);
   assert.equal(d.units, 'F');
-  assert.equal(d.legendCollapsed, false);
+  assert.equal(d.legendCollapsed, null, 'null means no choice made yet');
 });
 
 test('prefs: defaults() returns a fresh object each call', () => {
@@ -190,6 +190,26 @@ test('prefs: a hand-edited store with a hostile shape is sanitised', () => {
     [STORAGE_KEY]: JSON.stringify({ layers: 'not-an-object', zone: '99z', units: 'K', home: 'nope' }),
   }));
   assert.deepEqual(prefs.all(), defaults());
+});
+
+test('prefs: legendCollapsed distinguishes "no choice" from "explicitly expanded"', () => {
+  // The map collapses the legend on small viewports only when no choice has been
+  // made. Defaulting to false would suppress that heuristic permanently.
+  const prefs = createPrefs(fakeStorage());
+  assert.equal(prefs.get('legendCollapsed'), null);
+
+  prefs.set('legendCollapsed', false);
+  assert.equal(prefs.get('legendCollapsed'), false, 'an explicit false must be kept');
+
+  prefs.set('legendCollapsed', true);
+  assert.equal(prefs.get('legendCollapsed'), true);
+});
+
+test('prefs: a non-boolean legendCollapsed falls back to no-choice', () => {
+  const prefs = createPrefs(fakeStorage({
+    ['r2c.prefs.v1']: JSON.stringify({ legendCollapsed: 'yes' }),
+  }));
+  assert.equal(prefs.get('legendCollapsed'), null);
 });
 
 test('prefs: subscribers are notified on set and reset', () => {

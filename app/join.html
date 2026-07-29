@@ -129,10 +129,12 @@
         <div class="btn-row">
           <button class="btn" type="submit" id="submit-btn">Send me the confirmation link</button>
         </div>
-
-        <p class="notice notice-error" id="form-error" hidden role="alert"></p>
-        <p class="notice notice-ok" id="form-ok" hidden role="status"></p>
       </form>
+
+      <!-- Outside the form on purpose: a successful signup hides the form, and
+           these would go with it if they were nested inside. -->
+      <p class="notice notice-error" id="form-error" hidden role="alert"></p>
+      <p class="notice notice-ok" id="form-ok" hidden role="status" tabindex="-1"></p>
     </div>
   </main>
 

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ridge to Coast API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Free REST API for Appalachian watershed ecoregion data.
     No API key required. All data sourced from public datasets.
@@ -112,6 +112,97 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }
+
+  /subscribe:
+    post:
+      summary: Join the newsletter (double opt-in)
+      operationId: subscribe
+      description: |
+        Records a pending signup and sends one confirmation email. Submitting
+        this form does NOT subscribe the address — nothing further is sent until
+        the confirmation link is followed.
+
+        Always answers 202 for any accepted request, including a repeat signup
+        and an address that is already confirmed. Responding differently would
+        turn the endpoint into an oracle for whether a given address is on the
+        list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, consent]
+              properties:
+                email:   { type: string, format: email, maxLength: 254, example: 'grower@example.com' }
+                consent: { type: boolean, description: 'Must be exactly true. Records explicit opt-in.', example: true }
+                zone:    { type: [string, 'null'], description: 'USDA hardiness zone. Invalid values are dropped, not rejected.', example: '7b' }
+                source:  { type: [string, 'null'], description: 'Which page drove the signup.', example: 'join.html' }
+                website: { type: string, description: 'Honeypot. Must be empty; a filled value is silently discarded.' }
+      responses:
+        '202':
+          description: Signup accepted; a confirmation email has been sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:  { type: string, example: 'pending' }
+                  message: { type: string, example: 'Check your inbox for a confirmation link.' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          description: Too many signups from this connection this hour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '502':
+          description: Confirmation email could not be sent; the signup is still recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '503':
+          description: Subscriber database unavailable
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /subscribe/confirm:
+    get:
+      summary: Confirm a pending subscription
+      operationId: confirmSubscription
+      description: |
+        Single-use. The token is cleared on success, so a reused link redirects
+        to the join page with `?confirm=expired` rather than erroring.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to /confirmed.html, or to /join.html?confirm=expired
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /subscribe/unsubscribe:
+    get:
+      summary: Unsubscribe
+      operationId: unsubscribe
+      description: |
+        Repeatable by design — someone trying to leave must never see an error.
+        Also accepts POST for RFC 8058 one-click unsubscribe, which is what the
+        List-Unsubscribe header on every message points at.
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to /unsubscribed.html
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
 components:
   schemas:

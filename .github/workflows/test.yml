@@ -17,7 +17,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      # Explicit paths, not a glob over app/tests: pipeline.test.js reports a
+      # failing suite while still exiting 0, so it is not a usable gate.
       - run: node --test app/tests/geo.test.js
+      - run: node --test app/tests/api-base.test.js
+      - run: node --test app/tests/prefs.test.js
+      - run: node --test app/tests/site.test.js
+      - run: node --test scripts/tests/dev-server.test.js
       - run: node --test workers/tests/*.test.js
 
   e2e:
@@ -25,11 +31,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install -r app/tests/e2e/requirements.txt
       - run: playwright install chromium --with-deps
+      # The dev server mirrors production's single-origin shape. --sw is required
+      # here: sw.js is withheld by default so local edits are never masked by a
+      # cached response, but test_map.py asserts the worker registers.
       - name: Serve app
-        run: python -m http.server 8000 --directory app &
+        run: node scripts/dev-server.mjs --port=8000 --no-api --sw &
       - run: python -m pytest app/tests/e2e/ --base-url http://localhost:8000 -v

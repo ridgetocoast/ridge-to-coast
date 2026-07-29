@@ -91,3 +91,62 @@ test('dev-server: null bytes are refused', async () => {
   assert.equal(resolveStaticPath('/style.css\0.png'), null);
   assert.equal(resolveStaticPath('/%00'), null);
 });
+
+test('dev-server: redirects from the API are rewritten back to this origin', async () => {
+  // The Worker builds absolute URLs from its own origin, so /v1/subscribe/confirm
+  // would send the browser to the wrangler port, which serves no static files.
+  const { rewriteLocation } = await load();
+  const API = 'http://127.0.0.1:8787';
+
+  assert.equal(
+    rewriteLocation(`${API}/confirmed.html`, API, 'localhost:8000'),
+    'http://localhost:8000/confirmed.html'
+  );
+  assert.equal(
+    rewriteLocation(`${API}/join.html?confirm=expired`, API, 'localhost:8000'),
+    'http://localhost:8000/join.html?confirm=expired'
+  );
+});
+
+test('dev-server: redirects to other origins are left alone', async () => {
+  const API = 'http://127.0.0.1:8787';
+  const { rewriteLocation } = await load();
+
+  assert.equal(
+    rewriteLocation('https://ridgetocoast.com/confirmed.html', API, 'localhost:8000'),
+    'https://ridgetocoast.com/confirmed.html',
+    'an external redirect must not be captured'
+  );
+  assert.equal(rewriteLocation('/confirmed.html', API, 'localhost:8000'), '/confirmed.html',
+    'a relative Location already resolves correctly');
+  assert.equal(rewriteLocation('not a url', API, 'localhost:8000'), 'not a url');
+  assert.equal(rewriteLocation(`${API}/x`, API, undefined), `${API}/x`,
+    'without a Host header there is nothing to rewrite to');
+});
+
+test('dev-server: starts when launched through a symlinked path', async () => {
+  // Regression: the entry-point guard compared process.argv[1] (not resolved
+  // through symlinks) against import.meta.url (resolved). On macOS, where /tmp
+  // is a symlink to /private/tmp, they never matched — the server silently
+  // exited 0 without listening. scripts/dev.sh hits exactly that path.
+  const { execFileSync } = require('node:child_process');
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const server = path.join(__dirname, '..', 'dev-server.mjs');
+
+  const linkDir = fs.mkdtempSync(path.join(os.tmpdir(), 'r2c-symlink-'));
+  const link = path.join(linkDir, 'linked-dev-server.mjs');
+  fs.symlinkSync(fs.realpathSync(server), link);
+
+  try {
+    // --help only prints when main() actually runs.
+    const viaLink = execFileSync(process.execPath, [link, '--help'], { encoding: 'utf8' });
+    assert.match(viaLink, /single-origin local dev server/,
+      'the server must run when reached through a symlink');
+
+    const viaReal = execFileSync(process.execPath, [server, '--help'], { encoding: 'utf8' });
+    assert.match(viaReal, /single-origin local dev server/);
+  } finally {
+    fs.rmSync(linkDir, { recursive: true, force: true });
+  }
+});
