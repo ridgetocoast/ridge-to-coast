@@ -169,6 +169,9 @@
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <script src="lib/leaflet.js"></script>
 
+  <!-- API origin resolution — shared with the content pages; must load before map.js -->
+  <script src="lib/api-base.js"></script>
+
   <!-- Pure geographic data core — shared between browser and Workers; no DOM, no Leaflet -->
   <script src="lib/geo-data-core.js"></script>
 

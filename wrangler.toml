@@ -17,3 +17,8 @@ routes = [
 routes = [
   { pattern = "alpha.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
 ]
+
+# Local development only — `wrangler dev --env dev --local`. Deliberately has no
+# `routes`, so it can never be deployed to a hostname. scripts/dev.sh runs it and
+# scripts/dev-server.mjs proxies /v1/* to it.
+[env.dev]

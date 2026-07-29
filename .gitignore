@@ -1,0 +1,6 @@
+# Wrangler's local state — miniflare's D1 SQLite store, caches, and dev logs.
+# Created by `wrangler dev --local` (scripts/dev.sh). Never commit it.
+.wrangler/
+
+# macOS
+.DS_Store

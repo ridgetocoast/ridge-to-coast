@@ -15,15 +15,16 @@ if (typeof L === 'undefined') {
 if (typeof window.GeoData === 'undefined') {
   throw new Error('lib/geo-data.js failed to load');
 }
+if (typeof window.API_BASE === 'undefined') {
+  throw new Error('lib/api-base.js failed to load');
+}
 
 var gd = window.GeoData;
 
-var API_BASE = (function () {
-  var h = window.location.hostname;
-  if (h === 'ridgetocoast.com' || h === 'www.ridgetocoast.com') return 'https://api.ridgetocoast.com';
-  if (h === 'alpha.ridgetocoast.com') return 'https://alpha.ridgetocoast.com';
-  return 'https://preprod.ridgetocoast.com';
-}());
+// Resolved in lib/api-base.js, which the content pages share. Empty string on
+// localhost — scripts/dev-server.mjs proxies /v1/* to a local wrangler dev, so
+// API calls stay same-origin in development.
+var API_BASE = window.API_BASE;
 
 var detailRenderToken = 0;
 var lastInteractiveLayerClickAt = 0;

@@ -37,6 +37,11 @@ Interactive ecological map of the eastern US corridor (Ridge to Coast). Helps re
 ## Key Commands
 
 ```bash
+# Local full stack — app/ on :8000, /v1/* proxied to wrangler dev on :8787.
+# Single origin, so CSP connect-src 'self' covers the API and there is no CORS.
+./scripts/dev.sh
+./scripts/dev.sh --no-api        # frontend only
+
 # Unit tests (335 tests, 0 npm)
 node --test app/tests/geo.test.js
 
@@ -44,7 +49,7 @@ node --test app/tests/geo.test.js
 node --test workers/tests/
 
 # E2E tests (requires server + Playwright)
-python -m http.server 8000 &
+node scripts/dev-server.mjs --port=8000 --no-api &
 python -m pytest app/tests/e2e/ --base-url http://localhost:8000 -v
 
 # Regenerate region data (manual — EPA API)
