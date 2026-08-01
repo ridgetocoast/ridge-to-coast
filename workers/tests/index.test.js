@@ -35,6 +35,22 @@ test('router: /v1/subscribe is reachable and receives env', async () => {
   assert.equal(r.status, 503);
 });
 
+test('router: the API degrades gracefully with no D1 binding at all', async () => {
+  // Deployed environments have no d1_databases block until the databases are
+  // provisioned (see wrangler.toml). Until then /v1/subscribe must answer 503
+  // while every other endpoint keeps working — that is what makes it safe to
+  // ship the Worker ahead of the infrastructure.
+  const env = {}; // exactly what a deployed Worker sees with no binding
+
+  const subscribe = await dispatch('POST', '/v1/subscribe', env);
+  assert.equal(subscribe.status, 503, '/v1/subscribe should report unavailable');
+
+  for (const path of ['/', '/v1/calendar?zone=7b&month=4', '/v1/plants?region=piedmont']) {
+    const r = await dispatch('GET', path, env);
+    assert.equal(r.status, 200, `${path} must not be affected by the missing binding`);
+  }
+});
+
 test('router: GET /unknown returns 404', async () => {
   const r = await dispatch('GET', '/nope');
   assert.equal(r.status, 404);

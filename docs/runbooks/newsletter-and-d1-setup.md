@@ -15,7 +15,7 @@ is the usual cause of a green deploy that still 500s.
 
 | Value | Kind | Where it lives | Set by |
 |---|---|---|---|
-| `database_id` | non-secret | `wrangler.toml` `[[env.*.d1_databases]]` | human, from the Terraform output |
+| `database_id` | non-secret | `wrangler.toml` `[[env.*.d1_databases]]` — added in step 4, **after** the databases exist | human, from the Terraform output |
 | `SITE_ORIGIN`, `MAIL_FROM` | non-secret | `wrangler.toml` `[env.*] vars` | committed |
 | `NEWSLETTER_API_KEY` | **secret** | Worker secret, per environment | `wrangler secret put` |
 | `IP_HASH_SALT` | **secret** | Worker secret, per environment | `wrangler secret put` |
@@ -132,16 +132,25 @@ error that reads like a bad secret rather than a missing permission.
 
 ---
 
-## 4. Put the database ids in `wrangler.toml`
+## 4. Add the bindings to `wrangler.toml`
 
-`wrangler.toml` ships with `REPLACE_WITH_*_D1_ID` placeholders. After the apply:
+`wrangler.toml` deliberately ships with **no** `d1_databases` block for
+`production`, `preview`, or `alpha`. Cloudflare rejects a script upload whose
+binding names a database that does not exist:
+
+```
+binding DB of type d1 must have a valid `database_id` specified [code: 10021]
+```
+
+Because `deploy-workers-preview.yml` deploys the Worker on every pull request, a
+placeholder id there breaks the preview deploy for **every** PR, not just the one
+introducing it. So the binding is added only once the databases are real.
+
+Read the ids and add one block per environment:
 
 ```bash
 terraform output -json d1_database_ids
 ```
-
-Paste each id into the matching block. These are identifiers, not secrets — they
-belong in the committed file.
 
 ```toml
 [[env.production.d1_databases]]
@@ -150,7 +159,12 @@ database_name = "ridgetocoast-production"
 database_id = "<id from the output>"
 ```
 
-Leave `[env.dev]`'s `database_id` as `local-development-only`; `--local` ignores it.
+These are identifiers, not secrets — they belong in the committed file. Leave
+`[env.dev]` as-is; `--local` ignores its id and creates the store on demand.
+
+Until this step is done, `/v1/subscribe` answers 503 in deployed environments
+(`workers/subscribe.js` checks for the binding) and the other four endpoints are
+unaffected. Local dev is fully working the whole time.
 
 ---
 
@@ -239,8 +253,9 @@ so these curls need an allowlisted address.
 
 | Symptom | Cause |
 |---|---|
+| `binding DB of type d1 must have a valid database_id` (code 10021) | A `d1_databases` block names a database that does not exist. Either finish step 2 or remove the block — see step 4 |
 | Deploy fails with an authorization error mentioning bindings | Deploy token lacks D1 Edit — step 3 not applied yet |
-| `/v1/subscribe` returns 503 | No `DB` binding resolved: placeholder `database_id`, or the env block is missing |
+| `/v1/subscribe` returns 503 | No `DB` binding resolved: step 4 not done for that environment |
 | 202 but no mail arrives | `NEWSLETTER_API_KEY` unset for that environment — check the Worker log for the link |
 | 502 on signup | Provider rejected the send; the row is still pending. Check the key and the `MAIL_FROM` domain is verified |
 | Confirmation link 404s | `SITE_ORIGIN` points at a host that serves no static files |
