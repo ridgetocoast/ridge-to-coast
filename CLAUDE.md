@@ -37,6 +37,11 @@ Interactive ecological map of the eastern US corridor (Ridge to Coast). Helps re
 ## Key Commands
 
 ```bash
+# Local full stack — app/ on :8000, /v1/* proxied to wrangler dev on :8787.
+# Single origin, so CSP connect-src 'self' covers the API and there is no CORS.
+./scripts/dev.sh
+./scripts/dev.sh --no-api        # frontend only
+
 # Unit tests (335 tests, 0 npm)
 node --test app/tests/geo.test.js
 
@@ -44,7 +49,7 @@ node --test app/tests/geo.test.js
 node --test workers/tests/
 
 # E2E tests (requires server + Playwright)
-python -m http.server 8000 &
+node scripts/dev-server.mjs --port=8000 --no-api &
 python -m pytest app/tests/e2e/ --base-url http://localhost:8000 -v
 
 # Regenerate region data (manual — EPA API)
@@ -105,6 +110,26 @@ repo-level `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_PREVIEW_API_TOKEN`, and
 `CLOUDFLARE_ACCOUNT_ID` are retired by the Terraform apply — the workflows that
 still reference them must migrate to the environment-scoped secret in lockstep
 (pipeline sub-project). See `infra/terraform/README.md`.
+
+### Worker secrets — NOT GitHub secrets
+
+`/v1/subscribe` reads two secrets from the Worker environment. These live in
+Cloudflare against the Worker, set with `wrangler secret put --env <env>`. A
+GitHub secret would only reach the workflow, never the running Worker.
+
+| Secret | Purpose | Missing means |
+|---|---|---|
+| `NEWSLETTER_API_KEY` | Mail provider (Resend) API key | Signups record a pending row but the confirmation link is only logged — no mail is sent |
+| `IP_HASH_SALT` | Salts the stored consent hash | Hashes fall back to a fixed default; consent records are weaker |
+
+`SITE_ORIGIN` and `MAIL_FROM` are plain `[vars]` in `wrangler.toml`, and the D1
+`database_id`s are identifiers, not secrets — both belong in the committed file.
+
+Deploy tokens need **D1 Edit** to upload a Worker carrying a `d1_databases`
+binding. `tokens.tf` grants it; apply that before the first deploy with the
+binding, or CI fails with what looks like a bad-secret error.
+
+Full ordered setup: `docs/runbooks/newsletter-and-d1-setup.md`.
 
 ---
 

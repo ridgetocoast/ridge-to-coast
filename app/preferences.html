@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>Preferences — Ridge to Coast</title>
+  <meta name="description" content="View, change, export, and erase the map settings stored in this browser. Nothing here is sent to a server.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="preferences">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Tidewater · 20 ft</p>
+      <h1>Your settings</h1>
+      <p class="lede">
+        These live in this browser only. Nothing here is sent anywhere, there is no
+        account, and clearing your browser data erases all of it.
+      </p>
+
+      <p class="notice notice-info" id="storage-warning" hidden role="status">
+        This browser is blocking local storage, so these settings will last only until
+        you close the tab. Private browsing mode is the usual cause.
+      </p>
+
+      <form class="form" id="prefs-form">
+        <h2>Map layers</h2>
+        <p class="field-hint">Which layers are on when the map opens.</p>
+
+        <div class="field">
+          <label class="checkbox" for="pref-regions">
+            <input type="checkbox" id="pref-regions" data-pref="layers.regions">
+            <span>Region shading</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox" for="pref-fallline">
+            <input type="checkbox" id="pref-fallline" data-pref="layers.fallline">
+            <span>Fall line</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox" for="pref-cities">
+            <input type="checkbox" id="pref-cities" data-pref="layers.cities">
+            <span>City markers</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox" for="pref-hardiness">
+            <input type="checkbox" id="pref-hardiness" data-pref="layers.hardiness">
+            <span>Hardiness zones <span class="field-hint-inline">— adds a 3.9 MB download on open</span></span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox" for="pref-gardens">
+            <input type="checkbox" id="pref-gardens" data-pref="layers.gardens">
+            <span>Community gardens</span>
+          </label>
+        </div>
+
+        <h2>Location</h2>
+        <div class="field">
+          <span class="field-label">Home location</span>
+          <p class="field-hint" id="home-summary">Not set.</p>
+          <p class="field-hint">
+            When set, the map opens here instead of asking for your location. Set it from
+            any point on the map — click the map, then “Save as my home location”.
+          </p>
+          <div class="btn-row">
+            <button class="btn btn-quiet" type="button" id="clear-home">Clear home location</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pref-zone">Hardiness zone</label>
+          <select id="pref-zone" data-pref="zone">
+            <option value="">Work it out from the map</option>
+            <option value="3b">3b</option><option value="4a">4a</option><option value="4b">4b</option>
+            <option value="5a">5a</option><option value="5b">5b</option><option value="6a">6a</option>
+            <option value="6b">6b</option><option value="7a">7a</option><option value="7b">7b</option>
+            <option value="8a">8a</option><option value="8b">8b</option><option value="9a">9a</option>
+            <option value="9b">9b</option><option value="10a">10a</option>
+          </select>
+        </div>
+
+        <h2>Display</h2>
+        <div class="field">
+          <label for="pref-units">Temperature</label>
+          <select id="pref-units" data-pref="units">
+            <option value="F">Fahrenheit</option>
+            <option value="C">Celsius</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="checkbox" for="pref-legend">
+            <input type="checkbox" id="pref-legend" data-pref="legendCollapsed">
+            <span>Start with the legend collapsed</span>
+          </label>
+        </div>
+
+        <p class="notice notice-ok" id="saved-notice" hidden role="status">Saved.</p>
+      </form>
+
+      <hr>
+
+      <h2>Move or erase your settings</h2>
+      <p>
+        Copy the text below to carry these settings to another browser, or paste an
+        exported set in and apply it.
+      </p>
+      <div class="field">
+        <label for="prefs-json">Settings as JSON</label>
+        <textarea id="prefs-json" rows="12" spellcheck="false" aria-describedby="json-hint"></textarea>
+        <p class="field-hint" id="json-hint">Editing this box changes nothing until you select Apply.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn" type="button" id="apply-json">Apply pasted settings</button>
+        <button class="btn btn-quiet" type="button" id="reset-all">Erase all settings</button>
+      </div>
+      <p class="notice notice-error" id="json-error" hidden role="alert"></p>
+      <p class="notice notice-ok" id="json-ok" hidden role="status"></p>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+  <script src="lib/prefs.js"></script>
+  <script src="preferences.js"></script>
+</body>
+</html>

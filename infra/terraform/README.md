@@ -63,6 +63,38 @@ hand, never written by Terraform.
 8. Smoke a preview deploy to prove CI authenticates with the new token.
 9. **Delete `imports.tf` and commit** — imports are one-shot.
 
+## D1 — newsletter subscriber store
+
+`d1.tf` declares one database per environment (`production`, `preview`, `alpha`)
+for `/v1/subscribe`. Terraform owns the **databases**; `wrangler.toml` owns the
+**binding**, the same ownership split documented for Worker routes in
+`workers.tf`.
+
+Two things deliberately do not happen here:
+
+- **The schema is not applied by Terraform** — there is no D1 query resource.
+  Apply `infra/d1/schema.sql` with
+  `npx wrangler d1 execute DB --env <env> --remote --file infra/d1/schema.sql`.
+  It is idempotent.
+- **The database ids are not wired automatically.** Read them from the
+  `d1_database_ids` output after apply and paste them into the
+  `REPLACE_WITH_*_D1_ID` placeholders in `wrangler.toml`. They are identifiers,
+  not secrets.
+
+Both deploy tokens carry **D1 Edit**: Cloudflare rejects the upload of a Worker
+carrying a `d1_databases` binding from a token without it, and
+`wrangler d1 execute --remote` needs it. `audit-readonly` carries D1 Read so
+config audits can see the binding.
+
+Apply the token change **before** the first Worker deploy that includes the
+binding — otherwise CI fails with an authorization error that reads like a stale
+secret rather than a missing permission.
+
+`NEWSLETTER_API_KEY` and `IP_HASH_SALT` are Worker secrets, set with
+`wrangler secret put --env <env>`, not Terraform-managed and not GitHub secrets.
+
+Ordered setup: `docs/runbooks/newsletter-and-d1-setup.md`.
+
 ## Token rotation (no-gap guarantee — spec §4)
 
 One `time_rotating` (90 days). Each token: `not_before` = creation instant,

@@ -53,6 +53,12 @@
   <header class="app-header">
     <h1>Ridge to Coast</h1>
     <p class="subtitle">Appalachian Ridge &middot; Fall Line &middot; Piedmont &middot; Tidewater &middot; Atlantic Coast</p>
+    <nav class="app-nav" aria-label="Site">
+      <a href="about.html">About</a>
+      <a href="guides.html">Guides</a>
+      <a href="join.html">Join</a>
+      <a href="preferences.html">Settings</a>
+    </nav>
   </header>
 
   <div id="map" role="region" aria-label="Interactive map of the Appalachian watershed corridor from mountain ridge through the Fall Line — Peekskill NY, Philadelphia PA, DC, Richmond VA, Raleigh NC, Columbia SC, and Augusta GA to Columbus GA — to the Atlantic Coast"></div>
@@ -168,6 +174,12 @@
 
   <!-- Leaflet 1.9.4 — vendored locally, no CDN dependency -->
   <script src="lib/leaflet.js"></script>
+
+  <!-- API origin resolution — shared with the content pages; must load before map.js -->
+  <script src="lib/api-base.js"></script>
+
+  <!-- Device-local preferences — shared with preferences.html; before map.js -->
+  <script src="lib/prefs.js"></script>
 
   <!-- Pure geographic data core — shared between browser and Workers; no DOM, no Leaflet -->
   <script src="lib/geo-data-core.js"></script>

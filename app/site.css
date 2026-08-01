@@ -1,0 +1,531 @@
+/* ─────────────────────────────────────────────────────────────
+   site.css — shared chrome for the content pages
+   -------------------------------------------------------------
+   Loaded by about/guides/join/preferences/privacy and the opt-in
+   landing pages. index.html (the map) loads style.css instead;
+   that file sets `overflow: hidden` on body for the map viewport,
+   which content pages must not inherit.
+
+   No @import, no webfonts: the CSP is `default-src 'none'` with no
+   CDN allowed, so every face here is a system stack.
+
+   Colours are the app's real region palette lifted from style.css
+   (.swatch.* rules), so the pages read as the same product as the
+   map rather than a separate site.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Canvas — matches style.css so the map and the pages share a ground */
+  --bg:            #1a1a2e;
+  --surface:       #20243c;
+  --surface-raised:#272c48;
+  --line:          rgba(255, 255, 255, 0.10);
+  --line-strong:   rgba(255, 255, 255, 0.18);
+
+  /* Physiographic provinces, west → east. From the legend swatches. */
+  --ridge:  #4a7c59;  /* Blue Ridge */
+  --valley: #9b7aad;  /* Valley and Ridge */
+  --clay:   #c88232;  /* Piedmont — the primary accent */
+  --fall:   #e84393;  /* Fall Line */
+  --tide:   #4682dc;  /* Coastal Plain */
+  --upland: #4a9a8a;  /* New England Upland */
+
+  --text:      #eeeeee;
+  --text-dim:  #aaaaaa;
+  --text-faint:#777777;
+
+  --link:      #f0a75a;   /* clay, lifted for contrast on --bg */
+  --link-hover:#ffc98a;
+
+  /* A characterful serif for display: the vernacular of USGS surveys and
+     field guides, and available everywhere without a network request. */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
+                  "Book Antiqua", Georgia, serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 68ch;   /* comfortable reading column */
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  background: var(--bg);
+  /* Anchor links land below the sticky masthead instead of under it. */
+  scroll-padding-top: 5rem;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ─── Accessibility floor ───────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--clay);
+  color: #1a1a2e;
+  font-weight: 600;
+}
+.skip-link:focus { left: 0.5rem; top: 0.5rem; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ─── Masthead ──────────────────────────────────────────────── */
+
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(20, 20, 40, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead-inner {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 0.7rem var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.wordmark:hover { color: var(--link-hover); }
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  list-style: none;
+}
+
+.site-nav a {
+  display: inline-block;
+  padding: 0.15rem 0;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.site-nav a:hover { color: var(--text); border-bottom-color: var(--line-strong); }
+
+/* The current page is marked by [data-place] on <body>, so the nav markup
+   stays byte-identical across every page (asserted in app/tests/site.test.js). */
+body[data-place="about"]       .site-nav a[href="about.html"],
+body[data-place="guides"]      .site-nav a[href="guides.html"],
+body[data-place="join"]        .site-nav a[href="join.html"],
+body[data-place="preferences"] .site-nav a[href="preferences.html"] {
+  color: var(--text);
+  border-bottom-color: var(--clay);
+}
+
+/* ─── Signature: the ridge-to-coast transect ────────────────────
+   The site is a cross-section — high crystalline rock in the west,
+   the Fall Line where it meets soft coastal sediment, then tidewater.
+   The same SVG appears on every page; [data-place] moves the marker. */
+
+.transect {
+  position: relative;
+  width: 100%;
+  height: 58px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.22));
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+/* The SVG carries geometry only, stretched edge to edge. Labels are HTML on
+   top, so `preserveAspectRatio: none` cannot distort any text. */
+.transect-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.transect-profile {
+  fill: none;
+  stroke: var(--ridge);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.transect-fill { fill: rgba(74, 124, 89, 0.16); }
+
+.transect-fallline {
+  stroke: var(--fall);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+/* Stations sit at the same x-fractions as the features in the path above. */
+.transect-stations {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transect-stations li {
+  position: absolute;
+  bottom: 5px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+  opacity: 0.6;
+}
+
+/* Positions track the features in the path above. The sequence is the corridor
+   running *east* from the crest — the Great Appalachian Valley is west of the
+   Blue Ridge, so it is behind the viewer and deliberately not a station here. */
+.transect-stations [data-station="ridge"]     { left: 11%; }
+.transect-stations [data-station="piedmont"]  { left: 36%; }
+.transect-stations [data-station="fallline"]  { left: 55%; color: var(--fall); }
+.transect-stations [data-station="tidewater"] { left: 73%; }
+.transect-stations [data-station="coast"]     { left: 90%; }
+
+/* Light up the province this page sits in. */
+body[data-place="about"]       .transect [data-station="ridge"],
+body[data-place="guides"]      .transect [data-station="piedmont"],
+body[data-place="join"]        .transect [data-station="fallline"],
+body[data-place="preferences"] .transect [data-station="tidewater"],
+body[data-place="legal"]       .transect [data-station="coast"] {
+  color: var(--clay);
+  opacity: 1;
+}
+
+/* Below ~30rem the six labels collide; keep only the Fall Line, which is the
+   one that carries meaning. */
+@media (max-width: 30rem) {
+  .transect-stations li:not([data-station="fallline"]) { display: none; }
+}
+
+/* One motion moment on the page: the section line draws west to east. */
+@media (prefers-reduced-motion: no-preference) {
+  .transect-profile {
+    stroke-dasharray: 420;
+    stroke-dashoffset: 420;
+    animation: draw-transect 1.1s ease-out forwards;
+  }
+}
+@keyframes draw-transect { to { stroke-dashoffset: 0; } }
+
+/* ─── Page body ─────────────────────────────────────────────── */
+
+.page {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 3.5rem) var(--gutter) 4rem;
+}
+
+.prose { max-width: var(--measure); }
+
+/* Eyebrow: names the province, which is real information about where the
+   reader is in the corridor — not decorative numbering. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--clay);
+  margin-bottom: 0.75rem;
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 5vw, 2.9rem);
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
+  text-wrap: balance;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+  line-height: 1.25;
+  font-weight: 600;
+  margin: 2.5rem 0 0.75rem;
+  text-wrap: balance;
+}
+
+/* An h2 that introduces a full-width card grid still reads as prose, so give it
+   the reading measure even though its section is not inside .prose. */
+.page > h2 { max-width: var(--measure); }
+
+h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 1.75rem 0 0.4rem;
+}
+
+.lede {
+  font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+  line-height: 1.55;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+p { margin-bottom: 1rem; }
+.prose ul, .prose ol { margin: 0 0 1rem 1.25rem; }
+.prose li { margin-bottom: 0.4rem; }
+
+a { color: var(--link); text-decoration: underline; text-underline-offset: 0.15em; }
+a:hover { color: var(--link-hover); }
+
+strong { font-weight: 650; color: #fff; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2.5rem 0;
+}
+
+/* ─── Cards / listings ──────────────────────────────────────── */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: block;
+  padding: 1.1rem 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--province, var(--line-strong));
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Province accents. Classes rather than inline style="--province: …" because
+   the content-page CSP is `style-src 'self'` with no 'unsafe-inline', which
+   blocks style attributes as well as <style> blocks. */
+.province-valley    { --province: #9b7aad; }
+.province-ridge     { --province: #4a7c59; }
+.province-piedmont  { --province: #c88232; }
+.province-fall      { --province: #e84393; }
+.province-tide      { --province: #4682dc; }
+.province-upland    { --province: #4a9a8a; }
+.province-necoastal { --province: #6baed6; }
+.province-lakes     { --province: #4a7ab5; }
+.province-lowlands  { --province: #8a7d4a; }
+a.card:hover { background: var(--surface-raised); border-color: var(--line-strong); }
+
+.card h3 { margin: 0 0 0.3rem; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+.card p  { margin: 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.5; }
+
+.card-meta {
+  display: block;
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ─── Forms ─────────────────────────────────────────────────── */
+
+.form { max-width: 34rem; margin-top: 1.5rem; }
+
+.field { margin-bottom: 1.15rem; }
+
+/* :not(.checkbox) matters — a bare `.field label` rule (specificity 0,1,1)
+   outranks `.checkbox` (0,1,0) and would silently cancel its display:grid and
+   force its text bold. */
+.field > label:not(.checkbox),
+.field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.field-hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
+.field-hint-inline { font-weight: 400; color: var(--text-faint); }
+
+input[type="email"],
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: #161a2c;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--clay); }
+
+.checkbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+.checkbox input { margin-top: 0.25rem; accent-color: var(--clay); }
+
+/* Honeypot: hidden from people, reachable by naive bots. Not display:none —
+   some bots skip those. Kept out of the tab order and the a11y tree. */
+.trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.4rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #14182a;
+  background: var(--clay);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn:hover { background: var(--link-hover); color: #14182a; }
+.btn:disabled { opacity: 0.55; cursor: progress; }
+
+.btn-quiet {
+  color: var(--text-dim);
+  background: transparent;
+  border-color: var(--line-strong);
+}
+.btn-quiet:hover { color: var(--text); background: var(--surface-raised); }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
+
+/* ─── Status messages ───────────────────────────────────────── */
+
+.notice {
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+  border-radius: 5px;
+  border-left: 3px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.notice[hidden] { display: none; }
+.notice-ok    { border-left-color: var(--ridge); }
+.notice-error { border-left-color: #f87171; }
+.notice-info  { border-left-color: var(--tide); }
+
+/* ─── Definition-style data rows ────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: 0.5rem 1.25rem;
+  margin: 1.25rem 0;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.facts dt { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+.facts dd { color: var(--text-dim); }
+
+/* ─── Footer ────────────────────────────────────────────────── */
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 3rem;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.site-footer-inner {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+.site-footer ul { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; list-style: none; }
+.site-footer a { color: var(--text-dim); text-decoration: none; }
+.site-footer a:hover { color: var(--text); text-decoration: underline; }
+.site-footer p { margin: 0; max-width: 32rem; line-height: 1.5; }
+
+/* ─── Narrow screens ────────────────────────────────────────── */
+
+@media (max-width: 34rem) {
+  .masthead-inner { gap: 0.4rem 1rem; }
+  .site-nav ul { gap: 0.25rem 0.9rem; }
+  .transect { height: 44px; }
+  .facts { grid-template-columns: 1fr; gap: 0.15rem; }
+  .facts dd { margin-bottom: 0.6rem; }
+}

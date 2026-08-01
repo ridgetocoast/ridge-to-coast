@@ -1,0 +1,11 @@
+# Wrangler's local state — miniflare's D1 SQLite store, caches, and dev logs.
+# Created by `wrangler dev --local` (scripts/dev.sh). Never commit it.
+.wrangler/
+
+# Local Worker secrets for `wrangler dev` — may hold a live mail-provider key.
+# Deployed environments use `wrangler secret put` instead.
+.dev.vars
+.dev.vars.*
+
+# macOS
+.DS_Store

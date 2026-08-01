@@ -3,17 +3,64 @@ main = "workers/index.js"
 compatibility_date = "2024-01-01"
 account_id = "c378aeb8ad614074b3a5e541a4788993"
 
+# ── D1 binding for /v1/subscribe — deployed environments ──────────────────────
+#
+# Deliberately NOT declared for production/preview/alpha yet. Cloudflare rejects
+# a script upload whose d1_databases binding names a database that does not
+# exist ("binding DB of type d1 must have a valid `database_id`", code 10021),
+# so committing a placeholder id breaks the preview deploy on EVERY pull
+# request, not just this one.
+#
+# Until the databases are provisioned, /v1/subscribe answers 503 in deployed
+# environments — workers/subscribe.js checks for the binding — and the other
+# four endpoints are unaffected.
+#
+# To enable, in this order (see docs/runbooks/newsletter-and-d1-setup.md):
+#   1. Apply infra/terraform/d1.tf, which also grants the deploy tokens D1 Edit.
+#   2. Read `terraform output -json d1_database_ids`.
+#   3. Add a block per environment with the real id, e.g.
+#
+#        [[env.production.d1_databases]]
+#        binding = "DB"
+#        database_name = "ridgetocoast-production"
+#        database_id = "<id from the output>"
+#
+#   4. npx wrangler d1 execute DB --env <env> --remote --file infra/d1/schema.sql
+#   5. npx wrangler secret put NEWSLETTER_API_KEY --env <env>   (and IP_HASH_SALT)
+#
+# NEWSLETTER_API_KEY and IP_HASH_SALT are secrets and never belong in this file.
+
 [env.production]
 routes = [
   { pattern = "api.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
 ]
+vars = { SITE_ORIGIN = "https://ridgetocoast.com", MAIL_FROM = "Ridge to Coast <notes@ridgetocoast.com>" }
 
 [env.preview]
 routes = [
   { pattern = "preprod.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
 ]
+vars = { SITE_ORIGIN = "https://preprod.ridgetocoast.com", MAIL_FROM = "Ridge to Coast (preprod) <notes@ridgetocoast.com>" }
 
 [env.alpha]
 routes = [
   { pattern = "alpha.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
 ]
+vars = { SITE_ORIGIN = "https://alpha.ridgetocoast.com", MAIL_FROM = "Ridge to Coast (alpha) <notes@ridgetocoast.com>" }
+
+# Local development only — `wrangler dev --env dev --local`. Deliberately has no
+# `routes`, so it can never be deployed to a hostname. scripts/dev.sh runs it and
+# scripts/dev-server.mjs proxies /v1/* to it.
+#
+# The binding is safe here because --local creates the SQLite store on demand and
+# never contacts the Cloudflare API.
+#
+# SITE_ORIGIN is unset on purpose: subscribe.js then builds confirmation links
+# from the requesting origin, so they point back at the dev server.
+[env.dev]
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "ridgetocoast-dev"
+# Ignored by --local, which keeps its SQLite store under .wrangler/.
+database_id = "local-development-only"

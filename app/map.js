@@ -15,15 +15,20 @@ if (typeof L === 'undefined') {
 if (typeof window.GeoData === 'undefined') {
   throw new Error('lib/geo-data.js failed to load');
 }
+if (typeof window.API_BASE === 'undefined') {
+  throw new Error('lib/api-base.js failed to load');
+}
+if (typeof window.Prefs === 'undefined') {
+  throw new Error('lib/prefs.js failed to load');
+}
 
 var gd = window.GeoData;
+var prefs = window.Prefs;
 
-var API_BASE = (function () {
-  var h = window.location.hostname;
-  if (h === 'ridgetocoast.com' || h === 'www.ridgetocoast.com') return 'https://api.ridgetocoast.com';
-  if (h === 'alpha.ridgetocoast.com') return 'https://alpha.ridgetocoast.com';
-  return 'https://preprod.ridgetocoast.com';
-}());
+// Resolved in lib/api-base.js, which the content pages share. Empty string on
+// localhost — scripts/dev-server.mjs proxies /v1/* to a local wrangler dev, so
+// API calls stay same-origin in development.
+var API_BASE = window.API_BASE;
 
 var detailRenderToken = 0;
 var lastInteractiveLayerClickAt = 0;
@@ -458,11 +463,67 @@ function navigate(hash) {
       hydrateZoneFrostAdvisory(zoneRoute.lat, zoneRoute.lon, renderToken, hash);
     } else if (type === 'location' && locationRegion && locationZone) {
       hydrateSeasonalCard(lat, lon, locationRegion, locationZone, renderToken);
+      appendHomeLocationControl(lat, lon);
     }
   } else {
     clearWatershedHighlight();
     showMapView();
   }
+}
+
+/**
+ * Add a "save this as my home location" control to the location detail page.
+ * Built with DOM calls rather than an HTML string so the coordinates can never
+ * be interpolated into markup.
+ */
+function appendHomeLocationControl(lat, lon) {
+  var article = detailContentEl.querySelector('.detail-page') || detailContentEl;
+
+  var wrap = document.createElement('div');
+  wrap.className = 'home-location-control';
+
+  var button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'home-location-btn';
+
+  var status = document.createElement('p');
+  status.className = 'home-location-status';
+
+  function render() {
+    var home = prefs.get('home');
+    var isHome = !!home
+      && Math.abs(home.lat - lat) < 0.0001
+      && Math.abs(home.lon - lon) < 0.0001;
+
+    button.textContent = isHome ? 'Clear my home location' : 'Save as my home location';
+    status.textContent = isHome
+      ? 'The map opens here.'
+      : (home ? 'Your home location is set elsewhere.' : 'Not set — the map asks for your location instead.');
+  }
+
+  button.addEventListener('click', function () {
+    var home = prefs.get('home');
+    var isHome = !!home
+      && Math.abs(home.lat - lat) < 0.0001
+      && Math.abs(home.lon - lon) < 0.0001;
+
+    if (isHome) {
+      prefs.set('home', null);
+    } else {
+      var nearest = gd.nearestCorridorCity(lat, lon);
+      prefs.set('home', {
+        lat: lat,
+        lon: lon,
+        label: nearest ? 'near ' + nearest.name : '',
+      });
+    }
+    render();
+  });
+
+  render();
+  wrap.appendChild(button);
+  wrap.appendChild(status);
+  article.appendChild(wrap);
 }
 
 window.addEventListener('hashchange', function () { navigate(location.hash); });
@@ -970,23 +1031,65 @@ document.getElementById('toggle-gardens').addEventListener('change', function ()
 
 
 
-/* ─── Legend collapse / expand ──────────────────────────────── */
+/* ─── Saved layer preferences ───────────────────────
+   Restore the reader's last layer choices, then persist any change. This runs
+   after the toggle handlers above are attached, so dispatching a change event
+   actually adds or removes the layer. */
+
+var LAYER_TOGGLE_IDS = {
+  regions:   'toggle-regions',
+  fallline:  'toggle-fallline',
+  cities:    'toggle-cities',
+  hardiness: 'toggle-hardiness',
+  gardens:   'toggle-gardens',
+};
+
+(function wireLayerPrefs() {
+  var saved = prefs.get('layers') || {};
+
+  Object.keys(LAYER_TOGGLE_IDS).forEach(function (key) {
+    var el = document.getElementById(LAYER_TOGGLE_IDS[key]);
+    if (!el || typeof saved[key] !== 'boolean' || el.checked === saved[key]) return;
+    el.checked = saved[key];
+    // Setting .checked programmatically does not fire 'change', and those
+    // handlers are what actually add or remove the layer.
+    el.dispatchEvent(new Event('change'));
+  });
+
+  Object.keys(LAYER_TOGGLE_IDS).forEach(function (key) {
+    var el = document.getElementById(LAYER_TOGGLE_IDS[key]);
+    if (!el) return;
+    el.addEventListener('change', function () {
+      prefs.set('layers.' + key, el.checked);
+    });
+  });
+}());
+
+
+/* ─── Legend collapse / expand ─────────────────────── */
 
 var legendBody   = document.getElementById('legend-body');
 var legendToggle = document.getElementById('legend-toggle');
 
-// Mobile (≤600px): start collapsed to maximise map visibility
-if (window.innerWidth <= 600) {
-  legendBody.hidden = true;
-  legendToggle.setAttribute('aria-expanded', 'false');
-  legendToggle.textContent = '\u25B8'; // ▸
+function setLegendCollapsed(collapsed) {
+  legendBody.hidden = collapsed;
+  legendToggle.setAttribute('aria-expanded', String(!collapsed));
+  legendToggle.textContent = collapsed ? '\u25B8' : '\u25BE'; // ▸ or ▾
+}
+
+// An explicit saved choice wins. With none (null), fall back to collapsing on
+// mobile (≤600px) to maximise map area.
+var savedLegendCollapsed = prefs.get('legendCollapsed');
+if (typeof savedLegendCollapsed === 'boolean') {
+  setLegendCollapsed(savedLegendCollapsed);
+} else if (window.innerWidth <= 600) {
+  setLegendCollapsed(true);
 }
 
 legendToggle.addEventListener('click', function () {
-  var collapsed = legendBody.hidden;
-  legendBody.hidden = !collapsed;
-  legendToggle.setAttribute('aria-expanded', String(collapsed));
-  legendToggle.textContent = collapsed ? '\u25BE' : '\u25B8'; // ▾ or ▸
+  var nowCollapsed = !legendBody.hidden;
+  setLegendCollapsed(nowCollapsed);
+  prefs.set('legendCollapsed', nowCollapsed);
 });
 
 
@@ -1065,12 +1168,22 @@ map.on('click', function (e) {
 });
 
 
-/* ─── Initial viewport — geolocate → nearest city, else random corridor window ── */
+/* ─── Initial viewport ──────────────────────────────────────────
+   Saved home location → geolocate to nearest city → random corridor window.
+   A saved home wins outright: the reader has already told us where they are,
+   so there is no reason to prompt for location permission again. */
 (function initMapView() {
   function useFallback() {
     var view = gd.pickFallbackView();
     map.setView(view.center, view.zoom);
   }
+
+  var home = prefs.get('home');
+  if (home) {
+    map.setView([home.lat, home.lon], 10);
+    return;
+  }
+
   if (!navigator.geolocation) {
     useFallback();
     return;

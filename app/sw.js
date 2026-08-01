@@ -1,24 +1,47 @@
 'use strict';
 
-var CACHE_NAME = 'ridge-to-coast-v1';
+// Bumped to v2 when the content pages landed. The activate handler deletes every
+// cache whose name is not this one, so the stale v1 entries are evicted.
+var CACHE_NAME = 'ridge-to-coast-v2';
 var OFFLINE_FALLBACK_URL = '/';
 var PRECACHE_URLS = [
   '/',
   '/index.html',
   '/style.css',
+  '/site.css',
   '/map.js',
+  '/join.js',
+  '/preferences.js',
   '/manifest.json',
   '/assets/icon.svg',
   '/lib/leaflet.css',
   '/lib/leaflet.js',
+  '/lib/api-base.js',
+  '/lib/prefs.js',
   '/lib/geo-data.js',
   '/data/regions.geojson',
   '/data/hardiness.geojson',
-  '/data/planting-calendar.js'
+  '/data/planting-calendar.js',
+  '/about.html',
+  '/guides.html',
+  '/join.html',
+  '/preferences.html',
+  '/privacy.html'
 ];
 
 function isCacheableResponse(response) {
   return !!response && response.ok && response.type !== 'opaque';
+}
+
+/**
+ * Navigations allowed to overwrite the offline fallback slot.
+ *
+ * Previously every navigation was written to OFFLINE_FALLBACK_URL ('/'), so as
+ * soon as a second page existed, visiting /about.html replaced the cached
+ * homepage with About's markup — and an offline visitor to '/' got About.
+ */
+function isFallbackDocument(url) {
+  return url.pathname === '/' || url.pathname === '/index.html';
 }
 
 function isManagedSameOriginRequest(url) {
@@ -26,20 +49,7 @@ function isManagedSameOriginRequest(url) {
     return false;
   }
 
-  return (
-    url.pathname === '/' ||
-    url.pathname === '/index.html' ||
-    url.pathname === '/style.css' ||
-    url.pathname === '/map.js' ||
-    url.pathname === '/manifest.json' ||
-    url.pathname === '/assets/icon.svg' ||
-    url.pathname === '/lib/leaflet.css' ||
-    url.pathname === '/lib/leaflet.js' ||
-    url.pathname === '/lib/geo-data.js' ||
-    url.pathname === '/data/regions.geojson' ||
-    url.pathname === '/data/hardiness.geojson' ||
-    url.pathname === '/data/planting-calendar.js'
-  );
+  return PRECACHE_URLS.indexOf(url.pathname) !== -1;
 }
 
 self.addEventListener('install', function (event) {
@@ -89,13 +99,23 @@ self.addEventListener('fetch', function (event) {
           if (isCacheableResponse(response)) {
             var responseClone = response.clone();
             caches.open(CACHE_NAME).then(function (cache) {
-              cache.put(OFFLINE_FALLBACK_URL, responseClone);
+              // Refresh the page's own entry when we manage it, and only let
+              // the homepage refresh the offline fallback slot.
+              if (isManagedSameOriginRequest(requestUrl)) {
+                cache.put(event.request, responseClone.clone());
+              }
+              if (isFallbackDocument(requestUrl)) {
+                cache.put(OFFLINE_FALLBACK_URL, responseClone);
+              }
             });
           }
           return response;
         })
         .catch(function () {
-          return caches.match(OFFLINE_FALLBACK_URL);
+          // Offline: prefer this page if we have it, else the homepage shell.
+          return caches.match(event.request).then(function (cached) {
+            return cached || caches.match(OFFLINE_FALLBACK_URL);
+          });
         })
     );
     return;

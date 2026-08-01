@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>About — Ridge to Coast</title>
+  <meta name="description" content="Why the Fall Line matters, where the corridor runs, and where Ridge to Coast gets its ecoregion, hardiness, streamflow, and observation data.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="about">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Blue Ridge · 3,000 ft</p>
+      <h1>One slope, seven hundred miles</h1>
+      <p class="lede">
+        Everything east of the Appalachian crest drains the same direction. Ridge to
+        Coast follows that slope — through hard crystalline rock, across the Fall
+        Line, and out over the sediment of the coastal plain — and tells you what it
+        means for the ground you actually stand on.
+      </p>
+
+      <h2>The Fall Line is the whole story</h2>
+      <p>
+        Run a finger down the map from Peekskill through Philadelphia, Washington,
+        Richmond, Raleigh, Columbia, and Augusta. Those cities sit on a line, and it
+        is not a coincidence. It is where the ancient hard rock of the Piedmont meets
+        the soft sediment of the coastal plain. Rivers crossing that seam drop over
+        rapids — which stopped boats, and turned mills.
+      </p>
+      <p>
+        Every one of those cities was founded at the head of navigation, at the last
+        point a ship could reach and the first point a river could do work. Two
+        hundred years later the seam still decides your soil, your drainage, and how
+        early your ground warms in spring.
+      </p>
+      <p>
+        <a href="index.html#detail/fallline">Open the Fall Line on the map →</a>
+      </p>
+
+      <h2>What the map tells you</h2>
+      <ul>
+        <li><strong>Where you are, ecologically.</strong> EPA Level III ecoregion, physiographic province, and the nearest corridor city.</li>
+        <li><strong>What will survive.</strong> USDA hardiness zone at your location, with native plants and invasive species for your region.</li>
+        <li><strong>When to plant.</strong> A month-by-month calendar for your zone, plus live frost advisories from the National Weather Service.</li>
+        <li><strong>What the water is doing.</strong> Current USGS streamflow on the rivers near you.</li>
+        <li><strong>What is out there right now.</strong> Recent iNaturalist observations in your ecoregion.</li>
+      </ul>
+
+      <h2>Who it is for</h2>
+      <p>
+        Gardeners deciding what to put in the ground this month. Growers reading frost
+        risk. Arborists matching species to site. Watershed stewards and conservation
+        volunteers who need to know which side of the seam a parcel sits on. Anyone
+        who has wondered why the soil changes halfway across their county.
+      </p>
+
+      <h2>Where the data comes from</h2>
+      <dl class="facts">
+        <dt>Ecoregions</dt>
+        <dd>US EPA Level III ecoregions, refreshed from the EPA's published dataset.</dd>
+        <dt>Hardiness</dt>
+        <dd>USDA Plant Hardiness Zone Map, zones 3b–10a across 22 states.</dd>
+        <dt>Fall Line</dt>
+        <dd>Hand-traced from published USGS surveys. Approximate by nature — it is a transition, not a fence.</dd>
+        <dt>Frost</dt>
+        <dd>National Weather Service advisories, fetched live for your location.</dd>
+        <dt>Streamflow</dt>
+        <dd>USGS Water Services, current gauge readings.</dd>
+        <dt>Observations</dt>
+        <dd>iNaturalist, recent research-grade records per ecoregion.</dd>
+        <dt>Basemap</dt>
+        <dd>OpenStreetMap contributors, rendered by CARTO. Community gardens from OpenStreetMap.</dd>
+      </dl>
+
+      <h2>How it is built</h2>
+      <p>
+        The map is a static page. No tracking, no analytics, no accounts, no
+        third-party scripts — the content security policy blocks them outright.
+        Your saved settings stay in your own browser and are never sent anywhere;
+        you can read and erase all of them on the
+        <a href="preferences.html">preferences page</a>.
+      </p>
+      <p>
+        Live data is fetched straight from the public agencies that publish it, or
+        through a thin caching API that exists only to be polite to those services.
+      </p>
+
+      <hr>
+
+      <h2>Get the monthly note</h2>
+      <p>
+        One email a month: what to plant in your zone, what is running in the rivers,
+        and what people are finding out there. No tracking pixels, unsubscribe in one
+        click.
+      </p>
+      <p><a class="btn" href="join.html">Join the list</a></p>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+</body>
+</html>

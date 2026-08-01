@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Content pages carry a tighter policy than the map: no basemap tiles, no
+       geocoder, no NWS/USGS/iNaturalist. Only the Workers API is reachable, and
+       only from the pages that actually call it. form-action stays 'none' —
+       every form here submits through fetch(), never a native POST. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.ridgetocoast.com https://preprod.ridgetocoast.com https://alpha.ridgetocoast.com; manifest-src 'self'; base-uri 'self'; form-action 'none';">
+
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="theme-color" content="#12171f">
+
+  <title>Guides — Ridge to Coast</title>
+  <meta name="description" content="Start here: the physiographic provinces of the eastern corridor, from the Blue Ridge across the Fall Line to the Atlantic coast, each opening on the map.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body data-place="guides">
+
+  <!-- SITE-CHROME:HEADER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <a class="wordmark" href="index.html">Ridge to Coast</a>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <div class="transect" role="img" aria-label="Cross-section of the corridor: the Appalachian ridge in the west, down across the Fall Line, out to the Atlantic coast">
+    <svg class="transect-svg" viewBox="0 0 320 58" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path class="transect-fill" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47 L320,58 L0,58 Z"/>
+      <path class="transect-profile" d="M0,31 L18,23 L34,13 L52,21 L70,15 L92,27 L112,23 L134,33 L156,37 L176,41 L210,44 L250,46 L290,47 L320,47"/>
+      <line class="transect-fallline" x1="176" y1="0" x2="176" y2="58"/>
+    </svg>
+    <ol class="transect-stations">
+      <li data-station="ridge">Ridge</li>
+      <li data-station="piedmont">Piedmont</li>
+      <li data-station="fallline">Fall Line</li>
+      <li data-station="tidewater">Tidewater</li>
+      <li data-station="coast">Coast</li>
+    </ol>
+  </div>
+  <!-- SITE-CHROME:HEADER:END -->
+
+  <main id="main" class="page">
+    <div class="prose">
+      <p class="eyebrow">Piedmont · 500 ft</p>
+      <h1>Read the corridor, west to east</h1>
+      <p class="lede">
+        Ten provinces, in the order you would cross them driving from the mountains to
+        the sea. Each one opens on the map with its native plants, soils, invasive
+        species, and planting calendar.
+      </p>
+    </div>
+
+    <h2>Along the transect</h2>
+    <ul class="card-grid">
+      <li>
+        <a class="card province-valley" href="index.html#detail/region/valleyRidge">
+          <h3>Valley and Ridge</h3>
+          <p>Long parallel folds of the Great Appalachian Valley. Limestone valleys, sandstone ridges, and the sharpest soil changes over the shortest distances anywhere in the corridor.</p>
+          <span class="card-meta">West of the crest</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-ridge" href="index.html#detail/region/blueRidge">
+          <h3>Blue Ridge</h3>
+          <p>The crest itself. Ancient metamorphic rock, thin acidic soils, the coldest hardiness zones in the corridor, and the headwaters for nearly every river below.</p>
+          <span class="card-meta">Ridge · zones 5b–7a</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-piedmont" href="index.html#detail/region/piedmont">
+          <h3>Piedmont</h3>
+          <p>Rolling clay country between the mountains and the seam. Red soils heavy with iron, gentle relief, and the longest growing season you can get without sand.</p>
+          <span class="card-meta">Foot of the mountain</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-fall" href="index.html#detail/fallline">
+          <h3>The Fall Line</h3>
+          <p>Where hard rock meets soft sediment and the rivers drop. The reason a dozen cities sit where they do — and the sharpest ecological boundary you will cross.</p>
+          <span class="card-meta">The seam</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-tide" href="index.html#detail/region/coastal">
+          <h3>Coastal Plain</h3>
+          <p>Tidewater. Sand and marine clay laid down by an ocean that used to be here, flat drainage, high water tables, and the mildest winters in the corridor.</p>
+          <span class="card-meta">Tidewater · zones 7b–9a</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-tide" href="index.html#detail/region/gulfCoastal">
+          <h3>Gulf Coastal Plain</h3>
+          <p>The corridor's southwestern arm, running out past Columbus. Deep sands, longleaf pine country, and the longest frost-free window on the map.</p>
+          <span class="card-meta">Southwest arm</span>
+        </a>
+      </li>
+    </ul>
+
+    <h2>Northern reach</h2>
+    <ul class="card-grid">
+      <li>
+        <a class="card province-upland" href="index.html#detail/region/neUpland">
+          <h3>New England Upland</h3>
+          <p>Glaciated hills and stony till north of the Hudson. Boulders in every field, short seasons, and soils built by ice rather than weathering.</p>
+          <span class="card-meta">Glaciated</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-necoastal" href="index.html#detail/region/neCoastal">
+          <h3>New England Coastal Lowland</h3>
+          <p>The narrow maritime strip. Ocean-moderated winters, salt exposure, and a growing season that runs later into autumn than anything inland at the same latitude.</p>
+          <span class="card-meta">Maritime</span>
+        </a>
+      </li>
+    </ul>
+
+    <h2>West of the divide</h2>
+    <ul class="card-grid">
+      <li>
+        <a class="card province-lakes" href="index.html#detail/region/greatLakes">
+          <h3>Great Lakes Basin</h3>
+          <p>Lake-effect country. Deep winter snow that insulates roots, a late spring, and the lake moderation that makes fruit growing possible this far north.</p>
+          <span class="card-meta">Lake-moderated</span>
+        </a>
+      </li>
+      <li>
+        <a class="card province-lowlands" href="index.html#detail/region/interiorLowlands">
+          <h3>Interior Lowlands &amp; Ohio Valley</h3>
+          <p>Beyond the crest, draining the other way. Deep fertile soils, broad river bottoms, and the corridor's most productive agricultural ground.</p>
+          <span class="card-meta">West-draining</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="prose">
+      <h2>Or start where you are</h2>
+      <p>
+        Open the map and search a zip code, or let it find you. You will get your
+        ecoregion, hardiness zone, nearest corridor city, current frost risk, and what
+        to plant this month.
+      </p>
+      <p class="btn-row">
+        <a class="btn" href="index.html">Open the map</a>
+        <a class="btn btn-quiet" href="join.html">Get the monthly note</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- SITE-CHROME:FOOTER:START — byte-identical on every page (app/tests/site.test.js) -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>
+        Ridge to Coast maps the eastern corridor from the Appalachian ridge across the
+        Fall Line to the Atlantic. Ecoregions from the US EPA, hardiness zones from the
+        USDA, basemap by OpenStreetMap contributors and CARTO.
+      </p>
+      <nav aria-label="Footer">
+        <ul>
+          <li><a href="index.html">Map</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="join.html">Join</a></li>
+          <li><a href="preferences.html">Preferences</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <!-- SITE-CHROME:FOOTER:END -->
+
+</body>
+</html>

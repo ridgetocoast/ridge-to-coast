@@ -42,6 +42,32 @@ html, body {
   margin-left: 8px;
 }
 
+/* Links out to the content pages (about/guides/join/preferences).
+   Absolutely positioned so the header keeps its 48px height — #map is offset by
+   exactly that much below. Note the map page deliberately does NOT load
+   site.css: its global body typography would leak into Leaflet popups. */
+.app-nav {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 14px;
+}
+
+.app-nav a {
+  font-size: 0.78rem;
+  color: #aaa;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-nav a:hover,
+.app-nav a:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
 #map {
   position: fixed;
   top: 48px;   /* below header */
@@ -543,6 +569,12 @@ html, body {
   .app-header h1        { font-size: 1rem; }
   .app-header .subtitle { display: none; }
 
+  /* The subtitle is gone here, so the nav has room; tighten it and drop the
+     longest label rather than letting it wrap and grow the header. */
+  .app-nav { right: 10px; gap: 10px; }
+  .app-nav a { font-size: 0.72rem; }
+  .app-nav a[href="guides.html"] { display: none; }
+
   /* Right-anchored compact panel — NOT full-width */
   #legend {
     bottom: 66px;       /* 56px search bar + 10px gap */
@@ -803,6 +835,38 @@ html, body {
 
 .leaflet-control-attribution {
   display: none; /* attribution shown in our custom panel */
+}
+
+
+/* ─── Home location control (location detail page) ──────────── */
+
+.home-location-control {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.home-location-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  color: #eee;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.home-location-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.home-location-status {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  color: #888;
 }
 
 
