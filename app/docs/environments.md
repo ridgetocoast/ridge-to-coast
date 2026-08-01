@@ -57,7 +57,13 @@ npx wrangler d1 execute DB --env dev --local \
 
 With no `NEWSLETTER_API_KEY` set, `workers/mailer.js` logs the confirmation link
 to the wrangler output instead of calling a provider — that is what makes the
-whole double opt-in flow testable offline.
+whole double opt-in flow testable offline. To exercise the real provider
+locally, put the key in a gitignored `.dev.vars` at the repo root; wrangler
+loads it automatically for `wrangler dev`.
+
+For the full ordered path — creating the databases, wiring the ids into
+`wrangler.toml`, applying the schema remotely, and setting the per-environment
+Worker secrets — see `docs/runbooks/newsletter-and-d1-setup.md`.
 
 ## Deploy flow
 

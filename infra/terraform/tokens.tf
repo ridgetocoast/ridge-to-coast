@@ -48,6 +48,20 @@ data "cloudflare_account_api_token_permission_groups_list" "dns_read" {
   name       = "DNS%20Read"
 }
 
+# D1 backs /v1/subscribe. Deploying a Worker that carries a `d1_databases`
+# binding requires D1 Edit on the deploy token — Cloudflare rejects the script
+# upload otherwise — and `wrangler d1 execute --remote` needs it to apply
+# infra/d1/schema.sql. Without this the newsletter cannot ship.
+data "cloudflare_account_api_token_permission_groups_list" "d1_edit" {
+  account_id = var.cloudflare_account_id
+  name       = "D1%20Edit"
+}
+
+data "cloudflare_account_api_token_permission_groups_list" "d1_read" {
+  account_id = var.cloudflare_account_id
+  name       = "D1%20Read"
+}
+
 # Exact-name match per permission group. The data source name filter is substring-based,
 # so `result[0].id` can silently pick the wrong group (e.g. "DNS Read" vs "DNS Firewall Read").
 # `one(filter)` returns the single id or errors at plan time on 0/multiple matches.
@@ -59,6 +73,8 @@ locals {
   pg_workers_routes_read   = one([for g in data.cloudflare_account_api_token_permission_groups_list.workers_routes_read.result : g.id if g.name == "Workers Routes Read"])
   pg_pages_read            = one([for g in data.cloudflare_account_api_token_permission_groups_list.pages_read.result : g.id if g.name == "Pages Read"])
   pg_dns_read              = one([for g in data.cloudflare_account_api_token_permission_groups_list.dns_read.result : g.id if g.name == "DNS Read"])
+  pg_d1_edit               = one([for g in data.cloudflare_account_api_token_permission_groups_list.d1_edit.result : g.id if g.name == "D1 Edit"])
+  pg_d1_read               = one([for g in data.cloudflare_account_api_token_permission_groups_list.d1_read.result : g.id if g.name == "D1 Read"])
 }
 
 # ---- Rotation clock (spec §4) ----
@@ -88,6 +104,7 @@ resource "cloudflare_account_token" "production_deploy" {
       { id = local.pg_workers_scripts_write },
       { id = local.pg_workers_routes_write },
       { id = local.pg_pages_write },
+      { id = local.pg_d1_edit },
     ]
     resources = local.res_account
   }]
@@ -110,6 +127,7 @@ resource "cloudflare_account_token" "nonprod_deploy" {
     permission_groups = [
       { id = local.pg_workers_scripts_write },
       { id = local.pg_workers_routes_write },
+      { id = local.pg_d1_edit },
     ]
     resources = local.res_account
   }]
@@ -134,6 +152,7 @@ resource "cloudflare_account_token" "audit_readonly" {
         { id = local.pg_workers_routes_read },
         { id = local.pg_workers_scripts_read },
         { id = local.pg_pages_read },
+        { id = local.pg_d1_read },
       ]
       resources = local.res_account
     },
