@@ -5,11 +5,7 @@ on:
     branches: [main]
     paths:
       - 'workers/**'
-      - 'wrangler.toml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'workers/**'
+      - 'app/lib/geo-data-core.js'
       - 'wrangler.toml'
   workflow_dispatch:
     inputs:
@@ -20,10 +16,14 @@ on:
         type: choice
         options: [production, preview, alpha]
 
+permissions:
+  contents: read
+
 jobs:
   deploy-production:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,12 +33,12 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions upload --env production
 
   deploy-preview:
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'preview')
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'preview'
     runs-on: ubuntu-latest
+    environment: preview
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,12 +48,12 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env preview
 
   deploy-alpha:
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'alpha'
     runs-on: ubuntu-latest
+    environment: alpha
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,5 +63,4 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env alpha
