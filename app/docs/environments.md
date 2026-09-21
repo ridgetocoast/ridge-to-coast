@@ -35,7 +35,7 @@ Tokens are account-owned and auto-rotate every 90 days with a 7-day overlap. The
 
 ## DNS
 
-Both `preprod` and `alpha` A records point to `192.0.2.1` (placeholder) with Cloudflare proxy enabled. The Worker route intercepts all requests before they reach the origin.
+`api`, `preprod` and `alpha` are **CNAME** records (not A records) pointing at `ridgetocoast-api.loboedwin01.workers.dev`, proxied through Cloudflare — see `infra/terraform/dns.tf`. That target does not resolve to a deployed script, but it is inert: the Worker route intercepts every request before origin resolution. `www` is a proxied CNAME to the apex.
 
 ## IP access
 
