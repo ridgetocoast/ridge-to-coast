@@ -23,10 +23,13 @@ const assert = require('node:assert/strict');
 const fs   = require('fs');
 const path = require('path');
 
-const ROOT     = path.join(__dirname, '..');
-const WORKFLOW = path.join(ROOT, '.github', 'workflows', 'update-epa-regions.yml');
-const FETCH    = path.join(ROOT, 'scripts', 'fetch-epa-ecoregions.js');
-const EXTRACT  = path.join(ROOT, 'scripts', 'extract-regions.js');
+// ROOT is app/ (where the pipeline scripts live); the workflow lives at the
+// repo root, one level further up.
+const ROOT      = path.join(__dirname, '..');
+const REPO_ROOT = path.join(__dirname, '..', '..');
+const WORKFLOW  = path.join(REPO_ROOT, '.github', 'workflows', 'update-epa-regions.yml');
+const FETCH     = path.join(ROOT, 'scripts', 'fetch-epa-ecoregions.js');
+const EXTRACT   = path.join(ROOT, 'scripts', 'extract-regions.js');
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 

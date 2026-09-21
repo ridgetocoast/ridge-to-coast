@@ -59,6 +59,44 @@ jobs:
       - name: Extract and simplify regions
         if: steps.fetch.outputs.ok == 'true'
         run: node app/scripts/extract-regions.js /tmp/us_eco_l3.geojson app/data/regions.geojson
+      - name: Verify extracted regions before committing
+        if: steps.fetch.outputs.ok == 'true'
+        run: |
+          set -e
+          OUT=app/data/regions.geojson
+
+          # Size guard: this workflow auto-commits and pushes, and a push to
+          # app/** triggers the production Pages deploy. Cap the file at 2048 KB
+          # (2 MB) so a bad extraction cannot bloat the repo or the bundle.
+          SIZE_KB=$(( $(wc -c < "$OUT") / 1024 ))
+          echo "regions.geojson is ${SIZE_KB} KB"
+          if [ "$SIZE_KB" -gt 2048 ]; then
+            echo "ERROR: regions.geojson is ${SIZE_KB} KB, over the 2048 KB (2 MB) limit."
+            exit 1
+          fi
+
+          # Schema guard: if EPA changes their L3 codes, extract-regions.js can
+          # silently emit a file that is missing whole regions. Require all nine.
+          node -e "
+            const fs = require('fs');
+            const gj = JSON.parse(fs.readFileSync('app/data/regions.geojson', 'utf8'));
+            const found = new Set(gj.features.map(f => f.properties.region));
+            const required = [
+              'blueRidge', 'coastal', 'greatLakes', 'gulfCoastal',
+              'interiorLowlands', 'neCoastal', 'neUpland', 'piedmont', 'valleyRidge'
+            ];
+            const missing = required.filter(k => !found.has(k));
+            if (missing.length) {
+              console.error('ERROR: regions.geojson is missing regions: ' + missing.join(', '));
+              process.exit(1);
+            }
+            console.log('All ' + required.length + ' region keys present.');
+          "
+
+      - name: Run unit tests against the new data
+        if: steps.fetch.outputs.ok == 'true'
+        run: node --test app/tests/geo.test.js
+
       - name: Commit if changed
         if: steps.fetch.outputs.ok == 'true'
         run: |
