@@ -7,8 +7,17 @@ on:
       - 'app/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  # Gate the deploy on a green suite. Previously tests and deploy ran
+  # concurrently and independently, so a red suite did not stop a release.
+  tests:
+    uses: ./.github/workflows/test.yml
+
   deploy:
+    needs: tests
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -21,3 +30,25 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: pages deploy app --project-name=ridgetocoast --branch=main
+
+      - name: Smoke test the deployed frontend
+        run: |
+          set -uo pipefail
+          # Checked against the pages.dev origin, not the custom domain: the
+          # apex sits behind a Cloudflare bot challenge that answers 403 to
+          # non-browser clients, which would make this gate permanently red
+          # for a reason unrelated to the deploy.
+          URL=https://ridgetocoast.pages.dev
+          for i in $(seq 1 10); do
+            RESP=$(curl -sS --max-time 20 -o /tmp/page -w '%{http_code}\t%{content_type}' "$URL") && break
+            echo "attempt $i failed, retrying..."; sleep 6
+          done
+          STATUS="${RESP%%$'\t'*}"
+          CTYPE="${RESP##*$'\t'}"
+          if [ "$STATUS" != "200" ]; then
+            echo "FAIL: $URL returned $STATUS"; head -c 300 /tmp/page; exit 1
+          fi
+          case "$CTYPE" in text/html*) ;; *) echo "FAIL: expected HTML, got $CTYPE"; exit 1 ;; esac
+          # The map container is the one element the whole app depends on.
+          grep -q 'id="map"' /tmp/page || { echo "FAIL: deployed page has no #map container"; exit 1; }
+          echo "ok: frontend healthy at $URL"

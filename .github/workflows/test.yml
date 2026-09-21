@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Callable so the deploy workflows can gate on a green suite. Workflows in
+  # separate files cannot `needs:` each other, so they `uses:` this one instead.
+  workflow_call:
 
 jobs:
   unit:
@@ -17,7 +20,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - run: node --test app/tests/geo.test.js
+      # Glob form is deliberate: a bare directory arg fails on Node 22+, and the
+      # glob picks up new app/tests/*.test.js files without editing this file.
+      - run: node --test app/tests/*.test.js
       - run: node --test workers/tests/*.test.js
 
   e2e:
@@ -31,5 +36,16 @@ jobs:
       - run: pip install -r app/tests/e2e/requirements.txt
       - run: playwright install chromium --with-deps
       - name: Serve app
-        run: python -m http.server 8000 --directory app &
+        run: |
+          python -m http.server 8000 --directory app &
+          # Wait for the server to accept connections before pytest starts.
+          # Previously this was a bare background launch with no readiness gate,
+          # which raced against the first page.goto().
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/ -o /dev/null; then
+              echo "server up after ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "server failed to start within 30s"; exit 1
       - run: python -m pytest app/tests/e2e/ --base-url http://localhost:8000 -v

@@ -20,7 +20,13 @@ permissions:
   contents: read
 
 jobs:
+  # Gate every deploy on a green suite. Previously tests and deploy ran
+  # concurrently and independently, so a red suite did not stop a release.
+  tests:
+    uses: ./.github/workflows/test.yml
+
   deploy-production:
+    needs: tests
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
     runs-on: ubuntu-latest
     environment: production
@@ -35,7 +41,11 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: versions upload --env production
 
+      # No smoke test here on purpose: `versions upload` stages a version
+      # without serving traffic. The live check runs in promote-workers.yml.
+
   deploy-preview:
+    needs: tests
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'preview'
     runs-on: ubuntu-latest
     environment: preview
@@ -50,7 +60,11 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: deploy --env preview
 
+      - name: Smoke test preprod.ridgetocoast.com
+        run: ./scripts/smoke-api.sh https://preprod.ridgetocoast.com
+
   deploy-alpha:
+    needs: tests
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'alpha'
     runs-on: ubuntu-latest
     environment: alpha
@@ -64,3 +78,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: deploy --env alpha
+
+      - name: Smoke test alpha.ridgetocoast.com
+        run: ./scripts/smoke-api.sh https://alpha.ridgetocoast.com

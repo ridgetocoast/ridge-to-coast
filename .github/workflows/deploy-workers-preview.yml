@@ -17,10 +17,23 @@ concurrency:
 
 jobs:
   deploy-preview:
-    if: github.event.pull_request.draft == false
+    # SECURITY: this workflow runs on `pull_request_target`, so it executes with
+    # repository context and can read the `preview` environment's Cloudflare
+    # deploy token — while checking out PR-authored source. Without the author
+    # gate below, anyone could open a fork PR and run arbitrary code holding a
+    # live deploy credential. Restrict it to people who already have write
+    # access; for outside contributors, deploy a preview manually instead.
+    if: >-
+      github.event.pull_request.draft == false &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
     runs-on: ubuntu-latest
     environment: preview
     steps:
+      - name: Checkout base repo (trusted — provides the smoke script)
+        uses: actions/checkout@v4
+        with:
+          path: base
+
       - name: Checkout PR source
         uses: actions/checkout@v4
         with:
@@ -52,3 +65,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: c378aeb8ad614074b3a5e541a4788993
           command: deploy --config wrangler.preview.toml
+
+      - name: Smoke test preprod.ridgetocoast.com
+        # Deliberately the base-repo copy, never pr-source/ — running a
+        # PR-authored script here would defeat the author gate above.
+        run: base/scripts/smoke-api.sh https://preprod.ridgetocoast.com
