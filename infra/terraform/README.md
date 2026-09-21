@@ -7,6 +7,27 @@ gate** — a non-empty plan on the weekly run means live config drifted from
 intent. Worker *script* deploys stay Wrangler-driven; Terraform owns
 routing/DNS/TLS/config/tokens only.
 
+## Current state (as of 2026-09-20) — NOT YET APPLIED
+
+**No `terraform apply` has succeeded against this configuration.** Evidence:
+
+- The weekly `Terraform Infra` drift job has failed every Monday since
+  2026-07-06 (ten consecutive runs). It fails in ~12s at `terraform init` with
+  `Error: No valid credential sources found` — the four `infra` environment
+  secrets below resolve empty, so the R2 backend cannot authenticate.
+- `imports.tf` still contains the literal `REPLACE_WITH_API_RECORD_ID` and
+  `REPLACE_WITH_WWW_RECORD_ID` placeholders, i.e. step 3 of the runbook below
+  was never completed. That file is meant to be deleted after the first apply.
+
+Consequences: the drift gate has never actually run, so nothing in this
+directory is known to match live Cloudflare config. In particular `waf.tf`
+(the bot-protection exemption for the API hostnames) exists only as code.
+
+`.github/workflows/infra.yml` now fails with an explicit message naming the
+missing secrets rather than the opaque backend error, so the distinction
+between "setup incomplete" and "real drift detected" is visible from the run
+list. Start at the runbook below.
+
 ## Bootstrap root-of-trust (manual, never TF-managed — spec §6)
 
 Three credentials are created **by hand, once**, and rotated manually ~annually
