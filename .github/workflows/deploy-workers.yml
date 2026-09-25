@@ -5,11 +5,7 @@ on:
     branches: [main]
     paths:
       - 'workers/**'
-      - 'wrangler.toml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'workers/**'
+      - 'app/lib/geo-data-core.js'
       - 'wrangler.toml'
   workflow_dispatch:
     inputs:
@@ -20,10 +16,20 @@ on:
         type: choice
         options: [production, preview, alpha]
 
+permissions:
+  contents: read
+
 jobs:
+  # Gate every deploy on a green suite. Previously tests and deploy ran
+  # concurrently and independently, so a red suite did not stop a release.
+  tests:
+    uses: ./.github/workflows/test.yml
+
   deploy-production:
+    needs: tests
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,12 +39,16 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions upload --env production
 
+      # No smoke test here on purpose: `versions upload` stages a version
+      # without serving traffic. The live check runs in promote-workers.yml.
+
   deploy-preview:
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'preview')
+    needs: tests
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'preview'
     runs-on: ubuntu-latest
+    environment: preview
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,12 +58,16 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env preview
 
+      - name: Smoke test preprod.ridgetocoast.com
+        run: ./scripts/smoke-api.sh https://preprod.ridgetocoast.com
+
   deploy-alpha:
+    needs: tests
     if: github.event_name == 'workflow_dispatch' && inputs.environment == 'alpha'
     runs-on: ubuntu-latest
+    environment: alpha
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,5 +77,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env alpha
+
+      - name: Smoke test alpha.ridgetocoast.com
+        run: ./scripts/smoke-api.sh https://alpha.ridgetocoast.com

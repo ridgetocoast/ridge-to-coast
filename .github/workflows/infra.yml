@@ -56,6 +56,30 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "~> 1.11"
+
+      - name: Preflight — bootstrap credentials present
+        # Without these four, `terraform init` fails against the R2 backend with
+        # "No valid credential sources found", which reads like a Terraform
+        # problem rather than an unset secret. That ambiguity kept this job red
+        # every Monday from 2026-07-06 onward without anyone reading it. Fail
+        # here instead, with the fix in the message.
+        run: |
+          missing=""
+          [ -n "${TF_VAR_cloudflare_bootstrap_token}" ] || missing="${missing} CLOUDFLARE_BOOTSTRAP_TOKEN"
+          [ -n "${TF_VAR_github_token}" ]              || missing="${missing} GH_INFRA_TOKEN"
+          [ -n "${AWS_ACCESS_KEY_ID}" ]                || missing="${missing} R2_ACCESS_KEY_ID"
+          [ -n "${AWS_SECRET_ACCESS_KEY}" ]            || missing="${missing} R2_SECRET_ACCESS_KEY"
+          if [ -n "${missing}" ]; then
+            echo "::error::Missing secrets in the 'infra' GitHub Environment:${missing}"
+            echo ""
+            echo "These are bootstrap credentials entered by hand — Terraform"
+            echo "cannot issue the token it needs to authenticate itself."
+            echo "Add them at: Settings > Environments > infra > Environment secrets"
+            echo "See infra/terraform/README.md for where each value comes from."
+            exit 1
+          fi
+          echo "All four bootstrap credentials present."
+
       - run: terraform init -input=false
       - name: Drift gate (exit 2 = drift = red)
         id: drift
@@ -101,6 +125,30 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "~> 1.11"
+
+      - name: Preflight — bootstrap credentials present
+        # Without these four, `terraform init` fails against the R2 backend with
+        # "No valid credential sources found", which reads like a Terraform
+        # problem rather than an unset secret. That ambiguity kept this job red
+        # every Monday from 2026-07-06 onward without anyone reading it. Fail
+        # here instead, with the fix in the message.
+        run: |
+          missing=""
+          [ -n "${TF_VAR_cloudflare_bootstrap_token}" ] || missing="${missing} CLOUDFLARE_BOOTSTRAP_TOKEN"
+          [ -n "${TF_VAR_github_token}" ]              || missing="${missing} GH_INFRA_TOKEN"
+          [ -n "${AWS_ACCESS_KEY_ID}" ]                || missing="${missing} R2_ACCESS_KEY_ID"
+          [ -n "${AWS_SECRET_ACCESS_KEY}" ]            || missing="${missing} R2_SECRET_ACCESS_KEY"
+          if [ -n "${missing}" ]; then
+            echo "::error::Missing secrets in the 'infra' GitHub Environment:${missing}"
+            echo ""
+            echo "These are bootstrap credentials entered by hand — Terraform"
+            echo "cannot issue the token it needs to authenticate itself."
+            echo "Add them at: Settings > Environments > infra > Environment secrets"
+            echo "See infra/terraform/README.md for where each value comes from."
+            exit 1
+          fi
+          echo "All four bootstrap credentials present."
+
       - run: terraform init -input=false
       - name: terraform ${{ inputs.action }}
         run: |

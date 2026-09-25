@@ -2,12 +2,13 @@
  * tests/geo.test.js
  * -----------------
  * Unit tests for lib/geo-data.js using the Node.js built-in test runner.
- * No npm packages required. Run with:
+ * No npm packages required. Run from the repo root with:
  *
- *   node --test tests/geo.test.js
+ *   node --test app/tests/geo.test.js
  *
- * Results are stored at:
- *   tests/results/latest.txt
+ * Or run the whole app suite (geo + pipeline + sw):
+ *
+ *   node --test app/tests/*.test.js
  */
 
 'use strict';

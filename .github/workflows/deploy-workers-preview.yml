@@ -1,0 +1,72 @@
+name: Deploy PR API Preview (Cloudflare Workers)
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'workers/**'
+      - 'app/lib/geo-data-core.js'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workers-preview-preprod
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    # SECURITY: this workflow runs on `pull_request_target`, so it executes with
+    # repository context and can read the `preview` environment's Cloudflare
+    # deploy token — while checking out PR-authored source. Without the author
+    # gate below, anyone could open a fork PR and run arbitrary code holding a
+    # live deploy credential. Restrict it to people who already have write
+    # access; for outside contributors, deploy a preview manually instead.
+    if: >-
+      github.event.pull_request.draft == false &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+      - name: Checkout base repo (trusted — provides the smoke script)
+        uses: actions/checkout@v4
+        with:
+          path: base
+
+      - name: Checkout PR source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          path: pr-source
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate fixed preview Wrangler config
+        run: |
+          cat > wrangler.preview.toml <<'EOF'
+          name = "ridge-to-coast-preview"
+          main = "pr-source/workers/index.js"
+          compatibility_date = "2024-01-01"
+          account_id = "c378aeb8ad614074b3a5e541a4788993"
+
+          routes = [
+            { pattern = "preprod.ridgetocoast.com/*", zone_name = "ridgetocoast.com" }
+          ]
+          EOF
+
+      - name: Deploy PR source to preprod.ridgetocoast.com
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: c378aeb8ad614074b3a5e541a4788993
+          command: deploy --config wrangler.preview.toml
+
+      - name: Smoke test preprod.ridgetocoast.com
+        # Deliberately the base-repo copy, never pr-source/ — running a
+        # PR-authored script here would defeat the author gate above.
+        run: base/scripts/smoke-api.sh https://preprod.ridgetocoast.com

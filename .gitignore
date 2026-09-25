@@ -1,0 +1,13 @@
+# Python test environment for the Playwright e2e suite.
+# Created with: uv venv .venv --python 3.12
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Playwright artifacts
+test-results/
+playwright-report/
+
+# Terraform local state (infra/terraform has its own .gitignore too)
+*.tfstate
+*.tfstate.*

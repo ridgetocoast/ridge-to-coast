@@ -14,27 +14,62 @@ on:
         default: 'production'
         type: choice
         options: [production, preview, alpha]
+      version_id:
+        description: 'Version ID to promote (default: latest uploaded version)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
 
 jobs:
   promote:
     # Only production uses `versions upload` staging — preview/alpha deploy directly
     if: inputs.action == 'promote' && inputs.environment == 'production'
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # `versions deploy --yes` with no version argument selects 0 versions and
+      # fails — the version to promote must be passed explicitly as <id>@100%.
+      # The account id comes from wrangler.toml, not a secret.
+      - name: Resolve version to promote
+        id: version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          INPUT_VERSION_ID: ${{ inputs.version_id }}
+        run: |
+          if [ -n "${INPUT_VERSION_ID}" ]; then
+            version_id="${INPUT_VERSION_ID}"
+          else
+            version_id=$(npx wrangler@4 versions list --env production --json \
+              | jq -r 'sort_by(.metadata.created_on) | last | .id')
+          fi
+          if [ -z "${version_id}" ] || [ "${version_id}" = "null" ]; then
+            echo "::error::No uploaded version found to promote."
+            exit 1
+          fi
+          echo "Promoting version: ${version_id}"
+          echo "id=${version_id}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy staged version to production
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions deploy --env production --yes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler@4 versions deploy "${{ steps.version.outputs.id }}@100%" --env production --yes
+
+      # Promotion is the moment production traffic changes. Verify it before
+      # calling the release good.
+      - name: Smoke test production API
+        run: ./scripts/smoke-api.sh https://api.ridgetocoast.com
 
   rollback:
     if: inputs.action == 'rollback'
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,5 +79,14 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: rollback --env ${{ inputs.environment }} --yes
+
+      # A rollback is an emergency action — confirm it actually restored health.
+      - name: Smoke test ${{ inputs.environment }} after rollback
+        run: |
+          case "${{ inputs.environment }}" in
+            production) URL=https://api.ridgetocoast.com ;;
+            preview)    URL=https://preprod.ridgetocoast.com ;;
+            alpha)      URL=https://alpha.ridgetocoast.com ;;
+          esac
+          ./scripts/smoke-api.sh "$URL"

@@ -1,0 +1,42 @@
+name: Audit Cloudflare Config
+
+# Reconciles the live Cloudflare account against wrangler.toml — DNS records,
+# Worker routes and scripts, deployments, and Pages domains. Entirely read-only.
+#
+# This consumes the `audit` GitHub Environment and Terraform's audit-readonly
+# token (infra/terraform/tokens.tf), both of which existed with no consumer.
+
+on:
+  schedule:
+    # Wednesdays, offset from the Monday Terraform drift gate so the two
+    # signals arrive separately rather than as one wall of red.
+    - cron: '23 7 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    environment: audit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Reconcile live Cloudflare config against wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is unset in the 'audit' environment."
+            echo "It is issued by Terraform as the audit-readonly token; see"
+            echo "infra/terraform/tokens.tf and infra/terraform/README.md."
+            exit 1
+          fi
+          node scripts/audit-cloudflare-config.mjs
+
+      - name: Smoke test the production API
+        run: ./scripts/smoke-api.sh https://api.ridgetocoast.com

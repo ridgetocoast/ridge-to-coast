@@ -31,8 +31,8 @@
 `lib/geo-data.js`, `map.js`, `index.html`, `style.css` must have **zero npm dependencies**. No `import` from npm. No `require()` from npm. Leaflet is vendored in `lib/`.
 
 ### Content Security Policy
-CSP is enforced via `<meta http-equiv="Content-Security-Policy">` in `index.html` AND via `_headers` for Cloudflare Pages. Never add external script/style sources without updating both. Approved external `connect-src` sources:
-- `https://a.basemaps.cartocdn.com` (CARTO tiles)
+CSP is enforced **only** by `<meta http-equiv="Content-Security-Policy">` in `index.html`. There is no `_headers` file — don't go looking for one. Approved external `connect-src` sources:
+
 - `https://nominatim.openstreetmap.org` (geocoding)
 - `https://api.weather.gov` (NWS frost advisories)
 - `https://api.inaturalist.org` (iNaturalist observations)
@@ -40,6 +40,9 @@ CSP is enforced via `<meta http-equiv="Content-Security-Policy">` in `index.html
 - `https://api.ridgetocoast.com` (production Workers API)
 - `https://preprod.ridgetocoast.com` (preprod Workers API)
 - `https://alpha.ridgetocoast.com` (alpha Workers API)
+
+CARTO basemap tiles are images, not fetches — they live under
+`img-src 'self' https://*.basemaps.cartocdn.com data: blob:`, not `connect-src`.
 
 ### API_BASE routing
 `map.js` declares `API_BASE` as an IIFE near the top of the file:
@@ -90,9 +93,12 @@ Before changing any data structure in `geo-data.js`, check `tests/geo.test.js` t
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `test.yml` | Every push/PR | Unit tests (Node 20 + 22) |
-| `e2e.yml` | Every push/PR | E2E tests (Chromium) |
-| `deploy-pages.yml` | Push to `main` (app/ changes) | Deploy frontend to Cloudflare Pages |
-| `deploy-workers.yml` | Push to `main` / PR / `workflow_dispatch` | Stage or deploy Workers API |
-| `promote-workers.yml` | `workflow_dispatch` | Promote staged version to production or rollback |
-| `update-epa-regions.yml` | `workflow_dispatch` | EPA L3 data pipeline |
+| `test.yml` | Every push/PR, **and `workflow_call`** | Unit tests (Node 20 + 22) **and** the E2E job (Chromium) — there is no separate `e2e.yml`. Callable so deploys can gate on it |
+| `deploy-pages.yml` | Push to `main` (app/ changes) / `workflow_dispatch` | Deploy frontend to Pages — `needs:` a green suite, then smoke-tests it |
+| `deploy-workers.yml` | Push to `main` (workers/ changes) / `workflow_dispatch` | Stage or deploy Workers API — `needs:` a green suite. No PR trigger |
+| `deploy-workers-preview.yml` | `pull_request_target` (workers/ changes) | PR preview to preprod. Gated to OWNER/MEMBER/COLLABORATOR |
+| `promote-workers.yml` | `workflow_dispatch` | Promote a specific staged version, or rollback; smoke-tests after |
+| `infra.yml` | PR / weekly / manual | Terraform fmt, validate, drift gate, apply |
+| `audit-config.yml` | Weekly / manual | Reconcile live Cloudflare config against `wrangler.toml` |
+| `agent-pipeline.yml` | `agent:*` label | Multi-agent dispatch |
+| `update-epa-regions.yml` | `workflow_dispatch` | EPA L3 data pipeline — verifies size, schema and tests before committing |

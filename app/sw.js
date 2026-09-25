@@ -1,6 +1,6 @@
 'use strict';
 
-var CACHE_NAME = 'ridge-to-coast-v1';
+var CACHE_NAME = 'ridge-to-coast-v2';
 var OFFLINE_FALLBACK_URL = '/';
 var PRECACHE_URLS = [
   '/',
@@ -11,10 +11,10 @@ var PRECACHE_URLS = [
   '/assets/icon.svg',
   '/lib/leaflet.css',
   '/lib/leaflet.js',
+  '/lib/geo-data-core.js',
   '/lib/geo-data.js',
   '/data/regions.geojson',
-  '/data/hardiness.geojson',
-  '/data/planting-calendar.js'
+  '/data/hardiness.geojson'
 ];
 
 function isCacheableResponse(response) {
