@@ -149,7 +149,10 @@ referencing them will silently resolve to an empty string. See
 - [x] Post-deploy smoke checks — `scripts/smoke-api.sh` on preview/alpha/promote/rollback
 - [x] `pull_request_target` preview deploy gated to OWNER/MEMBER/COLLABORATOR
 - [x] Config audit wired to the `audit` environment (`audit-config.yml`, weekly)
-- [ ] **Cloudflare bot challenge on `api.ridgetocoast.com`** — `waf.tf` written, not applied
+- [ ] **Cloudflare bot challenge on `api.ridgetocoast.com`** — cause unconfirmed. The
+  zone is on the **Free plan**: if Bot Fight Mode is the source, no WAF rule can
+  exempt a hostname and it must be switched off. `waf.tf` helps only if the cause
+  is Security Level or managed rules. Diagnostic: T1/T2 runbook, RB-01 Step 2
 - [ ] **Terraform `infra` secrets** — must be entered by hand before the drift gate runs
 
 ---
